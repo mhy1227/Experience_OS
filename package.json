@@ -1,0 +1,24 @@
+{
+  "name": "experience-os",
+  "version": "1.0.0",
+  "description": "个人经验自动结构化系统",
+  "scripts": {
+    "dev:h5": "vite --host 0.0.0.0",
+    "build:h5": "vite build",
+    "preview:h5": "vite preview --host 0.0.0.0",
+    "typecheck": "vue-tsc --noEmit",
+    "test:evaluation": "tsc -p tsconfig.test.json && node dist-tests/tests/aiAnalyzer.test.js && node dist-tests/tests/modelAnalysisAdapter.test.js && node dist-tests/tests/evaluationEngine.test.js && node dist-tests/tests/experienceStore.test.js"
+  },
+  "dependencies": {
+    "vue": "^3.4.21",
+    "pinia": "^2.1.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0",
+    "vue-tsc": "^2.0.6",
+    "sass": "^1.72.0"
+  }
+}
