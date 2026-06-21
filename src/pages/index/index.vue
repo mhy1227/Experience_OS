@@ -38,6 +38,12 @@
         <ModelConfigPanel />
       </view>
 
+      <!-- Trust Banner:本地优先可见化 -->
+      <div class="trust-banner">
+        <span class="trust-icon">🔒</span>
+        <span class="trust-text">数据只在本机 — 零云端上传，随时可导出或清空</span>
+      </div>
+
       <view class="composer">
         <view class="composer-header">
           <view>
@@ -52,6 +58,18 @@
               清空
             </button>
           </view>
+          <!-- 经验资产管理 -->
+          <div class="asset-actions">
+            <button class="btn-load-work-demo" :disabled="store.isSeedingDemo" @click="handleLoadDemoWork">
+              {{ store.isSeedingDemo ? '载入中…' : '载入演示工作数据' }}
+            </button>
+            <button class="btn-export-md" @click="handleExportMarkdown" :disabled="store.observations.length === 0">
+              导出经验资产 (.md)
+            </button>
+            <button class="btn-clear-all" @click="handleClearAll">
+              一键清空本地数据
+            </button>
+          </div>
           <button
             class="primary-button scan-button"
             :disabled="store.observations.filter(o => o.status === 'success').length < 3 || store.isComputingInsights"
@@ -910,6 +928,8 @@
         />
       </view>
     </view>
+    <!-- Toast 提示 -->
+    <div v-if="toastMessage" class="toast-notification">{{ toastMessage }}</div>
   </view>
 </template>
 
@@ -977,6 +997,14 @@ async function handleImport() {
 const draft = ref('')
 const activeTab = ref<TabKey>('records')
 const showSettings = ref(false)
+const toastMessage = ref('')
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string) {
+  toastMessage.value = message
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toastMessage.value = '' }, 3000)
+}
 const ruleQuery = ref('')
 const selectedCategory = ref<ExperienceCategory | '全部'>('全部')
 const recallScene = ref('')
@@ -1088,6 +1116,32 @@ function clearData() {
   ruleQuery.value = ''
   selectedCategory.value = '全部'
   activeTab.value = 'records'
+}
+
+function handleExportMarkdown() {
+  store.exportAsMarkdown()
+}
+
+function handleClearAll() {
+  const confirmed = window.confirm(
+    `确认清空全部本地数据？\n当前有 ${store.observations.length} 条观察、${store.rules.length} 条规则。\n此操作不可撤销。`
+  )
+  if (!confirmed) return
+  const { observationCount, ruleCount } = store.clearAllData()
+  draft.value = ''
+  ruleQuery.value = ''
+  selectedCategory.value = '全部'
+  activeTab.value = 'records'
+  showToast(`已清空 ${observationCount} 条观察、${ruleCount} 条规则`)
+}
+
+async function handleLoadDemoWork() {
+  const confirmed = store.observations.length === 0
+    || window.confirm('载入演示数据将清空现有数据，确认继续？')
+  if (!confirmed) return
+  await store.loadDemoWorkData()
+  activeTab.value = 'rules'
+  showToast('演示工作数据已载入，共 35 条观察')
 }
 
 function toggleCategory(category: ExperienceCategory) {
@@ -3766,5 +3820,73 @@ const RuleCard = defineComponent({
 
 .settings-panel {
   padding: 0 16px 16px;
+}
+
+.trust-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #f0f9ff;
+  border-bottom: 1px solid #bae6fd;
+  font-size: 13px;
+  color: #0369a1;
+
+  .trust-icon { font-size: 14px; }
+  .trust-text { flex: 1; }
+}
+
+.asset-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+
+  .btn-load-work-demo {
+    padding: 6px 14px;
+    background: #7c3aed;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  .btn-export-md {
+    padding: 6px 14px;
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+
+  .btn-clear-all {
+    padding: 6px 14px;
+    background: white;
+    color: #dc2626;
+    border: 1px solid #dc2626;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    &:hover { background: #fef2f2; }
+  }
+}
+
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 9999;
+  pointer-events: none;
 }
 </style>
