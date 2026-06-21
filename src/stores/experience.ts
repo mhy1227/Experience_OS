@@ -57,6 +57,12 @@ import type {
 
 const STORAGE_KEY = 'experience-os-state-v1'
 
+export interface ImportSummary {
+  total: number       // 拆出的非空行数
+  succeeded: number  // 分析成功条数
+  failed: number     // 分析失败条数(已降级保存)
+}
+
 interface PersistedState {
   observations: Observation[]
   rules: ExperienceRule[]
@@ -1604,6 +1610,50 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // 批量导入:粘贴多行文本 → 按行拆成多条观察 → 逐条走弹性分析管线 → 写库
+  // ---------------------------------------------------------------------------
+  async function importObservations(rawText: string): Promise<ImportSummary> {
+    const lines = rawText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+
+    const summary: ImportSummary = { total: lines.length, succeeded: 0, failed: 0 }
+    if (lines.length === 0) return summary
+
+    const client = getActiveModelClient()
+
+    for (const line of lines) {
+      const now = new Date().toISOString()
+      const observation: Observation = {
+        id: createId('obs'),
+        text: line,
+        category: '其他',
+        tags: [],
+        summary: '批量导入中',
+        status: 'pending',
+        createdAt: now,
+      }
+      observations.value.push(observation)
+
+      try {
+        const analysis = await analyzeObservationResilient(line, { client })
+        const processedAt = new Date().toISOString()
+        await _writeObservation(observation, analysis, processedAt)
+        summary.succeeded += 1
+      } catch {
+        observation.status = 'failed'
+        observation.summary = '结构化校验失败，原始观察已保存。'
+        summary.failed += 1
+      }
+
+      persist()
+    }
+
+    return summary
+  }
+
   return {
     observations,
     rules,
@@ -1661,6 +1711,7 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     importEvaluationData,
     clearAll,
     loadDemoData,
+    importObservations,
   }
 })
 
@@ -1727,6 +1778,7 @@ function normalizeImportedObservation(input: ImportableRecord): Observation | un
   if (!id || !text) return undefined
 
   const now = new Date().toISOString()
+  const SENTIMENT_VALUES = ['positive', 'neutral', 'negative'] as const
   return {
     id,
     text,
@@ -1738,6 +1790,9 @@ function normalizeImportedObservation(input: ImportableRecord): Observation | un
     processedAt: optionalDate(input.processedAt),
     ruleId: optionalString(input.ruleId),
     location: optionalString(input.location),
+    sentiment: SENTIMENT_VALUES.includes(input.sentiment as never)
+      ? (input.sentiment as ObservationSentiment)
+      : undefined,
   }
 }
 
