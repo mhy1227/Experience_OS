@@ -69,6 +69,35 @@
         </view>
       </view>
 
+      <!-- 批量导入区块 -->
+      <section class="import-section">
+        <h3 class="import-title">批量导入</h3>
+        <p class="import-hint">粘贴多行文字（每行一条观察），一键导入历史经验</p>
+        <textarea
+          v-model="importText"
+          class="import-textarea"
+          placeholder="每行一条，例如：&#10;周末10点健身房人少&#10;工作日早高峰避开8点出门&#10;..."
+          :disabled="isImporting"
+          rows="6"
+        />
+        <div class="import-actions">
+          <button
+            class="import-btn"
+            :disabled="!importText.trim() || isImporting"
+            @click="handleImport"
+          >
+            {{ isImporting ? '导入中…' : '批量导入' }}
+          </button>
+        </div>
+        <!-- 结果反馈 -->
+        <div v-if="importResult" class="import-result">
+          <span>共 {{ importResult.total }} 条 · 成功 {{ importResult.succeeded }} · 失败 {{ importResult.failed }}</span>
+        </div>
+        <div v-if="isImporting" class="import-progress">
+          正在逐条提炼经验，请稍候…
+        </div>
+      </section>
+
       <view class="ops-board">
         <view class="ops-item">
           <text class="ops-label">分析模式</text>
@@ -833,6 +862,7 @@
 import { computed, defineComponent, h, ref } from 'vue'
 import { demoSamples, reusabilityLabel } from '../../services/aiAnalyzer'
 import { useExperienceStore } from '../../stores/experience'
+import type { ImportSummary } from '../../stores/experience'
 import type {
   AdoptionDecisionEvent,
   EvaluationBoundarySeverity,
@@ -867,6 +897,24 @@ import type {
 type TabKey = 'records' | 'rules' | 'evaluations' | 'map' | 'timeline'
 
 const store = useExperienceStore()
+
+const importText = ref('')
+const isImporting = ref(false)
+const importResult = ref<ImportSummary | null>(null)
+
+async function handleImport() {
+  const text = importText.value.trim()
+  if (!text || isImporting.value) return
+  isImporting.value = true
+  importResult.value = null
+  try {
+    importResult.value = await store.importObservations(text)
+    importText.value = ''
+  } finally {
+    isImporting.value = false
+  }
+}
+
 const draft = ref('')
 const activeTab = ref<TabKey>('records')
 const ruleQuery = ref('')
@@ -3592,4 +3640,28 @@ const RuleCard = defineComponent({
     grid-template-columns: 1fr;
   }
 }
+
+.import-section {
+  margin: 16px 0 24px;
+  padding: 16px;
+  border: 1px dashed var(--color-border, #ddd);
+  border-radius: 8px;
+  background: var(--color-bg-soft, #f9f9f9);
+}
+.import-title { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+.import-hint  { font-size: 12px; color: #888; margin: 0 0 10px; }
+.import-textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 10px; border: 1px solid #ccc; border-radius: 6px;
+  font-size: 13px; resize: vertical;
+}
+.import-actions { margin-top: 8px; }
+.import-btn {
+  padding: 8px 20px; font-size: 13px;
+  background: var(--color-primary, #4a7cf7); color: #fff;
+  border: none; border-radius: 6px; cursor: pointer;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+.import-result  { margin-top: 8px; font-size: 13px; color: #333; }
+.import-progress { margin-top: 6px; font-size: 12px; color: #888; }
 </style>
