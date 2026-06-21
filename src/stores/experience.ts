@@ -8,6 +8,7 @@ import type { ObservationDirection } from '../services/analysisContract'
 import type { ObservationSentiment } from '../types/experience'
 import { discoverPatterns } from '../services/patternDiscovery'
 import type { Insight } from '../types/experience'
+import { recallDecisionHints, type DecisionHint } from '../services/decisionHints'
 import {
   deriveEvaluationState,
   evaluationPlanPriorityValue,
@@ -197,6 +198,7 @@ export const useExperienceStore = defineStore('experience', () => {
   const isSeedingDemo = ref(false)
   const insights = ref<Insight[]>(persisted.insights ?? [])
   const isComputingInsights = ref(false)
+  const decisionHints = ref<DecisionHint[]>([])
   const latestRuleId = ref(rules.value[0]?.id ?? '')
 
   const latestRule = computed(() => rules.value.find((rule) => rule.id === latestRuleId.value) ?? rules.value[0])
@@ -764,6 +766,8 @@ export const useExperienceStore = defineStore('experience', () => {
       const analysis = await analyzeObservationResilient(content, { client: getActiveModelClient() })
       const processedAt = new Date().toISOString()
       await _writeObservation(observation, analysis, processedAt)
+      // M4 决策辅助:分析完成后召回相关历史规则
+      decisionHints.value = recallDecisionHints(content, rules.value, observations.value)
     } catch {
       observation.status = 'failed'
       observation.summary = '结构化校验失败，原始观察已保存。'
@@ -1767,6 +1771,10 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     insights,
     isComputingInsights,
     computeInsights,
+    decisionHints,
+    dismissDecisionHint(ruleId: string) {
+      decisionHints.value = decisionHints.value.filter((h) => h.ruleId !== ruleId)
+    },
   }
 })
 

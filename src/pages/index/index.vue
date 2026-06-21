@@ -74,6 +74,12 @@
             {{ store.isAnalyzing ? '提炼中' : '生成规则' }}
           </button>
         </view>
+
+        <!-- M4 决策辅助提醒 -->
+        <DecisionHintCard
+          :hints="store.decisionHints"
+          @dismiss="store.dismissDecisionHint"
+        />
       </view>
 
       <!-- 批量导入区块 -->
@@ -893,6 +899,7 @@ import { computed, defineComponent, h, ref } from 'vue'
 import { demoSamples, reusabilityLabel } from '../../services/aiAnalyzer'
 import { useExperienceStore } from '../../stores/experience'
 import InsightCard from './components/InsightCard.vue'
+import DecisionHintCard from '../../components/DecisionHintCard.vue'
 import type { ImportSummary } from '../../stores/experience'
 import type {
   AdoptionDecisionEvent,
