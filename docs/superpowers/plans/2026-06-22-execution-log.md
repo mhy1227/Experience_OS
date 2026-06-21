@@ -196,3 +196,15 @@
 2. **store import 一次提交**:计划把 Task 1(exportAsMarkdown) 和 Task 3(loadDemoWorkData) 分别提交 store 改动;实际 Task 1 先提交 markdownExport.ts + 测试,Task 2 一次性提交 store 全部三个 action(exportAsMarkdown + clearAllData + loadDemoWorkData + DEMO_WORK_DATA import),逻辑更内聚,无功能偏差。
 3. **showToast 自实现**:计划中引用 `showToast` 未指明来源,index.vue 中不存在此函数。自实现了 `toastMessage ref` + `showToast()` + `.toast-notification` 样式,与计划意图一致(提示用户操作结果),无额外依赖。
 4. **package.json 末尾追加顺序**:计划说末尾为 `resilientAnalysis.test.js`,实际 Plan 4 已追加 `decisionHints.test.js`。正确追加 `markdownExport.test.js` 和 `demoWorkData.test.js` 到最末位。
+
+---
+
+## Plan 5 审查问题修复
+
+> 执行:debug-fix 子代理;提交:`240737a`
+
+- 2026-06-22:修复 Plan 5 审查发现的 2 个 critical + 1 个 important 问题(`240737a`)。
+  - Issue 1 (critical):`clearAll()` 新增 `insights.value = []`——修复"一键清空"后 InsightCard 依然可见的语义矛盾;`clearAllData()` 和 `loadDemoWorkData()` 均经此路径,同时受益。
+  - Issue 2 (critical):`demoWorkData.ts` 扩充"目标不一致"根因条目从 15 条增至 24 条,同时将干扰项从 15 条缩减至 6 条,使负向观察中根因占比从 50% 升至 80%(24/30);测试 `testRootCauseRatioAmongNegative` 门槛从 ≥50% 提升至 ≥75%,对齐彩排 T3.3 要求(≥70%)和 spec 目标(≥80%)。总种子条数 35 条(24 根因 + 6 干扰 + 5 正向)。
+  - Issue 3 (important):`loadDemoWorkData` 函数前追加 NOTE 注释,说明幂等性局限(关闭页面后局部写入无法自动恢复)和 35 次循环放大 submitObservation 静默丢弃窗口的问题;已有行为,不修改逻辑,仅文档化风险供演示知会用户。
+  - 全量 typecheck 无错;11 套测试全部通过,末行 `demoWorkData tests passed`。
