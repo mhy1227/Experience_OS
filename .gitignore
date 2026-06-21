@@ -3,3 +3,11 @@ dist/
 dist-tests/
 *.log
 .idea/
+
+# 数据库连接信息 / 私密文档,禁止提交
+private-doc/
+*.local.txt
+# MCP 配置含数据库密码,不提交
+.mcp.json
+.codex/config.toml
+/001_PRD/

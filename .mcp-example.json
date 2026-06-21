@@ -1,0 +1,17 @@
+{
+  "_comment": "复制本文件为 .mcp.json 并填入真实连接信息;.mcp.json 含密码,已被 .gitignore 忽略,请勿提交。",
+  "mcpServers": {
+    "my-database": {
+      "command": "node",
+      "args": [
+        "<universal-db-mcp 的绝对路径>/dist/index.js",
+        "--type", "mysql",
+        "--host", "<数据库主机, 例如 mysql2.sqlpub.com>",
+        "--port", "<端口, 例如 3307>",
+        "--user", "<数据库用户名>",
+        "--password", "<数据库密码>",
+        "--database", "<数据库名, 例如 cmyshorturl>"
+      ]
+    }
+  }
+}
