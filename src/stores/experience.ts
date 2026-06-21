@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { analyzeObservation, demoSamples } from '../services/aiAnalyzer'
+import { demoSamples } from '../services/aiAnalyzer'
+import { analyzeObservationResilient } from '../services/resilientAnalysis'
+import { getActiveModelClient } from '../services/modelConfig'
 import {
   deriveEvaluationState,
   evaluationPlanPriorityValue,
@@ -710,7 +712,7 @@ export const useExperienceStore = defineStore('experience', () => {
     persist()
 
     try {
-      const analysis = await analyzeObservation(content)
+      const analysis = await analyzeObservationResilient(content, { client: getActiveModelClient() })
       const processedAt = new Date().toISOString()
       const rule = upsertRuleFromAnalysis(analysis, observation.id, processedAt)
 
