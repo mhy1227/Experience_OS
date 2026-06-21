@@ -3,6 +3,9 @@ import { computed, ref } from 'vue'
 import { demoSamples } from '../services/aiAnalyzer'
 import { analyzeObservationResilient } from '../services/resilientAnalysis'
 import { getActiveModelClient } from '../services/modelConfig'
+import { inferDirection } from '../services/analysisContract'
+import type { ObservationDirection } from '../services/analysisContract'
+import type { ObservationSentiment } from '../types/experience'
 import {
   deriveEvaluationState,
   evaluationPlanPriorityValue,
@@ -681,6 +684,12 @@ export const useExperienceStore = defineStore('experience', () => {
       .sort((a, b) => getLastEvaluationTime(a) - getLastEvaluationTime(b))
   })
 
+  function mapSentiment(direction: ObservationDirection): ObservationSentiment {
+    if (direction === 'positive') return 'positive'
+    if (direction === 'negative') return 'negative'
+    return 'neutral'
+  }
+
   function persist() {
     localStorage.setItem(
       STORAGE_KEY,
@@ -690,6 +699,23 @@ export const useExperienceStore = defineStore('experience', () => {
         evaluationSettings: evaluationSettings.value,
       }),
     )
+  }
+
+  // 内部辅助:将 analysis 结果写入已存在的 observation 对象并 upsert rule
+  // 调用前 observation 已 push/unshift 进 observations.value
+  async function _writeObservation(observation: Observation, analysis: AnalysisResult, processedAt: string) {
+    const rule = upsertRuleFromAnalysis(analysis, observation.id, processedAt)
+    Object.assign(observation, {
+      category: analysis.category,
+      tags: analysis.tags,
+      summary: analysis.summary,
+      status: 'success' as const,
+      processedAt,
+      ruleId: rule.id,
+      location: analysis.location,
+      sentiment: mapSentiment(inferDirection(observation.text)),
+    })
+    latestRuleId.value = rule.id
   }
 
   async function submitObservation(text: string) {
@@ -714,19 +740,7 @@ export const useExperienceStore = defineStore('experience', () => {
     try {
       const analysis = await analyzeObservationResilient(content, { client: getActiveModelClient() })
       const processedAt = new Date().toISOString()
-      const rule = upsertRuleFromAnalysis(analysis, observation.id, processedAt)
-
-      Object.assign(observation, {
-        category: analysis.category,
-        tags: analysis.tags,
-        summary: analysis.summary,
-        status: 'success',
-        processedAt,
-        ruleId: rule.id,
-        location: analysis.location,
-      })
-
-      latestRuleId.value = rule.id
+      await _writeObservation(observation, analysis, processedAt)
     } catch {
       observation.status = 'failed'
       observation.summary = '结构化校验失败，原始观察已保存。'
