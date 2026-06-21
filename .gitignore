@@ -11,3 +11,5 @@ private-doc/
 .mcp.json
 .codex/config.toml
 /001_PRD/
+# SDD 执行临时文件(brief/report/review 包/ledger)
+.superpowers/
