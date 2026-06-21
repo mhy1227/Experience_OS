@@ -66,3 +66,38 @@
   - Issue 3 (important):在 `_writeObservation` 注释中说明 `inferDirection` 短关键词列表局限性(多数真实文本返回 uncertain→neutral,sentiment 字段近乎无用),提示 Plan 3 聚类前需改进推断逻辑。
   - Issue 4 (important):在 `_writeObservation` 注释中明确设计不一致性:category/tags/summary/location 来自 AI 分析,sentiment 仅来自本地启发式对原始文本的关键词扫描,非 AI 分析结果(AnalysisResult 无 direction 字段)。
   - Issue 5 (important):将 UI `handleImport` 的 `importText.value = ''` 从 try 块移至 finally 块,确保并发被阻断或意外 throw 时输入框均被清除,避免旧输入与旧结果摘要并存。
+
+---
+
+## Plan 3: 规律发现(M3)+ 扫描 90 天归因卡
+
+> 执行方式:subagent-driven-development(单子代理逐任务执行,每任务一个 commit)
+> 分支:`master`;基线提交:`d80646f`(Plan 2 修复后为 `ad1d724`)
+> 计划:`docs/superpowers/plans/2026-06-22-plan3-pattern-discovery.md`
+
+### 进度
+
+| 任务 | 状态 | 提交 | 备注 |
+|------|------|------|------|
+| 1 新增 Insight 类型 | ✅ 完成 | `3ae4993` | typecheck 通过 |
+| 2 patternDiscovery.ts 纯函数聚类引擎 + 测试 | ✅ 完成 | `a896246` | 12/12 测试通过 |
+| 3 Store 接入 computeInsights action + 持久化 | ✅ 完成 | `66291d8` | typecheck 通过 |
+| 4 InsightCard.vue 归因卡片组件 | ✅ 完成 | `8fa6120` | typecheck 通过 |
+| 5 index.vue 最小接入 — 扫描按钮 + insights tab | ✅ 完成 | `0543556` | typecheck 通过 |
+| 6 注册测试 + 全量验证 | ✅ 完成 | `09ec4d5` | 全 8 套测试通过 |
+
+### 记录
+
+- 2026-06-22:Task 1 完成(`3ae4993`)。`src/types/experience.ts` 末尾追加 `ClusterDimension`、`InsightType`、`InsightConfidence`、`InsightStatus`、`Insight` 共 5 个类型/接口。typecheck 无错。
+- 2026-06-22:Task 2 完成(`a896246`)。新建 `src/services/patternDiscovery.ts`(纯函数:clusterObservations / buildStatInsight / enrichClusterWithModel / discoverPatterns / MIN_CLUSTER_SIZE 常量)+ `tests/patternDiscovery.test.ts`(12 个测试)。typecheck 通过,12/12 测试通过。
+- 2026-06-22:Task 3 完成(`66291d8`)。`src/stores/experience.ts` 追加 `discoverPatterns`/`Insight` import;`PersistedState` 新增 `insights?` 字段;`readPersisted` 恢复 insights;`isAnalyzing` 附近新增 `insights` / `isComputingInsights` ref;`persist()` 追加 `insights` 字段;新增 `computeInsights()` async action;`return` 对象暴露三个新项。typecheck 通过。
+- 2026-06-22:Task 4 完成(`8fa6120`)。新建 `src/pages/index/components/InsightCard.vue`(大字百分比 + 根因归因区 + 证据时间线 + 决策建议 + 低置信免责声明;SCSS scoped)。typecheck 通过。
+- 2026-06-22:Task 5 完成(`0543556`)。`src/pages/index/index.vue`:追加 `InsightCard` import;`TabKey` 联合类型新增 `'insights'`;`tabs` 数组追加 `{ key: 'insights', label: '规律发现' }`;`utility-actions` 区追加扫描按钮(success 状态 < 3 时禁用);template 末尾追加 insights panel。style 末尾追加 `.scan-button` / `.empty-hint` / `.analyzing-hint`。typecheck 通过。
+- 2026-06-22:Task 6 完成(`09ec4d5`)。`package.json` `test:evaluation` 脚本末尾追加 `&& node dist-tests/tests/patternDiscovery.test.js`。全量运行:typecheck 通过,8 套测试全部通过(aiAnalyzer / modelAnalysisAdapter / evaluationEngine / experienceStore / modelClient / resilientAnalysis / importObservations / patternDiscovery)。
+
+### 偏差说明
+
+1. **类型断言修正**:计划中 `getSentiment` 函数使用 `(obs as Record<string, unknown>)`,编译器报"类型重叠不足"错误(Observation 无索引签名)。改为 `(obs as unknown as Record<string, unknown>)` 双重断言,语义不变,测试通过。
+2. **package.json 末尾测试**:计划中提到 `test:evaluation` 末尾为 `resilientAnalysis.test.js`;实际运行时末尾为 `importObservations.test.js`(Plan 2 已追加)。已正确追加 `patternDiscovery.test.js` 到最末位。
+3. **sentiment 维度降级**:计划说明若 Plan 2 sentiment 字段未落地则降级为 tag 聚类。Plan 2 已落地 `Observation.sentiment?` 字段,但因 `inferDirection` 短关键词列表局限性(多数返回 neutral),sentiment 聚类维度实际价值有限。当前默认 dimensions 为 `['category', 'tag']`,与计划一致。
+4. **scan 按钮位置**:计划提到可放在 `utility-actions` 区或 `ops-board` 下方。选择放在 `utility-actions` 的 closing tag 之后、composer 关闭前,保持与清空/载入按钮语义上的连贯性(操作区)。
