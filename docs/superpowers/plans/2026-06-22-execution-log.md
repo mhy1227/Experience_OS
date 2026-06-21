@@ -208,3 +208,5 @@
   - Issue 2 (critical):`demoWorkData.ts` 扩充"目标不一致"根因条目从 15 条增至 24 条,同时将干扰项从 15 条缩减至 6 条,使负向观察中根因占比从 50% 升至 80%(24/30);测试 `testRootCauseRatioAmongNegative` 门槛从 ≥50% 提升至 ≥75%,对齐彩排 T3.3 要求(≥70%)和 spec 目标(≥80%)。总种子条数 35 条(24 根因 + 6 干扰 + 5 正向)。
   - Issue 3 (important):`loadDemoWorkData` 函数前追加 NOTE 注释,说明幂等性局限(关闭页面后局部写入无法自动恢复)和 35 次循环放大 submitObservation 静默丢弃窗口的问题;已有行为,不修改逻辑,仅文档化风险供演示知会用户。
   - 全量 typecheck 无错;11 套测试全部通过,末行 `demoWorkData tests passed`。
+
+- 2026-06-22:控制端独立验收。typecheck 0 错、11 套测试全过、`npm run build:h5` 成功(51 模块)。Plan 2–5 全部落地于 master(26 提交),工作树干净,evaluationEngine 保留,无密钥泄露。遗留若干 important/minor 质量项(弱断言测试、frequency_pattern 死变体、decisionHints 重提交未清、store 内 DOM 导出)待清理。
