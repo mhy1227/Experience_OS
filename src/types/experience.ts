@@ -375,3 +375,61 @@ export interface DemoSample {
   text: string
   label: string
 }
+
+// ─── M3 规律发现 ───────────────────────────────────────────────────────────
+
+/** 洞察维度:按哪个维度聚类产出 */
+export type ClusterDimension = 'category' | 'tag' | 'sentiment' | 'rootCause'
+
+/** 洞察类型:描述归因模式的语义分类 */
+export type InsightType =
+  | 'frequency_pattern'   // 高频同类事件
+  | 'sentiment_pattern'   // 情绪倾向集中
+  | 'root_cause_pattern'  // 共同根因归因
+  | 'tag_pattern'         // 标签共现
+  | 'category_pattern'    // 分类集中
+
+/** 洞察置信度:由样本量和归因方式决定 */
+export type InsightConfidence = 'low' | 'medium' | 'high'
+
+/** InsightStatus:生命周期状态 */
+export type InsightStatus = 'active' | 'archived' | 'dismissed'
+
+/**
+ * Insight — M3 规律发现的核心产出单元
+ * 对应设计文档 §4 exp_insights 表
+ */
+export interface Insight {
+  /** 唯一 ID,格式 ins_{timestamp}_{random} */
+  id: string
+  /** 洞察维度 */
+  dimension: ClusterDimension
+  /** 洞察类型 */
+  type: InsightType
+  /** 一句话标题(统计生成或模型命名) */
+  title: string
+  /** 摘要描述,支持百分比表述如"38 条里 80% 指向同一根因" */
+  summary: string
+  /** 归因根因(模型归因时填写,纯统计时为空字符串) */
+  rootCause: string
+  /** 命中观察数 / 总观察数,如 0.8 */
+  percentage: number
+  /** 置信度(由 MIN_CLUSTER_SIZE 门槛决定) */
+  confidence: InsightConfidence
+  /** 支撑证据的 observationId 列表 */
+  evidenceObservationIds: string[]
+  /** 决策建议(模型生成或统计模板) */
+  suggestion: string
+  /** 洞察时间窗口描述,如"过去 90 天" */
+  timeWindow: string
+  /** 生成方式 */
+  generatedBy: 'statistical' | 'model_enhanced'
+  /** 状态 */
+  status: InsightStatus
+  /** 生成时间 ISO 字符串 */
+  createdAt: string
+  /** 聚类键(如具体的 category 值或 tag 值) */
+  clusterKey: string
+  /** 聚类内观察总数 */
+  clusterSize: number
+}
