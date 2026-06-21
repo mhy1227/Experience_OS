@@ -302,6 +302,8 @@ export interface EvaluationPlan {
   reason: string
 }
 
+export type ObservationSentiment = 'positive' | 'neutral' | 'negative'
+
 export interface Observation {
   id: string
   text: string
@@ -313,6 +315,7 @@ export interface Observation {
   processedAt?: string
   ruleId?: string
   location?: string
+  sentiment?: ObservationSentiment   // 由 inferDirection 映射,可选
 }
 
 export interface ExperienceRule {
