@@ -150,3 +150,49 @@
 2. **topbar 设置按钮**:计划说"在 topbar 内右侧追加设置按钮"。topbar 内已有 `stat-strip` 无空余 flex 右侧位置,将设置按钮追加在 `stat-strip</view>` 之后、`</view>` (topbar 闭合) 之前,符合右侧意图。
 3. **TabKey 现有 insights**:计划 Task 4 未提到 `'insights'` tab,但 Plan 3 已添加。实际 `TabKey` 缩窄为 `'records' | 'rules' | 'map' | 'timeline' | 'insights'`,保留 insights,仅移除 evaluations,符合计划意图且无功能回归。
 4. **package.json 末尾**:计划中 `test:evaluation` 末尾为 `resilientAnalysis.test.js`;实际 Plan 3 已追加 `patternDiscovery.test.js`。正确追加 `decisionHints.test.js` 到最末位。
+
+---
+
+## Plan 5: 信任产品化 + 演示种子数据 + 彩排
+
+> 执行方式:subagent-driven-development(单子代理逐任务执行,每任务一个 commit)
+> 分支:`master`;基线提交:`935f18e`(Plan 4 全量测试通过后)
+> 计划:`docs/superpowers/plans/2026-06-22-plan5-trust-and-seed-data.md`
+
+### 进度
+
+| 任务 | 状态 | 提交 | 备注 |
+|------|------|------|------|
+| 1 markdownExport 纯函数 + 测试 | ✅ 完成 | `4d1f407` | 5/5 测试通过 |
+| 2 store exportAsMarkdown + clearAllData | ✅ 完成 | `2651be5` | typecheck 通过 |
+| 3 demoWorkData 种子数据 + 测试 + store loadDemoWorkData | ✅ 完成 | `fc38afd` | 7/7 测试通过 |
+| 4 注册测试到 package.json + 全量验证 | ✅ 完成 | `ea3b743` | 11/11 套测试全部通过 |
+| 5 UI 信任条 + 导出/清空/演示工作数据按钮 | ✅ 完成 | `d537979` | typecheck 通过 |
+| 6 彩排清单 | 🔖 手动 | — | 需运行 `npm run dev:h5` 对照剧本执行 |
+
+### 记录
+
+- 2026-06-22:Task 1 完成(`4d1f407`)。新建 `src/services/markdownExport.ts`(纯函数 `renderExperienceMarkdown`:元信息头 + 规则目录 + 规则详情 + 观察记录总表,含"数据只在本机"声明)+ `tests/markdownExport.test.ts`(5 个测试:标题/结论/观察原文/元信息/空数据)。全部通过,末行 `markdownExport tests passed`。
+- 2026-06-22:Task 2 完成(`2651be5`)。`src/stores/experience.ts` 头部追加 `renderExperienceMarkdown`/`DEMO_WORK_DATA` import;`clearAll()` 之后新增 `exportAsMarkdown()`(触发浏览器 Blob 下载)、`clearAllData()`(返回清空数量)、`loadDemoWorkData()`(for-loop 调 `submitObservation`);return 对象暴露三个新 action。typecheck 通过。
+- 2026-06-22:Task 3 完成(`fc38afd`)。新建 `src/services/demoWorkData.ts`(37 条种子:15 条"目标不一致"根因 + 15 条干扰项 + 5 条正向 + 2 条额外根因增补);新建 `tests/demoWorkData.test.ts`(7 个测试:条数/根因覆盖/正向/负向/日期格式/必填字段/根因占比)。全部通过,末行 `demoWorkData tests passed`。
+- 2026-06-22:Task 4 完成(`ea3b743`)。`package.json` `test:evaluation` 末尾追加 `markdownExport.test.js` 和 `demoWorkData.test.js`。全量 11 套测试通过。
+- 2026-06-22:Task 5 完成(`d537979`)。`src/pages/index/index.vue` 新增:信任条 `.trust-banner`(顶部蓝色横幅"数据只在本机");`.asset-actions` 区含"载入演示工作数据"/"导出经验资产(.md)"/"一键清空本地数据"三个按钮;`toastMessage` + `showToast()` 简单 toast 系统;对应 handler 函数 `handleExportMarkdown`/`handleClearAll`/`handleLoadDemoWork`;末尾追加所有 SCSS 样式。typecheck 通过,全 11 套测试通过。
+
+### 改动文件汇总
+
+| 文件 | 改动类型 |
+|------|----------|
+| `src/services/markdownExport.ts` | 新建 |
+| `src/services/demoWorkData.ts` | 新建 |
+| `tests/markdownExport.test.ts` | 新建 |
+| `tests/demoWorkData.test.ts` | 新建 |
+| `src/stores/experience.ts` | 修改(追加 import + 3 个 action + return 导出) |
+| `src/pages/index/index.vue` | 修改(信任条 + 资产操作区 + toast + handler + SCSS) |
+| `package.json` | 修改(test:evaluation 追加两个新测试) |
+
+### 偏差说明
+
+1. **demoWorkData 根因占比调整**:计划给出 13 条根因/28 条负向 ≈ 46%,但测试断言要求 ≥50%。追加了 2 条额外"目标不一致"变体(甲方临时变更范围 / 内部战略调整未同步),使根因增至 15 条 / 负向 30 条 = 50%,满足测试门槛。最终总种子 37 条(多于计划的 35 条),不影响演示效果。
+2. **store import 一次提交**:计划把 Task 1(exportAsMarkdown) 和 Task 3(loadDemoWorkData) 分别提交 store 改动;实际 Task 1 先提交 markdownExport.ts + 测试,Task 2 一次性提交 store 全部三个 action(exportAsMarkdown + clearAllData + loadDemoWorkData + DEMO_WORK_DATA import),逻辑更内聚,无功能偏差。
+3. **showToast 自实现**:计划中引用 `showToast` 未指明来源,index.vue 中不存在此函数。自实现了 `toastMessage ref` + `showToast()` + `.toast-notification` 样式,与计划意图一致(提示用户操作结果),无额外依赖。
+4. **package.json 末尾追加顺序**:计划说末尾为 `resilientAnalysis.test.js`,实际 Plan 4 已追加 `decisionHints.test.js`。正确追加 `markdownExport.test.js` 和 `demoWorkData.test.js` 到最末位。
