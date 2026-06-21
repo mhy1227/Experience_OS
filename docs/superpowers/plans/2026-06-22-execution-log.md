@@ -53,3 +53,16 @@
 - 计划 Task 3 Step 4 给出了两种 `sentiment` 读取写法;采用了推荐的 includes 判断写法(不修改 `enumValue` 函数签名),因为 `enumValue` 要求 fallback 为 `T` 类型而 `undefined` 不符合泛型约束。
 - 计划中 `normalizeImportedObservation` 行号为约 1710,实际因 Plan 1 已合并代码行数偏移,按函数名定位,无功能偏差。
 - 本计划直接在 `master` 分支执行(未另建 feature branch),与计划中"分支:master"保持一致。
+
+---
+
+## Plan 2 审查问题修复
+
+> 执行:debug-fix 子代理;提交:`ad1d724`
+
+- 2026-06-22:修复 Plan 2 审查发现的 2 个 critical + 3 个 important 问题(`ad1d724`)。
+  - Issue 1 (critical):`importObservations` 补并发守卫:函数入口检查 `isAnalyzing.value || isSeedingDemo.value`,被阻断时立即返回空 summary;整个循环用 `isSeedingDemo=true` 包裹并在 finally 复位,防止与 `submitObservation`/`loadDemoData` 竞争 persist()。
+  - Issue 2 (critical):重写 `tests/importObservations.test.ts`:新增独立 harness `runImportLoop` 模拟 store 批量写入主循环;新增 5 个测试覆盖"全部成功"、"部分失败不中断循环"、"全部失败 summary 正确"、"空输入跳过分析"、"并发守卫被阻断返回空 summary";测试从 7 个扩展为 12 个,全部通过。
+  - Issue 3 (important):在 `_writeObservation` 注释中说明 `inferDirection` 短关键词列表局限性(多数真实文本返回 uncertain→neutral,sentiment 字段近乎无用),提示 Plan 3 聚类前需改进推断逻辑。
+  - Issue 4 (important):在 `_writeObservation` 注释中明确设计不一致性:category/tags/summary/location 来自 AI 分析,sentiment 仅来自本地启发式对原始文本的关键词扫描,非 AI 分析结果(AnalysisResult 无 direction 字段)。
+  - Issue 5 (important):将 UI `handleImport` 的 `importText.value = ''` 从 try 块移至 finally 块,确保并发被阻断或意外 throw 时输入框均被清除,避免旧输入与旧结果摘要并存。
