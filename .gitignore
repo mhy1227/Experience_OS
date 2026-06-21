@@ -11,3 +11,8 @@ private-doc/
 .mcp.json
 .codex/config.toml
 /001_PRD/
+# SDD 执行临时文件(brief/report/review 包/ledger)
+.superpowers/
+# 本地环境变量(含模型 API Key),禁止提交
+.env.local
+.env*.local
