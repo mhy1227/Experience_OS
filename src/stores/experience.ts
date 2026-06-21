@@ -709,6 +709,15 @@ export const useExperienceStore = defineStore('experience', () => {
 
   // 内部辅助:将 analysis 结果写入已存在的 observation 对象并 upsert rule
   // 调用前 observation 已 push/unshift 进 observations.value
+  //
+  // 设计说明(sentiment 派生方式):
+  //   sentiment 由 inferDirection(observation.text) 在原始文本上运行本地关键词规则得出,
+  //   而非取自 AI 分析结果 analysis(AnalysisResult 目前不含 direction 字段)。
+  //   category / tags / summary / location 均来自 AI 分析,sentiment 仅来自本地启发式。
+  //   这是有意的分层设计,但存在不一致性:AI 对语义的理解远优于短关键词列表。
+  //
+  //   已知局限:inferDirection 使用短关键词列表,多数真实文本返回 'uncertain' → 'neutral',
+  //   导致 sentiment 字段对大多数记录近乎无用;Plan 3 聚类若依赖 sentiment 需先改进推断逻辑。
   async function _writeObservation(observation: Observation, analysis: AnalysisResult, processedAt: string) {
     const rule = upsertRuleFromAnalysis(analysis, observation.id, processedAt)
     Object.assign(observation, {
@@ -719,6 +728,7 @@ export const useExperienceStore = defineStore('experience', () => {
       processedAt,
       ruleId: rule.id,
       location: analysis.location,
+      // 注:sentiment 取自本地 inferDirection 启发式(非 AI 分析结果),见上方设计说明
       sentiment: mapSentiment(inferDirection(observation.text)),
     })
     latestRuleId.value = rule.id
@@ -1614,6 +1624,12 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
   // 批量导入:粘贴多行文本 → 按行拆成多条观察 → 逐条走弹性分析管线 → 写库
   // ---------------------------------------------------------------------------
   async function importObservations(rawText: string): Promise<ImportSummary> {
+    // 并发守卫:与 submitObservation(isAnalyzing) 和 loadDemoData(isSeedingDemo) 互斥,
+    // 防止批量导入与单条提交或 demo 种子同时运行互相竞争写入 persist()。
+    if (isAnalyzing.value || isSeedingDemo.value) {
+      return { total: 0, succeeded: 0, failed: 0 }
+    }
+
     const lines = rawText
       .split('\n')
       .map((line) => line.trim())
@@ -1622,33 +1638,39 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     const summary: ImportSummary = { total: lines.length, succeeded: 0, failed: 0 }
     if (lines.length === 0) return summary
 
+    isSeedingDemo.value = true
     const client = getActiveModelClient()
 
-    for (const line of lines) {
-      const now = new Date().toISOString()
-      const observation: Observation = {
-        id: createId('obs'),
-        text: line,
-        category: '其他',
-        tags: [],
-        summary: '批量导入中',
-        status: 'pending',
-        createdAt: now,
-      }
-      observations.value.push(observation)
+    try {
+      for (const line of lines) {
+        const now = new Date().toISOString()
+        const observation: Observation = {
+          id: createId('obs'),
+          text: line,
+          category: '其他',
+          tags: [],
+          summary: '批量导入中',
+          status: 'pending',
+          createdAt: now,
+        }
+        observations.value.push(observation)
 
-      try {
-        const analysis = await analyzeObservationResilient(line, { client })
-        const processedAt = new Date().toISOString()
-        await _writeObservation(observation, analysis, processedAt)
-        summary.succeeded += 1
-      } catch {
-        observation.status = 'failed'
-        observation.summary = '结构化校验失败，原始观察已保存。'
-        summary.failed += 1
-      }
+        try {
+          const analysis = await analyzeObservationResilient(line, { client })
+          const processedAt = new Date().toISOString()
+          await _writeObservation(observation, analysis, processedAt)
+          summary.succeeded += 1
+        } catch {
+          // 每条独立降级:单条失败不中断整体批量导入循环
+          observation.status = 'failed'
+          observation.summary = '结构化校验失败，原始观察已保存。'
+          summary.failed += 1
+        }
 
-      persist()
+        persist()
+      }
+    } finally {
+      isSeedingDemo.value = false
     }
 
     return summary

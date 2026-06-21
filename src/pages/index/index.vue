@@ -909,8 +909,9 @@ async function handleImport() {
   importResult.value = null
   try {
     importResult.value = await store.importObservations(text)
-    importText.value = ''
   } finally {
+    // 无论成功/失败/并发被阻断,均清除输入框,避免旧输入与旧结果摘要同时显示
+    importText.value = ''
     isImporting.value = false
   }
 }
