@@ -1,0 +1,7 @@
+# Keep Claude hook/skill shell scripts as LF so bash can execute them on any platform
+.claude/hooks/session-start text eol=lf
+.claude/hooks/run-hook.cmd text eol=lf
+.claude/skills/**/*.sh text eol=lf
+.claude/skills/subagent-driven-development/scripts/review-package text eol=lf
+.claude/skills/subagent-driven-development/scripts/sdd-workspace text eol=lf
+.claude/skills/subagent-driven-development/scripts/task-brief text eol=lf
