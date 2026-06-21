@@ -44,6 +44,13 @@
               清空
             </button>
           </view>
+          <button
+            class="primary-button scan-button"
+            :disabled="store.observations.filter(o => o.status === 'success').length < 3 || store.isComputingInsights"
+            @click="store.computeInsights('过去 90 天')"
+          >
+            {{ store.isComputingInsights ? '扫描中…' : '扫描我的 90 天' }}
+          </button>
         </view>
         <textarea
           v-model="draft"
@@ -854,6 +861,29 @@
           </view>
         </view>
       </view>
+
+      <view v-if="activeTab === 'insights'" class="panel">
+        <view class="section-head">
+          <text class="section-title">规律发现</text>
+          <text class="section-meta">{{ store.insights.length }} 条洞察</text>
+        </view>
+
+        <view v-if="store.insights.length === 0 && !store.isComputingInsights" class="empty">
+          <text>点击「扫描我的 90 天」开始分析跨记录规律。</text>
+          <text class="empty-hint">至少需要 3 条成功处理的观察。</text>
+        </view>
+
+        <view v-if="store.isComputingInsights" class="analyzing-hint">
+          <text>正在扫描规律中…</text>
+        </view>
+
+        <InsightCard
+          v-for="insight in store.insights"
+          :key="insight.id"
+          :insight="insight"
+          :observations="store.observations"
+        />
+      </view>
     </view>
   </view>
 </template>
@@ -862,6 +892,7 @@
 import { computed, defineComponent, h, ref } from 'vue'
 import { demoSamples, reusabilityLabel } from '../../services/aiAnalyzer'
 import { useExperienceStore } from '../../stores/experience'
+import InsightCard from './components/InsightCard.vue'
 import type { ImportSummary } from '../../stores/experience'
 import type {
   AdoptionDecisionEvent,
@@ -894,7 +925,7 @@ import type {
   RuleReviewStatus,
 } from '../../types/experience'
 
-type TabKey = 'records' | 'rules' | 'evaluations' | 'map' | 'timeline'
+type TabKey = 'records' | 'rules' | 'evaluations' | 'map' | 'timeline' | 'insights'
 
 const store = useExperienceStore()
 
@@ -933,6 +964,7 @@ const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'evaluations', label: '评估' },
   { key: 'map', label: '地图' },
   { key: 'timeline', label: '时间轴' },
+  { key: 'insights', label: '规律发现' },
 ]
 
 const canSubmit = computed(() => draft.value.trim().length > 0 && !store.isAnalyzing && !store.isSeedingDemo)
@@ -3665,4 +3697,23 @@ const RuleCard = defineComponent({
 }
 .import-result  { margin-top: 8px; font-size: 13px; color: #333; }
 .import-progress { margin-top: 6px; font-size: 12px; color: #888; }
+
+.scan-button {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.empty-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  display: block;
+  margin-top: 4px;
+}
+
+.analyzing-hint {
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+  font-size: 14px;
+}
 </style>
