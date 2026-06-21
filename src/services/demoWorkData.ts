@@ -3,10 +3,10 @@
  *
  * 数据设计原则:
  * - 共 35 条工作场景观察(2026-03~2026-06)
- * - 13 条埋同一共同根因 rootCauseTag='目标不一致'(不同表述/不同月份)
- * - ~15 条干扰项(技术债/沟通/资源等其他问题)
- * - ~5 条正向规律
- * - 负向观察中"目标不一致"占多数,确保 Plan 3 聚类后该簇能被模型归因为共同根因
+ * - 24 条埋同一共同根因 rootCauseTag='目标不一致'(不同表述/不同月份)
+ * - 6 条干扰项(技术债/沟通/资源等其他问题)
+ * - 5 条正向规律
+ * - 负向观察中"目标不一致"占 80%(24/30),确保 Plan 3 聚类后该簇能被模型归因为共同根因
  *
  * 字段说明:
  *   text         — 原始观察文本(中文口语化,模拟真实录入)
@@ -23,8 +23,9 @@ export type DemoWorkItem = {
 }
 
 export const DEMO_WORK_DATA: DemoWorkItem[] = [
-  // ─── 13 条:共同根因"目标不一致" ─────────────────────────────────────────
+  // ─── 24 条:共同根因"目标不一致" ─────────────────────────────────────────
   // 这组条目表述各异但根因相同,供 Plan 3 聚类后归因为同一模式
+  // 24/30 负向 = 80%,满足演示和彩排 T3.3(≥70%)以及 spec ≥80% 目标
   {
     text: '这个功能开发到一半,产品说方向变了,前两周全白做了',
     date: '2026-03-05',
@@ -115,19 +116,67 @@ export const DEMO_WORK_DATA: DemoWorkItem[] = [
     direction: 'negative',
     rootCauseTag: '目标不一致',
   },
+  {
+    text: '两个团队对"MVP"的定义不一样,一个认为是 Demo 级,一个认为要生产就绪,到集成才发现',
+    date: '2026-03-08',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '项目范围蔓延没有走正式变更流程,每次会议都多了几个"小需求",最后比原计划多了 40%工作量',
+    date: '2026-03-22',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '总部下发了新合规要求但没有明确优先级,研发部门自己排期,结果和业务部门的优先级完全相反',
+    date: '2026-04-03',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '发布前一天产品说需要重新调整核心流程,因为之前理解的用户路径和实际用研结果不符',
+    date: '2026-04-11',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '前端和后端对字段含义理解不同,上线后数据全部错乱,排查了两天才找到根本原因是接口文档没对齐',
+    date: '2026-04-20',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '这次多方合作项目中途换了甲方对接人,新的人改了验收标准,之前做的评审全部作废',
+    date: '2026-05-04',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '季度复盘才发现,这三个月做的功能有 60% 和年度目标不相关,资源全浪费了',
+    date: '2026-05-18',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '用户故事写得太笼统,开发按自己理解做了实现,结果演示时产品和用户都不满意',
+    date: '2026-05-30',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
+  {
+    text: '同一个项目里前后出现了两个互相矛盾的需求文档版本,没人说清哪个是最新的,各自按不同版本实现',
+    date: '2026-06-07',
+    direction: 'negative',
+    rootCauseTag: '目标不一致',
+  },
 
-  // ─── ~15 条干扰项(其他工作问题) ──────────────────────────────────────
+  // ─── 6 条干扰项(其他工作问题) ──────────────────────────────────────────
   {
     text: '代码历史债太多,加一个新功能要改五处地方,容易漏',
     date: '2026-03-07',
     direction: 'negative',
     rootCauseTag: '技术债',
-  },
-  {
-    text: '每次 code review 反馈太晚了,到合并前一天才提意见,很被动',
-    date: '2026-03-14',
-    direction: 'negative',
-    rootCauseTag: '流程低效',
   },
   {
     text: '会议太多,一天有 5 个会,根本没时间深度工作',
@@ -142,34 +191,10 @@ export const DEMO_WORK_DATA: DemoWorkItem[] = [
     rootCauseTag: '基础设施',
   },
   {
-    text: '新人上手文档太少,每次入职都要老人手把手带,耗时间',
-    date: '2026-04-08',
-    direction: 'negative',
-    rootCauseTag: '知识传递',
-  },
-  {
-    text: '周报格式每周都在变,花时间在整理格式上而不是内容',
-    date: '2026-04-15',
-    direction: 'negative',
-    rootCauseTag: '流程低效',
-  },
-  {
     text: '资源申请要走三级审批,急用的云资源两天才拿到,项目被卡住',
     date: '2026-04-22',
     direction: 'negative',
     rootCauseTag: '资源瓶颈',
-  },
-  {
-    text: '跨时区同步靠异步文档,但文档没人维护,信息严重滞后',
-    date: '2026-05-05',
-    direction: 'negative',
-    rootCauseTag: '沟通效率',
-  },
-  {
-    text: '需求文档写得很模糊,研发自己猜了实现,上线后才发现猜错了',
-    date: '2026-05-12',
-    direction: 'negative',
-    rootCauseTag: '文档质量',
   },
   {
     text: '监控告警没配好,线上出问题 20 分钟后才收到通知',
@@ -178,37 +203,13 @@ export const DEMO_WORK_DATA: DemoWorkItem[] = [
     rootCauseTag: '技术债',
   },
   {
-    text: '压力大的时候容易只顾眼前 deadline,忽略了下游依赖方',
-    date: '2026-05-26',
-    direction: 'negative',
-    rootCauseTag: '沟通效率',
-  },
-  {
-    text: '演示环境和生产环境配置差异大,演示通过但生产上线后出 bug',
-    date: '2026-06-02',
-    direction: 'negative',
-    rootCauseTag: '基础设施',
-  },
-  {
-    text: '外包人员对业务背景不了解,接口设计反复修改,浪费评审时间',
-    date: '2026-06-09',
-    direction: 'negative',
-    rootCauseTag: '知识传递',
-  },
-  {
     text: '临近发布才做安全审查,改动量大,风险高',
     date: '2026-06-16',
     direction: 'negative',
     rootCauseTag: '流程低效',
   },
-  {
-    text: '数据库字段命名不统一,每次查询都要翻文档对照',
-    date: '2026-06-18',
-    direction: 'negative',
-    rootCauseTag: '技术债',
-  },
 
-  // ─── ~5 条正向规律 ──────────────────────────────────────────────────────
+  // ─── 5 条正向规律 ──────────────────────────────────────────────────────
   {
     text: '这次在项目启动时开了目标对齐会,把成功标准写进文档,全程没有方向性返工',
     date: '2026-03-25',

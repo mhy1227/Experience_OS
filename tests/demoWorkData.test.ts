@@ -47,8 +47,8 @@ async function testRootCauseRatioAmongNegative() {
   const rootCause = negative.filter((item) => item.rootCauseTag === '目标不一致')
   const ratio = rootCause.length / negative.length
   assert.ok(
-    ratio >= 0.5,
-    `负向观察中根因占比应 ≥50%(演示需 80%),实际 ${(ratio * 100).toFixed(0)}%`,
+    ratio >= 0.75,
+    `负向观察中根因占比应 ≥75%(演示声称 80%,彩排 T3.3 要求 ≥70%),实际 ${(ratio * 100).toFixed(0)}%`,
   )
 }
 

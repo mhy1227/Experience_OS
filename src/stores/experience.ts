@@ -1541,6 +1541,7 @@ export const useExperienceStore = defineStore('experience', () => {
     observations.value = []
     rules.value = []
     latestRuleId.value = ''
+    insights.value = []
     persist()
   }
 
@@ -1564,6 +1565,12 @@ export const useExperienceStore = defineStore('experience', () => {
     return { observationCount, ruleCount }
   }
 
+  // NOTE(idempotency): loadDemoWorkData 先调 clearAll()（含 insights 清空）再逐条提交。
+  // 若用户在 35 次 AI 请求执行期间（35–100 秒）关闭页面，isSeedingDemo 无法持久化，
+  // 重开后 isSeedingDemo=false 但 localStorage 中已有部分写入数据（非幂等中间状态）。
+  // 用户再次点击会重新 clearAll() 后重跑，行为符合预期，但失败中途不自动恢复。
+  // 另：submitObservation 内部有 isAnalyzing=true 守卫，循环期间若用户手动录入将被静默丢弃，
+  // 此为已有行为（非本函数引入），但 35 次循环显著拉长了该丢弃窗口，演示时应告知用户勿并发操作。
   async function loadDemoWorkData() {
     if (isAnalyzing.value || isSeedingDemo.value) return
 
