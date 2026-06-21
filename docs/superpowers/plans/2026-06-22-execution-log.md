@@ -101,3 +101,52 @@
 2. **package.json 末尾测试**:计划中提到 `test:evaluation` 末尾为 `resilientAnalysis.test.js`;实际运行时末尾为 `importObservations.test.js`(Plan 2 已追加)。已正确追加 `patternDiscovery.test.js` 到最末位。
 3. **sentiment 维度降级**:计划说明若 Plan 2 sentiment 字段未落地则降级为 tag 聚类。Plan 2 已落地 `Observation.sentiment?` 字段,但因 `inferDirection` 短关键词列表局限性(多数返回 neutral),sentiment 聚类维度实际价值有限。当前默认 dimensions 为 `['category', 'tag']`,与计划一致。
 4. **scan 按钮位置**:计划提到可放在 `utility-actions` 区或 `ops-board` 下方。选择放在 `utility-actions` 的 closing tag 之后、composer 关闭前,保持与清空/载入按钮语义上的连贯性(操作区)。
+
+---
+
+## Plan 4: 决策辅助 + API Key 配置 UI + 评估降级 + 删死文件
+
+> 执行方式:subagent-driven-development(单子代理逐任务执行,每任务一个 commit)
+> 分支:`master`;基线提交:`09ec4d5`(Plan 3 全量测试通过后)
+> 计划:`docs/superpowers/plans/2026-06-22-plan4-decision-assist-and-key-ui.md`
+
+### 进度
+
+| 任务 | 状态 | 提交 | 备注 |
+|------|------|------|------|
+| 1 M4 决策辅助纯函数 + 测试 | ✅ 完成 | `0265e2f` | 5/5 测试通过 |
+| 2 Store 接入 + DecisionHintCard UI | ✅ 完成 | `067b272` | typecheck 通过 |
+| 3 ModelConfigPanel API Key 配置 UI | ✅ 完成 | `ce8965b` | typecheck 通过 |
+| 4 评估工作台折叠为高级面板 | ✅ 完成 | `1ab8fcf` | typecheck 通过,evaluationEngine.ts 一行未删 |
+| 5 删除 uni-app 死文件 | ✅ 完成 | `c50e08e` | grep 验证无引用,typecheck 通过 |
+| 6 注册新测试 + 全量回归 | ✅ 完成 | `935f18e` | 9/9 套测试全部通过 |
+
+### 记录
+
+- 2026-06-22:Task 1 完成(`0265e2f`)。新建 `src/services/decisionHints.ts`(纯函数 `recallDecisionHints`:分词评分、排除 watch 规则、阈值过滤、降序截取 top3)+ `tests/decisionHints.test.ts`(5 个测试:命中/无关/自定义阈值/降序/排除watch)。全部通过。
+- 2026-06-22:Task 2 完成(`067b272`)。`src/stores/experience.ts` 追加 `recallDecisionHints`/`DecisionHint` import;新增 `decisionHints ref<DecisionHint[]>`;`submitObservation` try 块内 `_writeObservation` 后追加 M4 召回调用;return 对象暴露 `decisionHints` + `dismissDecisionHint`。新建 `src/components/DecisionHintCard.vue`(黄色提醒卡片,支持逐条 dismiss)。`index.vue` 追加 import 并在 composer 内 `composer-actions` 后插入 `<DecisionHintCard>`。typecheck 通过。
+- 2026-06-22:Task 3 完成(`ce8965b`)。新建 `src/components/ModelConfigPanel.vue`(provider/model/baseUrl/apiKey 表单;localStorage 读写;Key 遮蔽;保存/清除;注意事项提示)。`index.vue` 追加 import、`showSettings ref`、topbar 右侧设置按钮、topbar 后折叠设置面板。typecheck 通过。
+- 2026-06-22:Task 4 完成(`1ab8fcf`)。`index.vue` 中 `TabKey` 移除 `'evaluations'`;`tabs` 数组移除评估项;新增 `showAdvancedPanel ref`;tabs 区末尾追加"高级"折叠按钮;评估工作台 panel 条件由 `activeTab === 'evaluations'` 改为 `showAdvancedPanel`,class 追加 `advanced-panel`;顶部插入 `advanced-panel-notice` 折叠提示;style 末尾追加对应 SCSS。`evaluationEngine.ts` 与 store 内 evaluation 函数零改动。typecheck 通过。
+- 2026-06-22:Task 5 完成(`c50e08e`)。grep 验证 `src/manifest.json`、`src/pages.json` 全局无引用;`git rm` 删除。typecheck 通过。
+- 2026-06-22:Task 6 完成(`935f18e`)。`package.json` `test:evaluation` 末尾追加 `decisionHints.test.js`。全量 9 套测试通过:aiAnalyzer / modelAnalysisAdapter / evaluationEngine / experienceStore / modelClient / resilientAnalysis / importObservations / patternDiscovery / decisionHints。
+
+### 改动文件汇总
+
+| 文件 | 改动类型 |
+|------|----------|
+| `src/services/decisionHints.ts` | 新建 |
+| `src/components/DecisionHintCard.vue` | 新建 |
+| `src/components/ModelConfigPanel.vue` | 新建 |
+| `tests/decisionHints.test.ts` | 新建 |
+| `src/stores/experience.ts` | 修改(追加 import + ref + 调用 + return 导出) |
+| `src/pages/index/index.vue` | 修改(引入新组件、设置入口、Tab 重组、评估面板折叠) |
+| `package.json` | 修改(test:evaluation 追加新测试) |
+| `src/manifest.json` | 删除 |
+| `src/pages.json` | 删除 |
+
+### 偏差说明
+
+1. **DecisionHintCard 插入位置**:计划说"在 `<view class="composer-actions">...</view>` 之后、`<view class="ops-board">` 之前插入"。实际 `composer-actions` 包含在 `<view class="composer">` 内,且 `import-section` 在 composer 之后,所以插入点为 `composer-actions` closing tag 之后、`</view>` (composer 闭合) 之前,视觉效果一致。
+2. **topbar 设置按钮**:计划说"在 topbar 内右侧追加设置按钮"。topbar 内已有 `stat-strip` 无空余 flex 右侧位置,将设置按钮追加在 `stat-strip</view>` 之后、`</view>` (topbar 闭合) 之前,符合右侧意图。
+3. **TabKey 现有 insights**:计划 Task 4 未提到 `'insights'` tab,但 Plan 3 已添加。实际 `TabKey` 缩窄为 `'records' | 'rules' | 'map' | 'timeline' | 'insights'`,保留 insights,仅移除 evaluations,符合计划意图且无功能回归。
+4. **package.json 末尾**:计划中 `test:evaluation` 末尾为 `resilientAnalysis.test.js`;实际 Plan 3 已追加 `patternDiscovery.test.js`。正确追加 `decisionHints.test.js` 到最末位。
