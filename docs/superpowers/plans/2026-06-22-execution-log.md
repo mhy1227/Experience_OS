@@ -21,3 +21,4 @@
 - 2026-06-22:Task 3 完成(`ab3ad33`)。新增 `src/services/modelConfig.ts`,store 接入点切到 `analyzeObservationResilient` + `getActiveModelClient`,package.json 注册两个新测试。typecheck 通过,全 6 套测试通过。审查 Approved。
 - 2026-06-22:最终全分支审查(opus)。结论:可合并,无 Critical/Important;安全无 Key 泄露;无回归(未配 Key → 本地引擎不变)。按建议补一个"模型正常返回但被契约降级 → 不回退本地"的专项测试(`54349e9`),全套测试通过。
 - 2026-06-22:Plan 1 完成。分支 `feat/real-model-foundation`,代码提交 `979aef7 → 01307aa → ab3ad33 → 54349e9`。待用户决定合并方式。
+- 2026-06-22:演示配置(`f372711`)。`main.ts` 启动时从 `VITE_DEEPSEEK_*` 注入默认模型配置到 localStorage(用户已配则不覆盖)。Key 存 gitignored `.env.local`,`.env.example` 文档化。中转站 packyapi 已 curl 验证可用(`/v1/chat/completions` + `deepseek-v4-flash`,OpenAI 兼容)。typecheck 通过。
