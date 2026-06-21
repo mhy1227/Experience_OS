@@ -158,6 +158,13 @@
         >
           {{ tab.label }}
         </button>
+        <button
+          class="tab"
+          :class="{ active: showAdvancedPanel }"
+          @click="showAdvancedPanel = !showAdvancedPanel"
+        >
+          高级
+        </button>
       </view>
 
       <view v-if="activeTab === 'records'" class="panel">
@@ -214,7 +221,11 @@
         />
       </view>
 
-      <view v-if="activeTab === 'evaluations'" class="panel">
+      <view v-if="showAdvancedPanel" class="panel advanced-panel">
+        <view class="advanced-panel-notice">
+          <text class="advanced-panel-label">高级面板(评估体系)</text>
+          <text class="advanced-panel-desc">该功能已从主路径移至此处,代码完整保留,可继续使用。</text>
+        </view>
         <view class="section-head">
           <text class="section-title">评估工作台</text>
           <text class="section-meta">{{ store.evaluationQueue.length }} 条待复测</text>
@@ -941,7 +952,7 @@ import type {
   RuleReviewStatus,
 } from '../../types/experience'
 
-type TabKey = 'records' | 'rules' | 'evaluations' | 'map' | 'timeline' | 'insights'
+type TabKey = 'records' | 'rules' | 'map' | 'timeline' | 'insights'
 
 const store = useExperienceStore()
 
@@ -978,11 +989,12 @@ const evidenceDrafts = ref<Record<string, string>>({})
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'records', label: '经验' },
   { key: 'rules', label: '规则库' },
-  { key: 'evaluations', label: '评估' },
   { key: 'map', label: '地图' },
   { key: 'timeline', label: '时间轴' },
   { key: 'insights', label: '规律发现' },
 ]
+
+const showAdvancedPanel = ref(false)
 
 const canSubmit = computed(() => draft.value.trim().length > 0 && !store.isAnalyzing && !store.isSeedingDemo)
 const canLoadDemo = computed(() => !store.isAnalyzing && !store.isSeedingDemo)
@@ -3732,5 +3744,27 @@ const RuleCard = defineComponent({
   padding: 20px;
   color: #64748b;
   font-size: 14px;
+}
+
+.advanced-panel-notice {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.advanced-panel-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  display: block;
+}
+.advanced-panel-desc {
+  font-size: 11px;
+  color: #9ca3af;
+  display: block;
+}
+
+.settings-panel {
+  padding: 0 16px 16px;
 }
 </style>
