@@ -28,6 +28,14 @@
             <text class="stat-label">冲突规则</text>
           </view>
         </view>
+        <button class="ghost-button small" @click="showSettings = !showSettings">
+          {{ showSettings ? '关闭设置' : '⚙ 设置' }}
+        </button>
+      </view>
+
+      <!-- 模型设置面板(可折叠) -->
+      <view v-if="showSettings" class="settings-panel">
+        <ModelConfigPanel />
       </view>
 
       <view class="composer">
@@ -900,6 +908,7 @@ import { demoSamples, reusabilityLabel } from '../../services/aiAnalyzer'
 import { useExperienceStore } from '../../stores/experience'
 import InsightCard from './components/InsightCard.vue'
 import DecisionHintCard from '../../components/DecisionHintCard.vue'
+import ModelConfigPanel from '../../components/ModelConfigPanel.vue'
 import type { ImportSummary } from '../../stores/experience'
 import type {
   AdoptionDecisionEvent,
@@ -956,6 +965,7 @@ async function handleImport() {
 
 const draft = ref('')
 const activeTab = ref<TabKey>('records')
+const showSettings = ref(false)
 const ruleQuery = ref('')
 const selectedCategory = ref<ExperienceCategory | '全部'>('全部')
 const recallScene = ref('')
