@@ -9,6 +9,8 @@ import type { ObservationSentiment } from '../types/experience'
 import { discoverPatterns } from '../services/patternDiscovery'
 import type { Insight } from '../types/experience'
 import { recallDecisionHints, type DecisionHint } from '../services/decisionHints'
+import { renderExperienceMarkdown } from '../services/markdownExport'
+import { DEMO_WORK_DATA } from '../services/demoWorkData'
 import {
   deriveEvaluationState,
   evaluationPlanPriorityValue,
@@ -1542,6 +1544,42 @@ export const useExperienceStore = defineStore('experience', () => {
     persist()
   }
 
+  function exportAsMarkdown() {
+    const md = renderExperienceMarkdown(rules.value, observations.value)
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `experience-os-export-${new Date().toISOString().slice(0, 10)}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  function clearAllData(): { observationCount: number; ruleCount: number } {
+    const observationCount = observations.value.length
+    const ruleCount = rules.value.length
+    clearAll()
+    return { observationCount, ruleCount }
+  }
+
+  async function loadDemoWorkData() {
+    if (isAnalyzing.value || isSeedingDemo.value) return
+
+    clearAll()
+    isSeedingDemo.value = true
+
+    try {
+      for (const item of DEMO_WORK_DATA) {
+        await submitObservation(item.text)
+      }
+    } finally {
+      isSeedingDemo.value = false
+      persist()
+    }
+  }
+
 function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     evaluationSettings.value = normalizeEvaluationSettings({
       ...evaluationSettings.value,
@@ -1766,7 +1804,10 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     updateEvaluationSettings,
     importEvaluationData,
     clearAll,
+    clearAllData,
+    exportAsMarkdown,
     loadDemoData,
+    loadDemoWorkData,
     importObservations,
     insights,
     isComputingInsights,
