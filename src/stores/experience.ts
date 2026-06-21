@@ -6,6 +6,8 @@ import { getActiveModelClient } from '../services/modelConfig'
 import { inferDirection } from '../services/analysisContract'
 import type { ObservationDirection } from '../services/analysisContract'
 import type { ObservationSentiment } from '../types/experience'
+import { discoverPatterns } from '../services/patternDiscovery'
+import type { Insight } from '../types/experience'
 import {
   deriveEvaluationState,
   evaluationPlanPriorityValue,
@@ -67,6 +69,7 @@ interface PersistedState {
   observations: Observation[]
   rules: ExperienceRule[]
   evaluationSettings: EvaluationSettings
+  insights?: Insight[]
 }
 
 const DEFAULT_EVALUATION_SETTINGS: EvaluationSettings = {
@@ -121,6 +124,7 @@ function readPersisted(): PersistedState {
       observations: Array.isArray(state.observations) ? state.observations : [],
       rules: Array.isArray(state.rules) ? state.rules.map(normalizeRule) : [],
       evaluationSettings: normalizeEvaluationSettings(state.evaluationSettings),
+      insights: Array.isArray(state.insights) ? state.insights as Insight[] : [],
     }
   } catch {
     return { observations: [], rules: [], evaluationSettings: DEFAULT_EVALUATION_SETTINGS }
@@ -191,6 +195,8 @@ export const useExperienceStore = defineStore('experience', () => {
   const evaluationSettings = ref<EvaluationSettings>(persisted.evaluationSettings)
   const isAnalyzing = ref(false)
   const isSeedingDemo = ref(false)
+  const insights = ref<Insight[]>(persisted.insights ?? [])
+  const isComputingInsights = ref(false)
   const latestRuleId = ref(rules.value[0]?.id ?? '')
 
   const latestRule = computed(() => rules.value.find((rule) => rule.id === latestRuleId.value) ?? rules.value[0])
@@ -703,6 +709,7 @@ export const useExperienceStore = defineStore('experience', () => {
         observations: observations.value,
         rules: rules.value,
         evaluationSettings: evaluationSettings.value,
+        insights: insights.value,
       }),
     )
   }
@@ -763,6 +770,29 @@ export const useExperienceStore = defineStore('experience', () => {
     } finally {
       isAnalyzing.value = false
       persist()
+    }
+  }
+
+  /**
+   * M3 规律发现:对当前所有 success 状态的 observations 执行聚类归因
+   * 统计基座必做;若有可用模型 client 则做增强
+   */
+  async function computeInsights(timeWindowLabel = '过去 90 天') {
+    if (isComputingInsights.value) return
+    isComputingInsights.value = true
+
+    try {
+      const successObs = observations.value.filter((o) => o.status === 'success')
+      const client = getActiveModelClient()
+      const result = await discoverPatterns(successObs, {
+        client,
+        timeWindowLabel,
+        dimensions: ['category', 'tag'],
+      })
+      insights.value = result
+      persist()
+    } finally {
+      isComputingInsights.value = false
     }
   }
 
@@ -1734,6 +1764,9 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     clearAll,
     loadDemoData,
     importObservations,
+    insights,
+    isComputingInsights,
+    computeInsights,
   }
 })
 
