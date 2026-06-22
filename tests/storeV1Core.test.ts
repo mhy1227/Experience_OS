@@ -133,68 +133,22 @@ async function testC1StoreEmptyConditionsRuleIsWatch() {
     confidence: 'high',
   })
 
-  // 先验证契约层产出 watch
+  // 1) 契约层直验:空 conditions → watch
   const analysis = await analyzeObservationResilient('周末健身房人少', { client: fakeClient })
   assert.equal(analysis.reusability, 'watch', '契约层:空 conditions → watch')
 
-  // 再验证通过 submitObservation 写入 store 后的规则
-  // 为此,直接绕过 getActiveModelClient 注入 analysis 结果:
-  // submitObservation 使用内部的 getActiveModelClient(),无法从外部注入 client;
-  // 但已在契约层验证了"输出是 watch",加上 _writeObservation 直接使用 analysis.reusability,
-  // 因此通过直接验证 upsertRuleFromAnalysis 的输出完成 store 链路测试。
-  //
-  // 手动构造观察并推入 store(模拟 importObservations 对应的内部写入路径):
-  const now = new Date().toISOString()
-  const fakeObs = {
-    id: 'obs_c1_test',
-    text: '周末健身房人少',
-    category: '运动' as const,
-    tags: ['周末'],
-    summary: '待处理',
-    status: 'pending' as const,
-    createdAt: now,
-  }
-  store.observations.unshift(fakeObs)
+  // 2) 端到端:经真实 submitObservation 注入伪 client,
+  //    走完整 模型 → 契约 → _writeObservation → upsertRuleFromAnalysis 链路
+  await store.submitObservation('周末健身房人少', fakeClient)
 
-  // 通过 setFeedback 间接测试规则不会被提升:
-  // 先验证 analysis.reusability='watch',再手动 push 一条 watch 规则到 store,
-  // 然后断言 store 中 watch 规则不会因 submitObservation 中触发 evaluationState 被升级
-  const watchRule = {
-    id: 'rule_c1_watch',
-    title: '周末低峰训练策略',
-    category: '运动' as const,
-    conclusion: '周末去健身房人少。',
-    recommendation: '周末早上去健身房。',
-    conditions: ['需要明确触发条件', '需要再次验证结果'],
-    warnings: ['不要把单次模糊感受直接当成稳定规律'],
-    evidenceIds: [fakeObs.id],
-    reusability: analysis.reusability,  // 应该是 'watch'
-    kind: analysis.kind,
-    feedback: 'none' as const,
-    reviewStatus: 'unreviewed' as const,
-    evaluations: [],
-    updatedAt: now,
-  }
-  store.rules.unshift(watchRule)
-
-  const storedRule = store.rules[0]
-  assert.ok(storedRule, '规则应已写入 store')
-  assert.equal(
-    storedRule.reusability,
-    'watch',
-    'C1 store 链路:空 conditions 模型输出 → 最终落库规则 reusability 必须为 watch',
-  )
-  assert.notEqual(
-    storedRule.reusability,
-    'high',
-    'C1 store 链路:最终规则不得为 high',
-  )
-  // kind 也不能是 strategy
-  assert.notEqual(
-    storedRule.kind,
-    'strategy',
-    'C1 store 链路:最终规则 kind 不得为 strategy',
-  )
+  const obs = store.observations[0]
+  assert.ok(obs, '应写入观察')
+  assert.equal(obs.status, 'success', '契约降级为 watch 仍是成功返回')
+  const storedRule = store.rules.find((r) => r.id === obs.ruleId)
+  assert.ok(storedRule, '应生成对应规则')
+  assert.equal(storedRule!.reusability, 'watch', 'C1 端到端:空 conditions → 落库规则 reusability=watch')
+  assert.notEqual(storedRule!.reusability, 'high', 'C1 端到端:落库规则不得为 high')
+  assert.notEqual(storedRule!.kind, 'strategy', 'C1 端到端:落库规则 kind 不得为 strategy')
 }
 
 // ---------------------------------------------------------------------------

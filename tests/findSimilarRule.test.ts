@@ -1,267 +1,120 @@
 import assert from 'node:assert/strict'
+import { createPinia, setActivePinia } from 'pinia'
+import { useExperienceStore } from '../src/stores/experience'
+import type { ObservationModelClient } from '../src/services/modelAnalysisAdapter'
 
 // ---------------------------------------------------------------------------
-// 独立于 Vue/Pinia:镜像 store 内 findSimilarRule 逻辑,验证 kind 一致性守卫
+// 真测真实 store 的规则合并(findSimilarRule / upsertRuleFromAnalysis):
+// 经 submitObservation 注入伪 client,走完整 模型→契约→写入 链路。
+// 覆盖:I2(kind 不一致不合并)、M5(同名 title 需同 category)、watch 不合并。
 // ---------------------------------------------------------------------------
-// 与 stores/experience.ts 中的 findSimilarRule 保持逻辑一致。
-// 修复要点:
-//   1. kind 不同(strategy vs caution)→ 即使 category+location 相同也不合并
-//   2. sameTitle 需同时满足 sameCategory,防止跨领域同名 title 误合并
 
-type ExperienceKind = 'strategy' | 'caution' | 'watch'
-type Reusability = 'high' | 'medium' | 'low' | 'watch'
-type ExperienceCategory = '饮食' | '购物' | '出行' | '运动' | '工作' | '生活' | '偏好' | '其他'
-
-interface RuleStub {
-  title: string
-  category: ExperienceCategory
-  kind?: ExperienceKind
-  location?: string
-  reusability: Reusability
+function installLocalStorage() {
+  const data = new Map<string, string>()
+  ;(globalThis as typeof globalThis & { localStorage: Storage }).localStorage = {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => void data.set(key, value),
+    removeItem: (key: string) => void data.delete(key),
+    clear: () => data.clear(),
+    key: (i: number) => Array.from(data.keys())[i] ?? null,
+    get length() {
+      return data.size
+    },
+  } as Storage
 }
 
-interface AnalysisStub {
-  title: string
-  category: ExperienceCategory
-  kind?: ExperienceKind
-  location?: string
-  reusability: Reusability
+function makeStore() {
+  installLocalStorage()
+  setActivePinia(createPinia())
+  return useExperienceStore()
 }
 
-// 镜像 stores/experience.ts findSimilarRule(修复后版本)
-function findSimilarRule(analysis: AnalysisStub, rules: RuleStub[]): RuleStub | undefined {
-  if (analysis.reusability === 'watch') return undefined
-
-  return rules.find((rule) => {
-    // kind 必须一致(undefined 视为相同):负向 caution 不能合并进正向 strategy
-    const sameKind =
-      analysis.kind === undefined || rule.kind === undefined || analysis.kind === rule.kind
-    if (!sameKind) return false
-
-    const sameCategory = rule.category === analysis.category
-    const sameTitle = rule.title === analysis.title
-    const sameLocation = Boolean(
-      rule.location && analysis.location && rule.location === analysis.location,
-    )
-    // sameTitle 也要求 sameCategory,防止跨领域同名 title 误合并
-    return (sameTitle && sameCategory) || (sameCategory && sameLocation)
-  })
+function makeFakeClient(raw: unknown): ObservationModelClient {
+  return { completeJson: async () => raw }
 }
 
-// ---------------------------------------------------------------------------
-// 辅助:构造 stub
-// ---------------------------------------------------------------------------
-
-function makeRule(overrides: Partial<RuleStub> & Pick<RuleStub, 'title' | 'category'>): RuleStub {
+function strategyRaw(title: string, category: string, location?: string) {
   return {
+    category,
+    tags: ['标签'],
+    summary: '摘要',
+    title,
+    conclusion: '结论说明。',
+    recommendation: '可执行的建议。',
+    conditions: ['条件一', '条件二'],
+    warnings: ['注意'],
     reusability: 'medium',
-    ...overrides,
+    direction: 'positive',
+    analysisType: 'rule',
+    confidence: 'medium',
+    location,
   }
 }
 
-function makeAnalysis(
-  overrides: Partial<AnalysisStub> & Pick<AnalysisStub, 'title' | 'category'>,
-): AnalysisStub {
+function cautionRaw(title: string, category: string, location?: string) {
+  return { ...strategyRaw(title, category, location), direction: 'negative', analysisType: 'counterexample' }
+}
+
+function watchRaw() {
   return {
-    reusability: 'medium',
-    ...overrides,
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 测试:I2 修复 — 同 category+location 但 kind 不同 → 不合并
-// ---------------------------------------------------------------------------
-
-function testSameCategoryLocationDifferentKindShouldNotMerge() {
-  const existing = makeRule({
-    title: '健身房高峰',
-    category: '运动',
-    kind: 'strategy',
-    location: '健身房',
-  })
-
-  const analysis = makeAnalysis({
-    title: '健身房高峰',
-    category: '运动',
-    kind: 'caution',
-    location: '健身房',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(
-    found,
-    undefined,
-    '同 category+location 但 kind 不同(strategy vs caution)→ 不应合并',
-  )
-}
-
-// ---------------------------------------------------------------------------
-// 测试:I2 修复 — 同 category+location 且 kind 相同 → 正常合并
-// ---------------------------------------------------------------------------
-
-function testSameCategoryLocationSameKindShouldMerge() {
-  const existing = makeRule({
-    title: '健身房高峰',
-    category: '运动',
-    kind: 'strategy',
-    location: '健身房',
-  })
-
-  const analysis = makeAnalysis({
-    title: '健身房高峰补充',
-    category: '运动',
-    kind: 'strategy',
-    location: '健身房',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(found, existing, '同 category+location 且 kind 相同 → 应合并')
-}
-
-// ---------------------------------------------------------------------------
-// 测试:I2 修复 — kind 有一方为 undefined → 视为相同,允许合并
-// ---------------------------------------------------------------------------
-
-function testKindUndefinedOnRuleShouldMerge() {
-  const existing = makeRule({
-    title: '健身房高峰',
-    category: '运动',
-    // kind 未设置
-    location: '健身房',
-  })
-
-  const analysis = makeAnalysis({
-    title: '健身房高峰补充',
-    category: '运动',
-    kind: 'strategy',
-    location: '健身房',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(found, existing, '已有规则 kind 为 undefined → 宽容合并,不阻断')
-}
-
-function testKindUndefinedOnAnalysisShouldMerge() {
-  const existing = makeRule({
-    title: '健身房高峰',
-    category: '运动',
-    kind: 'caution',
-    location: '健身房',
-  })
-
-  const analysis = makeAnalysis({
-    title: '健身房高峰补充',
-    category: '运动',
-    // kind 未设置
-    location: '健身房',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(found, existing, '分析结果 kind 为 undefined → 宽容合并,不阻断')
-}
-
-// ---------------------------------------------------------------------------
-// 测试:M5 修复 — 同名 title 但 category 不同 → 不合并
-// ---------------------------------------------------------------------------
-
-function testSameTitleDifferentCategoryShouldNotMerge() {
-  const existing = makeRule({
-    title: '高峰期避开',
-    category: '运动',
-    kind: 'strategy',
-  })
-
-  const analysis = makeAnalysis({
-    title: '高峰期避开',
-    category: '出行',
-    kind: 'strategy',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(found, undefined, '同名 title 但 category 不同 → 跨领域误合并应被阻止')
-}
-
-// ---------------------------------------------------------------------------
-// 测试:M5 修复 — 同名 title 且 category 相同 → 正常合并
-// ---------------------------------------------------------------------------
-
-function testSameTitleSameCategoryShouldMerge() {
-  const existing = makeRule({
-    title: '高峰期避开',
-    category: '运动',
-    kind: 'strategy',
-  })
-
-  const analysis = makeAnalysis({
-    title: '高峰期避开',
-    category: '运动',
-    kind: 'strategy',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(found, existing, '同名 title 且同 category → 应合并')
-}
-
-// ---------------------------------------------------------------------------
-// 测试:reusability 为 watch → 始终不合并
-// ---------------------------------------------------------------------------
-
-function testWatchReusabilitySkipsMerge() {
-  const existing = makeRule({
-    title: '高峰期避开',
-    category: '运动',
-    kind: 'strategy',
-    location: '健身房',
-  })
-
-  const analysis = makeAnalysis({
-    title: '高峰期避开',
-    category: '运动',
-    kind: 'strategy',
-    location: '健身房',
+    category: '其他',
+    tags: [],
+    summary: '',
+    title: '',
+    conclusion: '',
+    recommendation: '',
+    conditions: [],
+    warnings: [],
     reusability: 'watch',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(found, undefined, 'reusability=watch 的分析结果不应触发合并')
+    direction: 'uncertain',
+    analysisType: 'watch',
+    confidence: 'low',
+  }
 }
 
-// ---------------------------------------------------------------------------
-// 测试:I2 修复 — caution vs strategy 跨 kind 边界,即使 title 也完全一致
-// ---------------------------------------------------------------------------
-
-function testSameTitleSameCategoryDifferentKindShouldNotMerge() {
-  const existing = makeRule({
-    title: '周末健身房高峰',
-    category: '运动',
-    kind: 'strategy',
-  })
-
-  const analysis = makeAnalysis({
-    title: '周末健身房高峰',
-    category: '运动',
-    kind: 'caution',
-  })
-
-  const found = findSimilarRule(analysis, [existing])
-  assert.equal(
-    found,
-    undefined,
-    'title+category 均相同但 kind 不同(strategy vs caution) → 不应合并,应另建规则',
-  )
+// 同 kind + title + category → 合并为 1 条,证据累加
+async function testSameKindTitleCategoryMerges() {
+  const store = makeStore()
+  await store.submitObservation('工作场景甲一二三', makeFakeClient(strategyRaw('对齐策略', '工作')))
+  await store.submitObservation('工作场景乙一二三', makeFakeClient(strategyRaw('对齐策略', '工作')))
+  assert.equal(store.rules.length, 1, '同 kind+title+category → 合并为 1 条规则')
+  assert.equal(store.rules[0].evidenceIds.length, 2, '合并后应累加为 2 条证据')
+  assert.equal(store.rules[0].kind, 'strategy')
 }
 
-// ---------------------------------------------------------------------------
-// 运行所有测试
-// ---------------------------------------------------------------------------
+// I2:同 category+location 但 kind 不同(strategy vs caution)→ 不合并
+async function testDifferentKindDoesNotMerge() {
+  const store = makeStore()
+  await store.submitObservation('工作场景甲一二三', makeFakeClient(strategyRaw('对齐策略', '工作', '公司')))
+  await store.submitObservation('协作场景乙一二三', makeFakeClient(cautionRaw('目标不一致', '工作', '公司')))
+  assert.equal(store.rules.length, 2, 'kind 不同 → 不合并,另建规则')
+  const kinds = store.rules.map((r) => r.kind).sort()
+  assert.deepEqual(kinds, ['caution', 'strategy'], '应分别为 strategy 与 caution 各一条')
+}
 
-testSameCategoryLocationDifferentKindShouldNotMerge()
-testSameCategoryLocationSameKindShouldMerge()
-testKindUndefinedOnRuleShouldMerge()
-testKindUndefinedOnAnalysisShouldMerge()
-testSameTitleDifferentCategoryShouldNotMerge()
-testSameTitleSameCategoryShouldMerge()
-testWatchReusabilitySkipsMerge()
-testSameTitleSameCategoryDifferentKindShouldNotMerge()
+// M5:同名 title 但 category 不同 → 不合并
+async function testSameTitleDifferentCategoryDoesNotMerge() {
+  const store = makeStore()
+  await store.submitObservation('运动场景甲一二三', makeFakeClient(strategyRaw('高峰期避开', '运动')))
+  await store.submitObservation('出行场景乙一二三', makeFakeClient(strategyRaw('高峰期避开', '出行')))
+  assert.equal(store.rules.length, 2, '同名 title 但 category 不同 → 跨领域不合并')
+}
 
-console.log('findSimilarRule tests passed')
+// watch 分析始终不合并(findSimilarRule 对 watch 直接返回 undefined)
+async function testWatchNeverMerges() {
+  const store = makeStore()
+  await store.submitObservation('模糊文本甲一二三', makeFakeClient(watchRaw()))
+  await store.submitObservation('模糊文本乙一二三', makeFakeClient(watchRaw()))
+  assert.equal(store.rules.length, 2, 'watch 不合并,各自建规则')
+  assert.ok(store.rules.every((r) => r.kind === 'watch'), '两条均为 watch')
+}
+
+async function run() {
+  await testSameKindTitleCategoryMerges()
+  await testDifferentKindDoesNotMerge()
+  await testSameTitleDifferentCategoryDoesNotMerge()
+  await testWatchNeverMerges()
+  console.log('findSimilarRule tests passed')
+}
+
+void run()

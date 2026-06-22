@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { demoSamples } from '../services/aiAnalyzer'
 import { analyzeObservationResilient } from '../services/resilientAnalysis'
 import { getActiveModelClient } from '../services/modelConfig'
+import type { ObservationModelClient } from '../services/modelAnalysisAdapter'
 import { inferDirection } from '../services/analysisContract'
 import type { ObservationDirection } from '../services/analysisContract'
 import type { ObservationSentiment } from '../types/experience'
@@ -746,7 +747,8 @@ export const useExperienceStore = defineStore('experience', () => {
     latestRuleId.value = rule.id
   }
 
-  async function submitObservation(text: string) {
+  // clientOverride 仅供测试注入伪模型 client;省略时走 getActiveModelClient()(生产路径不变)
+  async function submitObservation(text: string, clientOverride?: ObservationModelClient | null) {
     const content = text.trim()
     if (!content || isAnalyzing.value) return
 
@@ -769,7 +771,8 @@ export const useExperienceStore = defineStore('experience', () => {
     persist()
 
     try {
-      const analysis = await analyzeObservationResilient(content, { client: getActiveModelClient() })
+      const client = clientOverride !== undefined ? clientOverride : getActiveModelClient()
+      const analysis = await analyzeObservationResilient(content, { client })
       const processedAt = new Date().toISOString()
       await _writeObservation(observation, analysis, processedAt)
       // M4 决策辅助:分析完成后召回相关历史规则
