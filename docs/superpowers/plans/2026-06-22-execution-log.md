@@ -220,3 +220,5 @@
 - 2026-06-22:真机测试(Playwright MCP)发现 + 修复。结构完整的负向反例被打成 watch:根因是模型漏给 confidence(默认 low→被 step2 拦)且把 reusability 误填成类型值。优化 OBSERVATION_ANALYSIS_PROMPT:强制 confidence/reusability 合法枚举 + 负向避坑指引 + 示例。复验:同输入现产出 kind=caution、reusability=high、模型生成真实标题「未开对齐会导致联调返工」。typecheck/12 套测试通过。
 
 - 2026-06-22:真机走查发现的 2 个质量问题修复。① discoverPatterns 过滤单条簇(members<2),洞察不再被单次标签刷屏;② AnalysisResult 携带 direction,store 的 observation.sentiment 改取模型 direction(回退 inferDirection),修复复盘"高频问题"为空 + 提升情绪维度可用性。新增/更新 2 个测试(patternDiscovery 单簇过滤、contract 带出 direction)。typecheck/12 套测试/build 全过。
+
+- 2026-06-22:修复 analysisContract 两个 Critical 问题(C1+C2)。C1:enforceAnalysisContract 结构门槛改用注入占位前的原始有效条数(rawEffectiveConditionCount),防止 withMinimumModelFields 注入 2 条占位后绕过 conditions<2 门槛,使 conditions:[] + positive+rule+high 不再错晋 strategy。C2:显著扩充 inferDirection 负向关键词表(新增 返工/白做/白干/冲突/打回/踩雷/延期/失败/亏/作废/出错/事故/加班/没结论/拖延/超时/中断/报错/推翻/方向变了等50余条工作/生活词),同步扩充正向词;添加 best-effort 注释说明局限性。新增 tests/analysisContract.test.ts(13个测试:6分支+C1×2+C2×3),登记进 package.json。typecheck/13 套测试全部通过。

@@ -61,9 +61,17 @@ export function normalizeModelAnalysis(input: unknown, sourceText: string): Mode
 
 export function enforceAnalysisContract(result: ModelAnalysisResult, sourceText: string): ModelAnalysisResult {
   const sourceDirection = inferDirection(sourceText)
+
+  // C1 修复:在注入占位条件前,先记录模型原始有效条数(去掉空串后的 length)。
+  // withMinimumModelFields 会在 conditions 为空时注入 2 条占位条件,
+  // 若用 coerced.conditions.length 判断结构门槛则会被绕过。
+  const rawEffectiveConditionCount = result.conditions.filter((c) => c.trim().length > 0).length
+
   const coerced = withMinimumModelFields(result, sourceText)
 
   // 1. 不准把负向伪装成正向(原文负向但模型判正向)→ 待观察
+  // C2 注:inferDirection 为 best-effort 兜底;已扩充负向/正向关键词覆盖,
+  // 使真实负向文本更可能被判为 negative,拦截"负向伪装正向"更可靠。
   if (sourceDirection === 'negative' && coerced.direction === 'positive') {
     return watchResult(sourceText, coerced.category, coerced.tags, coerced.location, '模型输出方向与原文相反，已降级为待观察。')
   }
@@ -73,19 +81,21 @@ export function enforceAnalysisContract(result: ModelAnalysisResult, sourceText:
     return { ...coerced, kind: 'watch', analysisType: 'watch', reusability: 'watch' }
   }
 
-  // 3. 结构不足(适用条件 < 2)→ 待观察
-  if (coerced.conditions.length < 2) {
+  // 3. 结构不足(原始有效适用条件 < 2)→ 待观察
+  // C1 修复:使用 rawEffectiveConditionCount(注入占位前的原始有效条数)而非 coerced.conditions.length,
+  // 防止 withMinimumModelFields 注入的占位条件绕过此门槛。
+  if (rawEffectiveConditionCount < 2) {
     return watchResult(sourceText, coerced.category, coerced.tags, coerced.location, '信息有价值，但适用条件不足，暂列为待观察。')
   }
 
-  // 4. 正向 + rule → 策略规则
+  // 4. 正向 + rule → 策略规则(原始有效条数已在步骤 3 校验 ≥ 2)
   if (coerced.direction === 'positive' && coerced.analysisType === 'rule') {
     const strategy: ModelAnalysisResult = { ...coerced, kind: 'strategy' }
     assertValidAnalysis(strategy)
     return strategy
   }
 
-  // 5. 负向/混合 + counterexample/constraint → 避坑规则
+  // 5. 负向/混合 + counterexample/constraint → 避坑规则(原始有效条数已在步骤 3 校验 ≥ 2)
   //    负向经验同样可沉淀为稳定规则(教训/约束),不再一律降级为待观察
   if (
     (coerced.direction === 'negative' || coerced.direction === 'mixed') &&
@@ -104,9 +114,15 @@ export function enforceAnalysisContract(result: ModelAnalysisResult, sourceText:
   return watchResult(sourceText, coerced.category, coerced.tags, coerced.location)
 }
 
+// inferDirection 为 best-effort 本地兜底,主要用于:
+// ① normalizeModelAnalysis 中模型未给出 direction 时的降级;
+// ② enforceAnalysisContract 中检测"负向伪装正向"。
+// 关键词表已扩充以覆盖常见工作/生活场景,但无法穷举所有表达,
+// 模型自报的 direction 仍为主路由,此函数只作安全网。
 export function inferDirection(text: string): ObservationDirection {
   const normalized = text.toLowerCase()
   const positiveScore = countMatches(normalized, [
+    // 原有正向词
     '人少',
     '不用排队',
     '不排队',
@@ -121,8 +137,35 @@ export function inferDirection(text: string): ObservationDirection {
     '好吃',
     '刚出炉',
     '更适合',
+    // 补充正向词
+    '顺利',
+    '成功',
+    '提前',
+    '节省',
+    '省时',
+    '省力',
+    '高效',
+    '效率高',
+    '达成',
+    '完成了',
+    '完成',
+    '推进',
+    '对齐了',
+    '通过了',
+    '上线了',
+    '发布了',
+    '合并了',
+    '没问题',
+    '很顺',
+    '比较顺',
+    '效果好',
+    '体验好',
+    '满意',
+    '节约',
+    '省了',
   ])
   const negativeScore = countMatches(normalized, [
+    // 原有负向词
     '人很多',
     '人多',
     '很挤',
@@ -139,6 +182,82 @@ export function inferDirection(text: string): ObservationDirection {
     '卡住',
     '不好吃',
     '卖完',
+    // 补充负向词 — 工作场景
+    '返工',
+    '白做',
+    '白干',
+    '冲突',
+    '打回',
+    '踩雷',
+    '延期',
+    '失败',
+    '亏',
+    '吵架',
+    '对不上',
+    '没对齐',
+    '被改',
+    '作废',
+    '出错',
+    '事故',
+    '加班',
+    '没结论',
+    '拖延',
+    '超时',
+    '超期',
+    '中断',
+    '中止',
+    '回滚',
+    '崩了',
+    '挂了',
+    '炸了',
+    '丢失',
+    '泄露',
+    '阻塞',
+    '卡死',
+    '死锁',
+    '报错',
+    '异常',
+    '报警',
+    '降级',
+    '回退',
+    '撤销',
+    '撤回',
+    '反复',
+    '反复改',
+    '来回改',
+    '白费',
+    '无效',
+    '无结果',
+    '没达到',
+    '没完成',
+    '未完成',
+    '没推进',
+    '没发布',
+    '没上线',
+    '取消了',
+    '被取消',
+    '被拒',
+    '被否',
+    '否掉',
+    '改掉',
+    '推翻',
+    '方向变了',
+    '需求变了',
+    '目标变了',
+    // 补充负向词 — 生活场景
+    '浪费',
+    '亏了',
+    '亏钱',
+    '损失',
+    '不值',
+    '后悔',
+    '踩坑',
+    '掉坑',
+    '绕远',
+    '堵车',
+    '迟到',
+    '误点',
+    '出问题',
   ])
 
   if (positiveScore > 0 && negativeScore > 0) return 'mixed'
