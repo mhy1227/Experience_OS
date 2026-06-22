@@ -230,3 +230,5 @@
 - 2026-06-22:修复测试与真实代码错位(I1)。重写 `tests/importObservations.test.ts`:删除镜像副本逻辑,改为使用 Pinia harness(installLocalStorage + createPinia + setActivePinia)导入并调用真实 `useExperienceStore.importObservations`,本地引擎兜底(无模型 key → null client → aiAnalyzer 兜底);6 个测试覆盖:真实写入观察数与规则数、sentiment 来自 direction、部分失败(文本<4 字触发 throw)不中断循环、空输入跳过、并发守卫阻断、三条跨分类 demo 文本。新建 `tests/storeV1Core.test.ts`:7 个测试覆盖 C1 契约回归(空 conditions+positive+rule+high → watch/两变体)+ C1 store 路径端对端(fake client→contract→watch→落库)+ submitObservation 核心 V1 路径 + sentiment + watch 不合并 + computeInsights 无错。两个文件均登记进 package.json。typecheck/15 套测试全部通过。
 
 - 2026-06-22:测试质量收尾(复审 Minor)。submitObservation 增加可选 clientOverride DI 接缝(生产路径不变);findSimilarRule.test.ts 从镜像副本改为经真实 store + 注入伪 client 直测合并守卫(I2/M5);storeV1Core 的 C1 从"剧场式"断言改为真·端到端(submitObservation 注入空条件输出 → 落库规则 reusability=watch)。typecheck/15 套测试/build 全绿。
+
+- 2026-06-22:新增 Markdown 导入模块(独立纯函数,见 spec 2026-06-22-markdown-import-design)。`src/services/markdownImport.ts`:marked(懒加载)lexer → 块级 token → 候选经验文本(列表项/段落/引用/表格行;跳标题默认/代码/front-matter;剥行内标记;去重+最小长度+maxItems 上限)。解析 0 token。新增 tests/markdownImport.test.ts(6 例)。marked 仅懒加载,主 bundle 未增大。16 套测试全过。
