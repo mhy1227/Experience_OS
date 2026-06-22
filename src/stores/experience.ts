@@ -69,6 +69,7 @@ export interface ImportSummary {
   total: number       // 拆出的非空行数
   succeeded: number  // 分析成功条数
   failed: number     // 分析失败条数(已降级保存)
+  note?: string      // 提示信息(如单次数量超上限被截断)
 }
 
 interface PersistedState {
@@ -1778,7 +1779,11 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
 
     isSeedingDemo.value = true
     try {
-      const results = await analyzeBatchViaBackend(lines, url) // 一次请求拿全部结果
+      const { results, truncated, maxItems } = await analyzeBatchViaBackend(lines, url) // 一次请求拿全部结果
+      if (truncated) {
+        summary.total = results.length
+        summary.note = `单次最多 ${maxItems} 条,已处理前 ${results.length} 条,其余请分批导入。`
+      }
       let insertAt = 0
       for (const item of results) {
         const now = new Date().toISOString()

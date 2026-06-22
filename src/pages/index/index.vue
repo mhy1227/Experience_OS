@@ -142,6 +142,7 @@
         <!-- 结果反馈 -->
         <div v-if="importResult" class="import-result">
           <span>共 {{ importResult.total }} 条 · 成功 {{ importResult.succeeded }} · 失败 {{ importResult.failed }}</span>
+          <span v-if="importResult.note" class="import-note">{{ importResult.note }}</span>
         </div>
         <div v-if="isImporting" class="import-progress">
           正在逐条提炼经验，请稍候…

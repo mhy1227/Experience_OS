@@ -6,11 +6,27 @@ const originalFetch = globalThis.fetch
 async function testReturnsResults() {
   globalThis.fetch = (async () => ({
     ok: true,
-    json: async () => ({ results: [{ text: 'x', ok: true, analysis: { title: '避坑规则' } }] }),
+    json: async () => ({
+      results: [{ text: 'x', ok: true, analysis: { title: '避坑规则' } }],
+      truncated: false,
+      maxItems: 100,
+    }),
   })) as unknown as typeof fetch
   const r = await analyzeBatchViaBackend(['x'], 'http://localhost:8787')
-  assert.equal(r.length, 1)
-  assert.equal(r[0].analysis.title, '避坑规则')
+  assert.equal(r.results.length, 1)
+  assert.equal(r.results[0].analysis.title, '避坑规则')
+  assert.equal(r.truncated, false)
+  assert.equal(r.maxItems, 100)
+}
+
+async function testReportsTruncation() {
+  globalThis.fetch = (async () => ({
+    ok: true,
+    json: async () => ({ results: [{ text: 'a', ok: true, analysis: {} }], truncated: true, maxItems: 1 }),
+  })) as unknown as typeof fetch
+  const r = await analyzeBatchViaBackend(['a', 'b'], 'http://localhost:8787')
+  assert.equal(r.truncated, true)
+  assert.equal(r.maxItems, 1)
 }
 
 async function testThrowsOnHttpError() {
@@ -21,6 +37,7 @@ async function testThrowsOnHttpError() {
 async function run() {
   try {
     await testReturnsResults()
+    await testReportsTruncation()
     await testThrowsOnHttpError()
     console.log('backendClient tests passed')
   } finally {

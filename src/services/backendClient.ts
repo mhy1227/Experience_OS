@@ -16,17 +16,27 @@ export function getBackendUrl(): string {
   return ''
 }
 
+export interface BackendBatchResponse {
+  results: BatchItemResult[]
+  truncated: boolean // 超出服务端单次上限 MAX_ITEMS,多余的未处理
+  maxItems: number // 服务端单次上限(供前端提示)
+}
+
 /** 调后端 /api/analyze-batch:一次请求,服务端持 Key 批量提炼,返回结构化结果 */
 export async function analyzeBatchViaBackend(
   texts: string[],
   baseUrl: string,
-): Promise<BatchItemResult[]> {
+): Promise<BackendBatchResponse> {
   const res = await fetch(`${baseUrl}/api/analyze-batch`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ texts }),
   })
   if (!res.ok) throw new Error(`backend HTTP ${res.status}`)
-  const data = (await res.json()) as { results?: BatchItemResult[] }
-  return data.results ?? []
+  const data = (await res.json()) as Partial<BackendBatchResponse>
+  return {
+    results: data.results ?? [],
+    truncated: Boolean(data.truncated),
+    maxItems: typeof data.maxItems === 'number' ? data.maxItems : (data.results?.length ?? 0),
+  }
 }
