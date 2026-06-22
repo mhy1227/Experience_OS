@@ -13,6 +13,7 @@
 - 产品
   - [实现现状(已实现/验证)](docs/implementation-status.md)
   - [版本规划(V1–V5)](docs/version-roadmap.md)
+  - [后端版本规划(B0–B4,按需)](docs/backend-roadmap.md)
   - [需求设计 spec](docs/superpowers/specs/2026-06-22-requirement-restructure-design.md)
   - [实施计划与执行日志](docs/superpowers/plans/)
 - 调研
