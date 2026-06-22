@@ -170,6 +170,28 @@ async function testC1_OnlyEmptyStringConditions_MustBeWatch() {
   assert.equal(result.reusability, 'watch')
 }
 
+// ─── 完整性闸门:结构/置信达标,但模型漏给核心文本字段 → 显式降级(不再捏造占位)──
+
+async function testIncompleteCoreFields_Downgraded() {
+  const result = enforceAnalysisContract(
+    makeResult({
+      direction: 'positive',
+      analysisType: 'rule',
+      confidence: 'high',
+      reusability: 'high',
+      conditions: ['工作日晚上', '地点是小区超市'],
+      summary: '', // 模型漏给摘要
+    }),
+    '工作日晚上8点去超市排队更短',
+  )
+  assert.equal(result.kind, 'watch', '核心文本字段缺失 → 应显式降级 watch,而非占位补全为 strategy')
+  assert.equal(result.reusability, 'watch')
+  assert.ok(
+    result.summary.includes('关键字段') || result.summary.includes('待观察'),
+    '降级结果应带可观测原因',
+  )
+}
+
 // ─── C2 专项:扩充后的 inferDirection 能识别新增负向词 ────────────────────────────
 
 // 新增负向词(不在旧词表)现在能被判为 negative
@@ -250,6 +272,9 @@ async function run() {
   // C1 专项
   await testC1_EmptyConditions_PositiveRuleHigh_MustBeWatch()
   await testC1_OnlyEmptyStringConditions_MustBeWatch()
+
+  // 完整性闸门
+  await testIncompleteCoreFields_Downgraded()
 
   // C2 专项
   await testC2_NewNegativeKeywords_Detected()
