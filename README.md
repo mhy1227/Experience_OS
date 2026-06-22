@@ -10,6 +10,7 @@
   - [目标架构蓝图(终局)](docs/architecture/target-architecture-blueprint.md)
   - [决策日志(ADR)](docs/architecture/decision-log.md)
   - [重构规划](docs/architecture/refactor-plan.md)
+  - [数据与隐私存储模型](docs/architecture/data-privacy-model.md)
 - 产品
   - [实现现状(已实现/验证)](docs/implementation-status.md)
   - [版本规划(V1–V5)](docs/version-roadmap.md)
