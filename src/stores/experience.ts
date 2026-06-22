@@ -854,10 +854,15 @@ export const useExperienceStore = defineStore('experience', () => {
     if (analysis.reusability === 'watch') return undefined
 
     return rules.value.find((rule) => {
-      const sameTitle = rule.title === analysis.title
+      // kind 必须一致(undefined 视为相同):负向 caution 不能合并进正向 strategy
+      const sameKind = analysis.kind === undefined || rule.kind === undefined || analysis.kind === rule.kind
+      if (!sameKind) return false
+
       const sameCategory = rule.category === analysis.category
+      const sameTitle = rule.title === analysis.title
       const sameLocation = Boolean(rule.location && analysis.location && rule.location === analysis.location)
-      return sameTitle || (sameCategory && sameLocation)
+      // sameTitle 也要求 sameCategory,防止跨领域同名 title 误合并
+      return (sameTitle && sameCategory) || (sameCategory && sameLocation)
     })
   }
 

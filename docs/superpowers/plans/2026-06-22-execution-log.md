@@ -222,3 +222,5 @@
 - 2026-06-22:真机走查发现的 2 个质量问题修复。① discoverPatterns 过滤单条簇(members<2),洞察不再被单次标签刷屏;② AnalysisResult 携带 direction,store 的 observation.sentiment 改取模型 direction(回退 inferDirection),修复复盘"高频问题"为空 + 提升情绪维度可用性。新增/更新 2 个测试(patternDiscovery 单簇过滤、contract 带出 direction)。typecheck/12 套测试/build 全过。
 
 - 2026-06-22:修复 analysisContract 两个 Critical 问题(C1+C2)。C1:enforceAnalysisContract 结构门槛改用注入占位前的原始有效条数(rawEffectiveConditionCount),防止 withMinimumModelFields 注入 2 条占位后绕过 conditions<2 门槛,使 conditions:[] + positive+rule+high 不再错晋 strategy。C2:显著扩充 inferDirection 负向关键词表(新增 返工/白做/白干/冲突/打回/踩雷/延期/失败/亏/作废/出错/事故/加班/没结论/拖延/超时/中断/报错/推翻/方向变了等50余条工作/生活词),同步扩充正向词;添加 best-effort 注释说明局限性。新增 tests/analysisContract.test.ts(13个测试:6分支+C1×2+C2×3),登记进 package.json。typecheck/13 套测试全部通过。
+
+- 2026-06-22:修复 store 规则合并不看 kind 的一致性问题(I2+M5)。`findSimilarRule` 增加 kind 一致性守卫:analysis.kind !== rule.kind(均非 undefined)时直接返回 false,禁止 caution 被合并进同 category+location 的 strategy 规则;同时 sameTitle 分支要求同时满足 sameCategory,防止跨领域同名 title 误合并。新建 `tests/findSimilarRule.test.ts`(8个纯函数测试:kind 不同不合并/相同合并/undefined 宽容/title 跨领域不合并/watch 跳过等),登记进 package.json。typecheck/14 套测试全部通过。
