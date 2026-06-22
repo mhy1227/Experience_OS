@@ -36,6 +36,7 @@ types/  →  services/  →  stores/  →  pages/(视图)
 | `resilientAnalysis.ts` | `analyzeObservationResilient`:模型优先,异常回退本地引擎 |
 | `patternDiscovery.ts` | M3 规律发现:统计聚类 + 模型归因增强 + 最小样本门槛(`MIN_CLUSTER_SIZE=3`) |
 | `decisionHints.ts` | M4 决策辅助:对新录入文本召回历史规则(纯函数) |
+| `periodicReview.ts` | V1 周·月复盘:时间窗内记录数 + 高频问题/成功 + 一句话建议(纯函数) |
 | `markdownExport.ts` | 导出"经验资产"为 markdown(纯函数,返回字符串) |
 | `demoWorkData.ts` | 演示工作种子数据(埋共同根因) |
 | `evaluationEngine.ts` | 评估/复测/采用门槛/可信度(1714 行)。**已折叠为"高级面板",未删** |
