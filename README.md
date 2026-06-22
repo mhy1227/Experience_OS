@@ -1,6 +1,20 @@
 # Experience OS 使用与开发指南
 
-Experience OS 是一个 H5 原型，用一句话观察生成可复用的个人经验规则，并支持后续复测、采用门槛、复测矩阵和评估数据导出。
+**Experience OS —— 个人经验管理与决策辅助引擎。** 把碎片化、口语化的经历自动提炼成可复用经验,并跨记录发现规律、在未来决策时主动召回。一句话:让每一次经历,都变成下一次决策的资产。(H5 原型)
+
+## 项目文档
+
+- 架构
+  - [当前架构(As-Is)](docs/architecture/current-architecture.md)
+  - [架构设计(原则/边界)](docs/architecture/architecture-design.md)
+  - [目标架构蓝图(终局)](docs/architecture/target-architecture-blueprint.md)
+  - [决策日志(ADR)](docs/architecture/decision-log.md)
+  - [重构规划](docs/architecture/refactor-plan.md)
+- 产品
+  - [版本规划(V1–V5)](docs/version-roadmap.md)
+  - [需求设计 spec](docs/superpowers/specs/2026-06-22-requirement-restructure-design.md)
+  - [实施计划与执行日志](docs/superpowers/plans/)
+- 工作约定:见 [CLAUDE.md](CLAUDE.md)
 
 ## 环境要求
 
