@@ -383,7 +383,6 @@ export type ClusterDimension = 'category' | 'tag' | 'sentiment' | 'rootCause'
 
 /** 洞察类型:描述归因模式的语义分类 */
 export type InsightType =
-  | 'frequency_pattern'   // 高频同类事件
   | 'sentiment_pattern'   // 情绪倾向集中
   | 'root_cause_pattern'  // 共同根因归因
   | 'tag_pattern'         // 标签共现

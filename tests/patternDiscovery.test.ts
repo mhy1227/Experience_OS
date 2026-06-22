@@ -73,12 +73,9 @@ async function testStatInsightFields() {
 }
 
 async function testStatInsightConfidenceHighWhenAboveThreshold() {
-  // clusterSize=6 > MIN_CLUSTER_SIZE(3),且占比 > 50%
+  // clusterSize=6 (>= HIGH_CONFIDENCE_SIZE) 且占比 6/8=75% (>= 0.5) → 必为 high
   const insight = buildStatInsight('工作', workObs, allObs.length, 'category', '过去 90 天')
-  assert.ok(
-    insight.confidence === 'high' || insight.confidence === 'medium',
-    `样本充足时置信度应为 medium 或 high,实际: ${insight.confidence}`,
-  )
+  assert.equal(insight.confidence, 'high', `6/8=75% 且样本=6 时置信度必须为 high,实际: ${insight.confidence}`)
 }
 
 async function testStatInsightConfidenceLowWhenBelowThreshold() {

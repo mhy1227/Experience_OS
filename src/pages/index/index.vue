@@ -1119,7 +1119,16 @@ function clearData() {
 }
 
 function handleExportMarkdown() {
-  store.exportAsMarkdown()
+  const md = store.exportAsMarkdown()
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `experience-os-export-${new Date().toISOString().slice(0, 10)}.md`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 function handleClearAll() {

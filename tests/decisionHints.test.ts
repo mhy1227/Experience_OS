@@ -50,17 +50,27 @@ async function testRespectsCustomThreshold() {
 }
 
 async function testSortsByScoreDescending() {
-  const rule2: ExperienceRule = {
+  // strongRule 在标题/结论/建议/条件多处命中"周末上午";weakRule 仅结论命中 → 分数显著不同
+  const strongRule: ExperienceRule = {
     ...baseRule,
-    id: 'rule_2',
-    title: '周末超市低峰采购',
-    conclusion: '周末上午超市人少',
-    recommendation: '周末上午去超市',
+    id: 'rule_strong',
+    title: '周末上午高效训练',
+    conclusion: '周末上午健身房人少',
+    recommendation: '周末上午去训练',
+    conditions: ['周末上午'],
   }
-  const hints = recallDecisionHints('周末上午', [baseRule, rule2], [obs])
-  if (hints.length >= 2) {
-    assert.ok(hints[0].score >= hints[1].score, '应按分数降序')
+  const weakRule: ExperienceRule = {
+    ...baseRule,
+    id: 'rule_weak',
+    title: '超市采购清单',
+    conclusion: '周末上午顺路买菜',
+    recommendation: '提前列好清单',
+    conditions: ['列清单'],
   }
+  const hints = recallDecisionHints('周末上午', [weakRule, strongRule], [obs])
+  assert.equal(hints.length, 2, '两条规则都应达到阈值')
+  assert.equal(hints[0].ruleId, 'rule_strong', '高分规则应排在最前')
+  assert.ok(hints[0].score > hints[1].score, '应严格按分数降序(两者分数不同)')
 }
 
 async function testExcludesWatchReusability() {

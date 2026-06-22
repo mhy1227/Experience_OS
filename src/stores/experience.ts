@@ -749,6 +749,9 @@ export const useExperienceStore = defineStore('experience', () => {
     const content = text.trim()
     if (!content || isAnalyzing.value) return
 
+    // 清空上一次提交残留的决策提醒,避免新提交期间/失败时旧卡片悬挂
+    decisionHints.value = []
+
     const now = new Date().toISOString()
     const observation: Observation = {
       id: createId('obs'),
@@ -1545,17 +1548,9 @@ export const useExperienceStore = defineStore('experience', () => {
     persist()
   }
 
-  function exportAsMarkdown() {
-    const md = renderExperienceMarkdown(rules.value, observations.value)
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `experience-os-export-${new Date().toISOString().slice(0, 10)}.md`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+  // 仅返回 markdown 字符串(services/store 层无 DOM 依赖);下载由 page 层处理
+  function exportAsMarkdown(): string {
+    return renderExperienceMarkdown(rules.value, observations.value)
   }
 
   function clearAllData(): { observationCount: number; ruleCount: number } {
@@ -1721,6 +1716,8 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     const client = getActiveModelClient()
 
     try {
+      // 在列表顶部按输入顺序插入(与单条 unshift 的"最新在上"一致,且批内保持原顺序)
+      let insertAt = 0
       for (const line of lines) {
         const now = new Date().toISOString()
         const observation: Observation = {
@@ -1732,7 +1729,8 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
           status: 'pending',
           createdAt: now,
         }
-        observations.value.push(observation)
+        observations.value.splice(insertAt, 0, observation)
+        insertAt += 1
 
         try {
           const analysis = await analyzeObservationResilient(line, { client })
