@@ -7,7 +7,7 @@
     "build:h5": "vite build",
     "preview:h5": "vite preview --host 0.0.0.0",
     "typecheck": "vue-tsc --noEmit",
-    "test:evaluation": "tsc -p tsconfig.test.json && node dist-tests/tests/aiAnalyzer.test.js && node dist-tests/tests/modelAnalysisAdapter.test.js && node dist-tests/tests/evaluationEngine.test.js && node dist-tests/tests/experienceStore.test.js && node dist-tests/tests/modelClient.test.js && node dist-tests/tests/resilientAnalysis.test.js && node dist-tests/tests/importObservations.test.js && node dist-tests/tests/patternDiscovery.test.js && node dist-tests/tests/decisionHints.test.js && node dist-tests/tests/markdownExport.test.js && node dist-tests/tests/demoWorkData.test.js"
+    "test:evaluation": "tsc -p tsconfig.test.json && node dist-tests/tests/aiAnalyzer.test.js && node dist-tests/tests/modelAnalysisAdapter.test.js && node dist-tests/tests/evaluationEngine.test.js && node dist-tests/tests/experienceStore.test.js && node dist-tests/tests/modelClient.test.js && node dist-tests/tests/resilientAnalysis.test.js && node dist-tests/tests/importObservations.test.js && node dist-tests/tests/patternDiscovery.test.js && node dist-tests/tests/decisionHints.test.js && node dist-tests/tests/markdownExport.test.js && node dist-tests/tests/demoWorkData.test.js && node dist-tests/tests/periodicReview.test.js"
   },
   "dependencies": {
     "vue": "^3.4.21",

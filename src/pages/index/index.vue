@@ -926,6 +926,28 @@
           :insight="insight"
           :observations="store.observations"
         />
+
+        <view class="review-block">
+          <view class="section-head">
+            <text class="section-title">周期复盘</text>
+            <view class="review-tabs">
+              <button :class="['review-tab', { active: reviewPeriod === 'week' }]" @click="reviewPeriod = 'week'">本周</button>
+              <button :class="['review-tab', { active: reviewPeriod === 'month' }]" @click="reviewPeriod = 'month'">本月</button>
+            </view>
+          </view>
+          <view class="review-card">
+            <text class="review-total">{{ reviewPeriod === 'week' ? '本周' : '本月' }}记录 {{ review.totalCount }} 条</text>
+            <view v-if="review.topProblems.length" class="review-row">
+              <text class="review-label">高频问题</text>
+              <text>{{ review.topProblems.map(p => `${p.label}×${p.count}`).join('、') }}</text>
+            </view>
+            <view v-if="review.topSuccesses.length" class="review-row">
+              <text class="review-label">高频成功</text>
+              <text>{{ review.topSuccesses.map(p => `${p.label}×${p.count}`).join('、') }}</text>
+            </view>
+            <text class="review-suggestion">{{ review.suggestion }}</text>
+          </view>
+        </view>
       </view>
     </view>
     <!-- Toast 提示 -->
@@ -979,6 +1001,10 @@ const store = useExperienceStore()
 const importText = ref('')
 const isImporting = ref(false)
 const importResult = ref<ImportSummary | null>(null)
+
+// V1 周期复盘:随观察数据与所选周期响应式计算
+const reviewPeriod = ref<'week' | 'month'>('week')
+const review = computed(() => store.periodicReview(reviewPeriod.value))
 
 async function handleImport() {
   const text = importText.value.trim()
@@ -3898,4 +3924,16 @@ const RuleCard = defineComponent({
   z-index: 9999;
   pointer-events: none;
 }
+</style>
+
+<style scoped>
+.review-block { margin-top: 16px; border-top: 1px solid #eee; padding-top: 12px; }
+.review-tabs { display: flex; gap: 8px; }
+.review-tab { padding: 2px 10px; border: 1px solid #ddd; border-radius: 12px; background: #fff; font-size: 12px; cursor: pointer; }
+.review-tab.active { background: #2f6feb; color: #fff; border-color: #2f6feb; }
+.review-card { margin-top: 8px; background: #f7f9fc; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.review-total { font-weight: 600; }
+.review-row { display: flex; gap: 8px; font-size: 13px; }
+.review-label { color: #888; min-width: 56px; }
+.review-suggestion { font-size: 13px; color: #2f6feb; }
 </style>

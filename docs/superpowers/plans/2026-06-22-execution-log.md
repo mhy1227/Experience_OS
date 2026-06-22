@@ -214,3 +214,5 @@
 - 2026-06-22:质量清理 pass(控制端手改)。修复:Plan3 置信度测试改为严格断言 high;移除死类型 frequency_pattern;Plan4 排序测试改用分数不同的规则(严格降序);submitObservation 开头清空 decisionHints;exportAsMarkdown 改为返回字符串、下载移到 page 层(遵守 services 无 DOM);批量导入改 splice 顶部插入(最新在上、批内保序)。typecheck/11 套测试/build 全过。
 
 - 2026-06-22:状态机拆轴(契约哲学修正)。enforceAnalysisContract 改为「类型+结构」判据,新增 kind(strategy/caution/watch),负向经验可沉淀为避坑规则而非一律待观察。改 types/analysisContract/aiAnalyzer/store,新增 2 个契约测试。typecheck/11 套测试/build 全过。
+
+- 2026-06-22:补齐 V1 周期复盘(`periodicReview.ts` + store action + 规律发现面板内 UI + 4 测试)。本周/本月:记录数 + 高频问题/成功(按情绪×标签)+ 一句话建议。typecheck/12 套测试/build 全过。V1 能力闭环。

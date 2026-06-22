@@ -10,6 +10,7 @@ import { discoverPatterns } from '../services/patternDiscovery'
 import type { Insight } from '../types/experience'
 import { recallDecisionHints, type DecisionHint } from '../services/decisionHints'
 import { renderExperienceMarkdown } from '../services/markdownExport'
+import { buildPeriodicReview, type ReviewPeriod } from '../services/periodicReview'
 import { DEMO_WORK_DATA } from '../services/demoWorkData'
 import {
   deriveEvaluationState,
@@ -1818,6 +1819,9 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     insights,
     isComputingInsights,
     computeInsights,
+    periodicReview(period: ReviewPeriod = 'week') {
+      return buildPeriodicReview(observations.value, period, new Date())
+    },
     decisionHints,
     dismissDecisionHint(ruleId: string) {
       decisionHints.value = decisionHints.value.filter((h) => h.ruleId !== ruleId)
