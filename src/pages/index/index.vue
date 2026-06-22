@@ -128,6 +128,17 @@
             {{ isImporting ? '导入中…' : '批量导入' }}
           </button>
         </div>
+        <div class="import-md-row">
+          <label class="import-md-label">📄 从 .md / .txt 文件导入
+            <input
+              type="file"
+              accept=".md,.markdown,.txt,text/markdown,text/plain"
+              class="import-md-input"
+              :disabled="isImporting"
+              @change="handleMarkdownFile"
+            />
+          </label>
+        </div>
         <!-- 结果反馈 -->
         <div v-if="importResult" class="import-result">
           <span>共 {{ importResult.total }} 条 · 成功 {{ importResult.succeeded }} · 失败 {{ importResult.failed }}</span>
@@ -1017,6 +1028,33 @@ async function handleImport() {
     // 无论成功/失败/并发被阻断,均清除输入框,避免旧输入与旧结果摘要同时显示
     importText.value = ''
     isImporting.value = false
+  }
+}
+
+// 从 .md/.txt 文件导入:解析内容为候选经验(0 token)→ 确认 → 复用批量导入管线
+async function handleMarkdownFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || isImporting.value) return
+  try {
+    const text = await file.text()
+    const { parseMarkdownToObservations } = await import('../../services/markdownImport')
+    const parsed = await parseMarkdownToObservations(text)
+    if (parsed.observations.length === 0) {
+      showToast('未从文件解析出可导入的经验')
+      return
+    }
+    const truncNote = parsed.truncated ? `（已截断，原 ${parsed.totalParsed} 条）` : ''
+    const ok = window.confirm(
+      `将从「${file.name}」导入 ${parsed.observations.length} 条经验${truncNote}，约需 ${parsed.observations.length} 次模型调用。继续？`,
+    )
+    if (!ok) return
+    isImporting.value = true
+    importResult.value = null
+    importResult.value = await store.importObservations(parsed.observations.join('\n'))
+  } finally {
+    isImporting.value = false
+    input.value = '' // 允许重选同一文件
   }
 }
 
@@ -3936,4 +3974,10 @@ const RuleCard = defineComponent({
 .review-row { display: flex; gap: 8px; font-size: 13px; }
 .review-label { color: #888; min-width: 56px; }
 .review-suggestion { font-size: 13px; color: #2f6feb; }
+</style>
+
+<style scoped>
+.import-md-row { margin-top: 10px; }
+.import-md-label { font-size: 13px; color: #555; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.import-md-input { font-size: 12px; }
 </style>
