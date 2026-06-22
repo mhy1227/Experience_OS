@@ -15,6 +15,8 @@
   - [版本规划(V1–V5)](docs/version-roadmap.md)
   - [需求设计 spec](docs/superpowers/specs/2026-06-22-requirement-restructure-design.md)
   - [实施计划与执行日志](docs/superpowers/plans/)
+- 调研
+  - [数据"梳理"工具/项目调研(待取舍)](docs/research/2026-06-22-data-structuring-tools-survey.md)
 - 工作约定:见 [CLAUDE.md](CLAUDE.md)
 
 ## 环境要求
