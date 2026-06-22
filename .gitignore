@@ -16,3 +16,8 @@ private-doc/
 # 本地环境变量(含模型 API Key),禁止提交
 .env.local
 .env*.local
+
+# Playwright MCP 测试产物(截图/快照/网络日志),不提交
+.playwright-mcp/
+caution-rule-verified.png
+*.playwright-mcp.png
