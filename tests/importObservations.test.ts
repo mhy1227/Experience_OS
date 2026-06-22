@@ -1,237 +1,179 @@
 import assert from 'node:assert/strict'
+import { createPinia, setActivePinia } from 'pinia'
+import { useExperienceStore } from '../src/stores/experience'
 
 // ---------------------------------------------------------------------------
-// 独立于 Vue/Pinia:测试拆行逻辑、sentiment 映射、批量写入行为、失败降级
+// 模拟 localStorage(与 experienceStore.test.ts 相同的 harness)
 // ---------------------------------------------------------------------------
 
-// 拆行工具(镜像 store importObservations 中同款逻辑)
-function splitLines(rawText: string): string[] {
-  return rawText
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-}
-
-// sentiment 映射(镜像 store mapSentiment 逻辑)
-type ObservationDirection = 'positive' | 'negative' | 'mixed' | 'uncertain'
-type ObservationSentiment = 'positive' | 'neutral' | 'negative'
-
-function mapSentiment(direction: ObservationDirection): ObservationSentiment {
-  if (direction === 'positive') return 'positive'
-  if (direction === 'negative') return 'negative'
-  return 'neutral'
+function installLocalStorage() {
+  const data = new Map<string, string>()
+  ;(globalThis as typeof globalThis & { localStorage: Storage }).localStorage = {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      data.set(key, value)
+    },
+    removeItem: (key: string) => {
+      data.delete(key)
+    },
+    clear: () => {
+      data.clear()
+    },
+    key: (index: number) => Array.from(data.keys())[index] ?? null,
+    get length() {
+      return data.size
+    },
+  } as Storage
 }
 
 // ---------------------------------------------------------------------------
-// 批量写入行为 + 失败降级:用独立 harness 模拟 importObservations 核心循环
+// 辅助:初始化 Pinia + store
 // ---------------------------------------------------------------------------
 
-interface ImportSummary {
-  total: number
-  succeeded: number
-  failed: number
+function makeStore() {
+  installLocalStorage()
+  setActivePinia(createPinia())
+  return useExperienceStore()
 }
 
-interface ObservationStub {
-  id: string
-  text: string
-  status: 'pending' | 'success' | 'failed'
-  summary: string
-}
+// ---------------------------------------------------------------------------
+// 1. importObservations 真实写入:调用真实 store,不调用模型(无 localStorage model key)
+//    本地引擎兜底;已知 demo 文本(健身房/超市/方案)能命中本地规则产出规则
+// ---------------------------------------------------------------------------
 
-// 模拟 importObservations 主循环(不依赖 Pinia/Vue):
-//   - analyzeStub: 模拟 analyzeObservationResilient,可选择抛出错误
-//   - writeStub: 模拟 _writeObservation,写入 status/summary
-async function runImportLoop(
-  lines: string[],
-  analyzeStub: (text: string) => Promise<{ category: string }>,
-): Promise<{ summary: ImportSummary; observations: ObservationStub[] }> {
-  const summary: ImportSummary = { total: lines.length, succeeded: 0, failed: 0 }
-  const observations: ObservationStub[] = []
+async function testImportWritesObservationsToStore() {
+  const store = makeStore()
 
-  for (const line of lines) {
-    const obs: ObservationStub = {
-      id: `obs-${observations.length}`,
-      text: line,
-      status: 'pending',
-      summary: '批量导入中',
-    }
-    observations.push(obs)
+  const rawText = [
+    '周末10点健身房人少，器械不用排队',
+    '工作日晚上8点去小区超市，结账排队明显更短',
+  ].join('\n')
 
-    try {
-      await analyzeStub(line)
-      // 模拟 _writeObservation:写入成功状态
-      obs.status = 'success'
-      obs.summary = `提炼完成:${line}`
-      summary.succeeded += 1
-    } catch {
-      // 单条失败降级,不中断循环
-      obs.status = 'failed'
-      obs.summary = '结构化校验失败，原始观察已保存。'
-      summary.failed += 1
-    }
+  const summary = await store.importObservations(rawText)
+
+  // summary 计数正确
+  assert.equal(summary.total, 2, '应识别 2 行输入')
+  assert.equal(summary.succeeded, 2, '两条已知文本应被本地引擎成功分析')
+  assert.equal(summary.failed, 0, '无失败')
+
+  // observations 真实写入
+  assert.equal(store.observations.length, 2, 'store.observations 应有 2 条记录')
+  for (const obs of store.observations) {
+    assert.equal(obs.status, 'success', '每条观察 status 应为 success')
+    assert.notEqual(obs.ruleId, undefined, '分析成功的观察应挂载 ruleId')
   }
 
-  return { summary, observations }
+  // rules 真实写入
+  assert.ok(store.rules.length >= 1, '至少应生成 1 条规则')
 }
 
 // ---------------------------------------------------------------------------
-// 拆行逻辑测试
+// 2. sentiment 来自分析方向(direction):正向文本 → sentiment='positive'
+//    本地引擎对 "周末10点健身房人少，器械不用排队" 返回 reusability='high' 且含正向关键词
 // ---------------------------------------------------------------------------
 
-function testSplitLinesFiltersEmpty() {
-  const raw = '\n  \n第一条观察\n\n第二条观察\n  \n'
-  const lines = splitLines(raw)
-  assert.equal(lines.length, 2)
-  assert.equal(lines[0], '第一条观察')
-  assert.equal(lines[1], '第二条观察')
-}
+async function testImportSentimentDerivesFromDirection() {
+  const store = makeStore()
 
-function testSplitLinesSingleLine() {
-  const lines = splitLines('周末健身房人少')
-  assert.equal(lines.length, 1)
-  assert.equal(lines[0], '周末健身房人少')
-}
+  // "人少"+"不用排队" 命中 inferDirection 正向词表 → positive
+  await store.importObservations('周末10点健身房人少，器械不用排队')
 
-function testSplitLinesAllEmpty() {
-  const lines = splitLines('  \n  \n  ')
-  assert.equal(lines.length, 0)
+  const obs = store.observations[0]
+  assert.ok(obs, '应有 1 条观察')
+  assert.equal(obs.sentiment, 'positive', '正向文本的 sentiment 应为 positive')
 }
 
 // ---------------------------------------------------------------------------
-// sentiment 映射测试
+// 3. 部分失败不中断循环:文本 < 4 字节时本地引擎抛出 Error,其余条目正常完成
 // ---------------------------------------------------------------------------
 
-function testMapSentimentPositive() {
-  assert.equal(mapSentiment('positive'), 'positive')
-}
+async function testImportPartialFailureDoesNotAbortLoop() {
+  const store = makeStore()
 
-function testMapSentimentNegative() {
-  assert.equal(mapSentiment('negative'), 'negative')
-}
+  // 第 2 条 "???" 长度 3 < 4,analyzeObservation 会 throw
+  const rawText = [
+    '周末10点健身房人少，器械不用排队',
+    '???',
+    '工作日晚上8点去小区超市，结账排队明显更短',
+  ].join('\n')
 
-function testMapSentimentMixed() {
-  assert.equal(mapSentiment('mixed'), 'neutral')
-}
+  const summary = await store.importObservations(rawText)
 
-function testMapSentimentUncertain() {
-  assert.equal(mapSentiment('uncertain'), 'neutral')
+  assert.equal(summary.total, 3, '三条输入')
+  assert.equal(summary.succeeded, 2, '两条成功')
+  assert.equal(summary.failed, 1, '一条失败(文本过短)')
+
+  // 循环未中断:observations 仍有 3 条(失败的也保留,status='failed')
+  assert.equal(store.observations.length, 3, '失败条也应保留在 observations 中')
+
+  const failedObs = store.observations.find((o) => o.status === 'failed')
+  assert.ok(failedObs, '应有一条 status=failed 的观察')
+  assert.equal(failedObs?.summary, '结构化校验失败，原始观察已保存。', '失败降级摘要应正确')
+
+  const successCount = store.observations.filter((o) => o.status === 'success').length
+  assert.equal(successCount, 2, '其余两条应成功写入')
 }
 
 // ---------------------------------------------------------------------------
-// 批量写入行为测试:全部成功
+// 4. 空输入:不写入任何观察,summary.total=0
 // ---------------------------------------------------------------------------
 
-async function testBatchWriteAllSucceed() {
-  const lines = ['健身房周末人少', '工作日早高峰拥堵', '晚上9点超市折扣多']
-  const { summary, observations } = await runImportLoop(
-    lines,
-    async (_text) => ({ category: '其他' }),
-  )
+async function testImportEmptyInputNoObservations() {
+  const store = makeStore()
+
+  const summary = await store.importObservations('  \n  \n  ')
+
+  assert.equal(summary.total, 0)
+  assert.equal(summary.succeeded, 0)
+  assert.equal(summary.failed, 0)
+  assert.equal(store.observations.length, 0, '空输入不应写入任何观察')
+  assert.equal(store.rules.length, 0, '空输入不应创建任何规则')
+}
+
+// ---------------------------------------------------------------------------
+// 5. 并发守卫:同时发起两个 importObservations 调用,第二个应被守卫阻断
+//    importObservations 在循环期间持有 isSeedingDemo=true,
+//    第二个并发调用命中守卫,返回空 summary 且不写入额外观察
+// ---------------------------------------------------------------------------
+
+async function testImportConcurrentCallIsBlocked() {
+  const store = makeStore()
+
+  // 并发发起两个导入(同一 tick 启动),第二个应被守卫阻断
+  const [summary1, summary2] = await Promise.all([
+    store.importObservations('周末10点健身房人少，器械不用排队'),
+    store.importObservations('工作日晚上8点去小区超市，结账排队明显更短'),
+  ])
+
+  // 其中一个被守卫阻断(total=0),另一个正常执行
+  const blocked = [summary1, summary2].find((s) => s.total === 0)
+  const executed = [summary1, summary2].find((s) => s.total > 0)
+
+  assert.ok(blocked, '并发调用中应有一个被守卫阻断(total=0)')
+  assert.ok(executed, '并发调用中应有一个正常执行')
+  assert.equal(blocked?.succeeded, 0)
+  assert.equal(blocked?.failed, 0)
+}
+
+// ---------------------------------------------------------------------------
+// 6. 多行成功:三条 demo 文本全部成功写入,rules 至少有 2 条(不同分类)
+// ---------------------------------------------------------------------------
+
+async function testImportThreeLinesCreatesRules() {
+  const store = makeStore()
+
+  const rawText = [
+    '周末10点健身房人少，器械不用排队',
+    '工作日晚上8点去小区超市，结账排队明显更短',
+    '上午10点写方案最顺，下午3点容易卡住',
+  ].join('\n')
+
+  const summary = await store.importObservations(rawText)
 
   assert.equal(summary.total, 3)
   assert.equal(summary.succeeded, 3)
   assert.equal(summary.failed, 0)
-  assert.equal(observations.length, 3)
-  for (const obs of observations) {
-    assert.equal(obs.status, 'success')
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 失败降级测试:部分失败不中断整体循环
-// ---------------------------------------------------------------------------
-
-async function testBatchWritePartialFailureDoesNotAbortLoop() {
-  const lines = ['正常观察1', '触发异常观察', '正常观察2']
-  let callCount = 0
-
-  const { summary, observations } = await runImportLoop(
-    lines,
-    async (text) => {
-      callCount += 1
-      if (text === '触发异常观察') throw new Error('模拟分析失败')
-      return { category: '其他' }
-    },
-  )
-
-  // 所有行均被处理(循环未被中断)
-  assert.equal(callCount, 3, '三条均应调用 analyze,失败不应中断循环')
-  assert.equal(summary.total, 3)
-  assert.equal(summary.succeeded, 2)
-  assert.equal(summary.failed, 1)
-
-  // 失败条降级保存,非中止
-  assert.equal(observations[0].status, 'success')
-  assert.equal(observations[1].status, 'failed')
-  assert.equal(observations[1].summary, '结构化校验失败，原始观察已保存。')
-  assert.equal(observations[2].status, 'success')
-}
-
-// ---------------------------------------------------------------------------
-// 失败降级测试:全部失败时 summary 正确
-// ---------------------------------------------------------------------------
-
-async function testBatchWriteAllFailedSummary() {
-  const lines = ['失败1', '失败2']
-  const { summary } = await runImportLoop(
-    lines,
-    async () => { throw new Error('全部失败') },
-  )
-
-  assert.equal(summary.total, 2)
-  assert.equal(summary.succeeded, 0)
-  assert.equal(summary.failed, 2)
-}
-
-// ---------------------------------------------------------------------------
-// 空输入测试:lines 为空时不调用 analyze
-// ---------------------------------------------------------------------------
-
-async function testBatchWriteEmptyInputSkipsAnalyze() {
-  const lines = splitLines('  \n  \n  ')
-  assert.equal(lines.length, 0)
-
-  let callCount = 0
-  const { summary } = await runImportLoop(
-    lines,
-    async () => { callCount += 1; return { category: '其他' } },
-  )
-
-  assert.equal(callCount, 0, '空输入不应调用 analyze')
-  assert.equal(summary.total, 0)
-  assert.equal(summary.succeeded, 0)
-  assert.equal(summary.failed, 0)
-}
-
-// ---------------------------------------------------------------------------
-// 并发守卫行为测试:isSeedingDemo/isAnalyzing 为 true 时应返回空 summary
-// ---------------------------------------------------------------------------
-
-async function testConcurrencyGuardReturnsEmptySummaryWhenBlocked() {
-  // 模拟 importObservations 并发守卫:当 isAnalyzing 为 true 时立即返回空 summary
-  async function importWithGuard(
-    rawText: string,
-    isAnalyzing: boolean,
-    isSeedingDemo: boolean,
-  ): Promise<ImportSummary> {
-    if (isAnalyzing || isSeedingDemo) {
-      return { total: 0, succeeded: 0, failed: 0 }
-    }
-    const lines = splitLines(rawText)
-    const summary: ImportSummary = { total: lines.length, succeeded: 0, failed: 0 }
-    // 简化:不实际执行分析
-    return summary
-  }
-
-  const blockedByAnalyzing = await importWithGuard('观察1\n观察2', true, false)
-  assert.equal(blockedByAnalyzing.total, 0, 'isAnalyzing=true 时应被守卫阻断返回空 summary')
-
-  const blockedBySeeding = await importWithGuard('观察1\n观察2', false, true)
-  assert.equal(blockedBySeeding.total, 0, 'isSeedingDemo=true 时应被守卫阻断返回空 summary')
-
-  const notBlocked = await importWithGuard('观察1\n观察2', false, false)
-  assert.equal(notBlocked.total, 2, '无守卫时应正常处理 2 条')
+  assert.ok(store.rules.length >= 2, '三条跨分类 demo 文本应生成 >=2 条规则')
 }
 
 // ---------------------------------------------------------------------------
@@ -239,25 +181,12 @@ async function testConcurrencyGuardReturnsEmptySummaryWhenBlocked() {
 // ---------------------------------------------------------------------------
 
 async function run() {
-  // 拆行逻辑
-  testSplitLinesFiltersEmpty()
-  testSplitLinesSingleLine()
-  testSplitLinesAllEmpty()
-
-  // sentiment 映射
-  testMapSentimentPositive()
-  testMapSentimentNegative()
-  testMapSentimentMixed()
-  testMapSentimentUncertain()
-
-  // 批量写入行为
-  await testBatchWriteAllSucceed()
-  await testBatchWritePartialFailureDoesNotAbortLoop()
-  await testBatchWriteAllFailedSummary()
-  await testBatchWriteEmptyInputSkipsAnalyze()
-
-  // 并发守卫行为
-  await testConcurrencyGuardReturnsEmptySummaryWhenBlocked()
+  await testImportWritesObservationsToStore()
+  await testImportSentimentDerivesFromDirection()
+  await testImportPartialFailureDoesNotAbortLoop()
+  await testImportEmptyInputNoObservations()
+  await testImportConcurrentCallIsBlocked()
+  await testImportThreeLinesCreatesRules()
 
   console.log('importObservations tests passed')
 }
