@@ -3,6 +3,7 @@ import {
   MIN_CLUSTER_SIZE,
   clusterObservations,
   buildStatInsight,
+  enrichClusterWithModel,
   discoverPatterns,
 } from '../src/services/patternDiscovery'
 import type { Observation } from '../src/types/experience'
@@ -154,6 +155,52 @@ async function testMinClusterSizeConstant() {
   assert.ok(MIN_CLUSTER_SIZE >= 3, 'MIN_CLUSTER_SIZE 应至少为 3')
 }
 
+// ─── enrichClusterWithModel 字段校验 ─────────────────────────────────────────
+
+async function testEnrichFallsBackOnPlaceholderRootCause() {
+  // 模型返回占位字面量"暂无明确根因"→ rootCause 应回退为空字符串
+  const mockClient: ObservationModelClient = {
+    completeJson: async () => ({
+      rootCause: '暂无明确根因',
+      title: '正常标题',
+      suggestion: '正常建议',
+    }),
+  }
+  const baseInsight = buildStatInsight('工作', workObs, allObs.length, 'category', '过去 90 天')
+  const enriched = await enrichClusterWithModel(baseInsight, workObs, mockClient)
+  assert.equal(enriched.rootCause, '', '占位根因应回退为空字符串')
+}
+
+async function testEnrichFallsBackOnEmptyTitle() {
+  // 模型返回空 title → 应回退为统计标题
+  const mockClient: ObservationModelClient = {
+    completeJson: async () => ({
+      rootCause: '真实根因',
+      title: '',          // 空 → 回退
+      suggestion: '建议',
+    }),
+  }
+  const baseInsight = buildStatInsight('工作', workObs, allObs.length, 'category', '过去 90 天')
+  const statTitle = baseInsight.title
+  const enriched = await enrichClusterWithModel(baseInsight, workObs, mockClient)
+  assert.equal(enriched.title, statTitle, '空 title 应回退为统计标题')
+}
+
+async function testEnrichTruncatesOverlongFields() {
+  // 模型返回超过 120 字的 title → 截断到 120 字
+  const longTitle = 'A'.repeat(200)
+  const mockClient: ObservationModelClient = {
+    completeJson: async () => ({
+      rootCause: '根因',
+      title: longTitle,
+      suggestion: '建议',
+    }),
+  }
+  const baseInsight = buildStatInsight('工作', workObs, allObs.length, 'category', '过去 90 天')
+  const enriched = await enrichClusterWithModel(baseInsight, workObs, mockClient)
+  assert.ok(enriched.title.length <= 120, `超长 title 应被截断到 120 字,实际: ${enriched.title.length}`)
+}
+
 async function testFiltersSingleOccurrenceClusters() {
   // 每个 tag 仅出现 1 次 → 不应产出标签洞察(避免刷屏);category 工作 size=3 应保留
   const data: Observation[] = [
@@ -182,6 +229,9 @@ async function run() {
   await testDiscoverPatternsModelFailureFallsBackToStat()
   await testMinClusterSizeConstant()
   await testFiltersSingleOccurrenceClusters()
+  await testEnrichFallsBackOnPlaceholderRootCause()
+  await testEnrichFallsBackOnEmptyTitle()
+  await testEnrichTruncatesOverlongFields()
   console.log('patternDiscovery tests passed')
 }
 

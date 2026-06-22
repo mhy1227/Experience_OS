@@ -183,6 +183,43 @@ export function buildStatInsight(
 
 // ─── 模型增强(可选)────────────────────────────────────────────────────────
 
+/** 模型字段最大长度 */
+const MODEL_FIELD_MAX_LEN = 120
+
+/**
+ * 模型返回的占位字面量黑名单:命中时回退为统计描述。
+ * 不得用于真实 insight,否则 UI 会展示裸占位文本。
+ */
+const PLACEHOLDER_PATTERNS = [
+  '暂无明确根因',
+  '无法确定',
+  '不明确',
+  '无根因',
+  'N/A',
+  'n/a',
+  '待补充',
+  '暂无',
+]
+
+/**
+ * 校验模型返回的单个字段:
+ * - 空字符串 / 纯空白 → 回退
+ * - 超过 MAX_LEN 字 → 截断到 MAX_LEN
+ * - 命中占位黑名单 → 回退(返回 undefined)
+ * fallback 为统计兜底值。
+ */
+function validateModelField(
+  value: string,
+  fallback: string,
+  maxLen: number = MODEL_FIELD_MAX_LEN,
+): string {
+  const trimmed = value.trim()
+  if (trimmed.length === 0) return fallback
+  if (PLACEHOLDER_PATTERNS.some((p) => trimmed === p || trimmed.startsWith(p))) return fallback
+  if (trimmed.length > maxLen) return trimmed.slice(0, maxLen)
+  return trimmed
+}
+
 /** 构建用于簇归因的 prompt */
 function buildClusterAttributionPrompt(
   clusterKey: string,
@@ -222,12 +259,14 @@ export async function enrichClusterWithModel(
     const prompt = buildClusterAttributionPrompt(insight.clusterKey, members, insight.dimension)
     const raw = await client.completeJson(prompt) as Record<string, unknown>
 
-    const rootCause = typeof raw['rootCause'] === 'string' ? raw['rootCause'] : ''
-    const title = typeof raw['title'] === 'string' && raw['title'].length > 0
-      ? raw['title']
+    const rootCause = typeof raw['rootCause'] === 'string'
+      ? validateModelField(raw['rootCause'], '')
+      : ''
+    const title = typeof raw['title'] === 'string'
+      ? validateModelField(raw['title'], insight.title)
       : insight.title
-    const suggestion = typeof raw['suggestion'] === 'string' && raw['suggestion'].length > 0
-      ? raw['suggestion']
+    const suggestion = typeof raw['suggestion'] === 'string'
+      ? validateModelField(raw['suggestion'], insight.suggestion)
       : insight.suggestion
 
     return {

@@ -4,6 +4,19 @@ import type { ExperienceRule, Observation } from '../types/experience'
  * 将规则库 + 观察记录渲染成可读 Markdown 字符串。
  * 纯函数，不依赖 DOM / store，可在 Node 测试环境直接调用。
  */
+
+/**
+ * 对 Markdown 表格单元格内容做安全转义：
+ * - 竖线(|) → 全角｜，防止破坏列分隔符
+ * - 换行(\r?\n 或 \r) → 空格，防止破坏表格行
+ * - 反引号(`) → 全角｀，防止意外进入行内代码块
+ */
+function escapeCell(value: string): string {
+  return value
+    .replace(/\r?\n|\r/g, ' ')  // 换行 → 空格
+    .replace(/\|/g, '｜')       // 竖线 → 全角
+    .replace(/`/g, '｀')        // 反引号 → 全角
+}
 export function renderExperienceMarkdown(
   rules: ExperienceRule[],
   observations: Observation[],
@@ -51,15 +64,15 @@ export function renderExperienceMarkdown(
     lines.push('')
     lines.push(`| 字段 | 内容 |`)
     lines.push(`|------|------|`)
-    lines.push(`| 分类 | ${r.category} |`)
-    lines.push(`| 可复用性 | ${reusabilityLabel(r.reusability)} |`)
-    lines.push(`| 结论 | ${r.conclusion} |`)
-    lines.push(`| 建议 | ${r.recommendation} |`)
+    lines.push(`| 分类 | ${escapeCell(r.category)} |`)
+    lines.push(`| 可复用性 | ${escapeCell(reusabilityLabel(r.reusability))} |`)
+    lines.push(`| 结论 | ${escapeCell(r.conclusion)} |`)
+    lines.push(`| 建议 | ${escapeCell(r.recommendation)} |`)
     if (r.conditions.length > 0) {
-      lines.push(`| 适用条件 | ${r.conditions.join(' / ')} |`)
+      lines.push(`| 适用条件 | ${escapeCell(r.conditions.join(' / '))} |`)
     }
     if (r.warnings && r.warnings.length > 0) {
-      lines.push(`| 注意事项 | ${r.warnings.join(' / ')} |`)
+      lines.push(`| 注意事项 | ${escapeCell(r.warnings.join(' / '))} |`)
     }
     lines.push('')
 
@@ -89,9 +102,9 @@ export function renderExperienceMarkdown(
   lines.push('|------|------|------|------|')
   for (const o of observations) {
     const date = o.createdAt.slice(0, 10)
-    const summary = (o.summary ?? '').replace(/\|/g, '/')
-    const text = o.text.replace(/\|/g, '/')
-    lines.push(`| ${date} | ${o.category} | ${summary} | ${text} |`)
+    const summary = escapeCell(o.summary ?? '')
+    const text = escapeCell(o.text)
+    lines.push(`| ${date} | ${escapeCell(o.category)} | ${summary} | ${text} |`)
   }
   lines.push('')
 

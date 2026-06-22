@@ -57,12 +57,58 @@ async function testEmptyRulesReturnsMarkdown() {
   assert.ok(typeof md === 'string' && md.length > 0, '空数据也应返回非空字符串')
 }
 
+async function testCellPipeEscaped() {
+  // 竖线在规则结论中应被转义为全角｜,不破坏表格
+  const ruleWithPipe: ExperienceRule = {
+    ...rule,
+    conclusion: '条件A|条件B 同时满足时',
+    recommendation: '优先处理|级风险',
+  }
+  const md = renderExperienceMarkdown([ruleWithPipe], [])
+  // 转义后应出现全角｜而非原始 |
+  assert.ok(md.includes('条件A｜条件B'), '结论中竖线应被转义为全角｜')
+  assert.ok(md.includes('优先处理｜级风险'), '建议中竖线应被转义为全角｜')
+}
+
+async function testCellNewlineEscaped() {
+  // 换行符在观察文本中应被替换为空格,不破坏表格行
+  const obsWithNewline: Observation = {
+    ...obs,
+    id: 'obs-newline',
+    text: '第一行内容\n第二行内容',
+    summary: '摘要第一行\n摘要第二行',
+  }
+  // 必须传入至少一条规则,否则函数提前返回,跳过观察记录总表
+  const md = renderExperienceMarkdown([rule], [obsWithNewline])
+  // 换行被替换为空格,表格单行内不应含原始换行
+  const tableSection = md.split('## 原始观察记录')[1] ?? ''
+  assert.ok(tableSection.length > 0, '应存在观察记录总表区块')
+  assert.ok(!tableSection.includes('\n第二行内容'), '观察文本的换行应被替换(不影响表格行)')
+  assert.ok(tableSection.includes('第一行内容 第二行内容'), '换行应替换为空格')
+}
+
+async function testCellBacktickEscaped() {
+  // 反引号在观察摘要中应被转义为全角｀
+  const obsWithBacktick: Observation = {
+    ...obs,
+    id: 'obs-bt',
+    text: '普通文本',
+    summary: '使用`git rebase`时出错',
+  }
+  // 必须传入至少一条规则,否则函数提前返回,跳过观察记录总表
+  const md = renderExperienceMarkdown([rule], [obsWithBacktick])
+  assert.ok(md.includes('使用｀git rebase｀时出错'), '摘要中反引号应被转义为全角｀')
+}
+
 async function run() {
   await testContainsRuleTitle()
   await testContainsConclusion()
   await testContainsObservationText()
   await testContainsMetaSection()
   await testEmptyRulesReturnsMarkdown()
+  await testCellPipeEscaped()
+  await testCellNewlineEscaped()
+  await testCellBacktickEscaped()
   console.log('markdownExport tests passed')
 }
 
