@@ -1,8 +1,10 @@
-// Vercel 函数入口的「源」。注意:不要放在 /api 下——Vercel 会逐文件转译 /api 里的 .ts,
-// 而它对 /api 外部的相对 import 只做文件追踪、不内联,ESM 下又缺 .js 扩展名会运行时报
-// ERR_MODULE_NOT_FOUND。所以这里用 esbuild 预打包成单一自包含文件 api/[...route].js
-// (见 package.json 的 build:api),把 hono + server/app + src 链全部内联,Vercel 直接跑。
-import { handle } from 'hono/vercel'
+// Vercel 函数入口的「源」。经 esbuild 预打包成自包含的 api/[...route].js(见 build:api)。
+//
+// 为什么不用 hono/vercel 的 handle:它返回 Web Response,是给 Edge 运行时用的;
+// Vercel 默认是 Node 运行时,按 (req,res) 调用,返回 Response 不写 res 会 504 超时。
+// 用 @hono/node-server 的 getRequestListener 把 app.fetch 转成 Node (req,res) 监听器,
+// Node 运行时才能正确返回(且 Node 运行时支持 maxDuration 60s,够批量串行提炼)。
+import { getRequestListener } from '@hono/node-server'
 import app from './app'
 
-export default handle(app)
+export default getRequestListener(app.fetch)
