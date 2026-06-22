@@ -218,3 +218,5 @@
 - 2026-06-22:补齐 V1 周期复盘(`periodicReview.ts` + store action + 规律发现面板内 UI + 4 测试)。本周/本月:记录数 + 高频问题/成功(按情绪×标签)+ 一句话建议。typecheck/12 套测试/build 全过。V1 能力闭环。
 
 - 2026-06-22:真机测试(Playwright MCP)发现 + 修复。结构完整的负向反例被打成 watch:根因是模型漏给 confidence(默认 low→被 step2 拦)且把 reusability 误填成类型值。优化 OBSERVATION_ANALYSIS_PROMPT:强制 confidence/reusability 合法枚举 + 负向避坑指引 + 示例。复验:同输入现产出 kind=caution、reusability=high、模型生成真实标题「未开对齐会导致联调返工」。typecheck/12 套测试通过。
+
+- 2026-06-22:真机走查发现的 2 个质量问题修复。① discoverPatterns 过滤单条簇(members<2),洞察不再被单次标签刷屏;② AnalysisResult 携带 direction,store 的 observation.sentiment 改取模型 direction(回退 inferDirection),修复复盘"高频问题"为空 + 提升情绪维度可用性。新增/更新 2 个测试(patternDiscovery 单簇过滤、contract 带出 direction)。typecheck/12 套测试/build 全过。

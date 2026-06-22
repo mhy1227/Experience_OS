@@ -372,6 +372,7 @@ export interface AnalysisResult {
   warnings: string[]
   reusability: Reusability
   kind?: ExperienceKind
+  direction?: 'positive' | 'negative' | 'mixed' | 'uncertain'
   location?: string
 }
 

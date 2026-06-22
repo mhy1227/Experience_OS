@@ -740,8 +740,8 @@ export const useExperienceStore = defineStore('experience', () => {
       processedAt,
       ruleId: rule.id,
       location: analysis.location,
-      // 注:sentiment 取自本地 inferDirection 启发式(非 AI 分析结果),见上方设计说明
-      sentiment: mapSentiment(inferDirection(observation.text)),
+      // sentiment 优先取模型分析的 direction(更准),缺失时回退本地 inferDirection
+      sentiment: mapSentiment(analysis.direction ?? inferDirection(observation.text)),
     })
     latestRuleId.value = rule.id
   }

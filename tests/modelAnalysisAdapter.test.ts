@@ -99,6 +99,8 @@ async function testNegativeCounterexampleBecomesCautionRule() {
   assert.equal(result.kind, 'caution')
   assert.notEqual(result.reusability, 'watch')
   assert.equal(result.title, '目标不一致导致返工')
+  // direction 随分析结果带出(供 sentiment 使用,不再依赖本地弱关键词)
+  assert.equal(result.direction, 'negative')
 }
 
 async function testNegativeButInsufficientStaysWatch() {

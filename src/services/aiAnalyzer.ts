@@ -300,6 +300,7 @@ function materializeRule(match: ScoredRule, signals: ExtractedSignals, text: str
     tags,
     ...rule.result,
     kind: 'strategy',
+    direction: 'positive',
   }
 
   if (!result.location && signals.locations.length > 0) {

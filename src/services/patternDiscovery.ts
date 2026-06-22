@@ -280,6 +280,9 @@ export async function discoverPatterns(
       const dedupKey = `${dimension}::${clusterKey}`
       if (insightMap.has(dedupKey)) continue
 
+      // 过滤单条簇:单次出现不构成"共现/高频"模式,避免洞察刷屏
+      if (members.length < 2) continue
+
       // 1. 统计基座(必做)
       let insight = buildStatInsight(clusterKey, members, total, dimension, timeWindowLabel)
 

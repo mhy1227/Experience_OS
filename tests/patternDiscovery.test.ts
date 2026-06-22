@@ -154,6 +154,18 @@ async function testMinClusterSizeConstant() {
   assert.ok(MIN_CLUSTER_SIZE >= 3, 'MIN_CLUSTER_SIZE 应至少为 3')
 }
 
+async function testFiltersSingleOccurrenceClusters() {
+  // 每个 tag 仅出现 1 次 → 不应产出标签洞察(避免刷屏);category 工作 size=3 应保留
+  const data: Observation[] = [
+    makeObs({ id: 'x1', category: '工作', tags: ['唯一A'] }),
+    makeObs({ id: 'x2', category: '工作', tags: ['唯一B'] }),
+    makeObs({ id: 'x3', category: '工作', tags: ['唯一C'] }),
+  ]
+  const insights = await discoverPatterns(data, { timeWindowLabel: '过去 90 天' })
+  assert.equal(insights.filter((i) => i.dimension === 'tag').length, 0, '单次出现的标签不应产出洞察')
+  assert.ok(insights.some((i) => i.dimension === 'category' && i.clusterKey === '工作'), '工作类(size=3)应保留')
+}
+
 // ─── run ─────────────────────────────────────────────────────────────────────
 
 async function run() {
@@ -169,6 +181,7 @@ async function run() {
   await testDiscoverPatternsModelEnhancedOnSuccess()
   await testDiscoverPatternsModelFailureFallsBackToStat()
   await testMinClusterSizeConstant()
+  await testFiltersSingleOccurrenceClusters()
   console.log('patternDiscovery tests passed')
 }
 
