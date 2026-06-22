@@ -1,0 +1,88 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam ConditionEndStyle diamond
+skinparam activity {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    FontSize 14
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+title 规则复测与采用门槛评估链
+
+start
+
+partition "复测输入(store.recordEvaluation)" {
+    :记录一次复测样本\n(结果 passed/failed/uncertain);
+    :绑定计划/协议快照\n与协议执行记录 protocolExecution;
+    :标记样本所属规则版本 ruleVersion;
+    :触发 applyEvaluationState\n→ deriveEvaluationState;
+}
+
+partition "样本归集与画像(deriveEvaluationStateCore)" {
+    :按当前版本筛选样本\ncurrentVersionEvaluations;
+    :统计 passed / failed / uncertain\n与明确样本数 decisive;
+    :生成版本覆盖 / 协议合规 /\n样本独立性 / 复测矩阵 画像;
+}
+
+partition "评估结论(getEvaluationVerdict)" {
+    if (明确样本总数 < 2 ?) then (是)
+        :结论 = insufficient(样本不足);
+    elseif (failed >= 2 且 failed >= passed ?) then (是)
+        :结论 = conflicted(冲突);
+    elseif (passed >= 2 且 passed > failed ?) then (是)
+        :结论 = supported(支持);
+    else (其余)
+        :结论 = mixed(分歧);
+    endif
+    :计算稳定分 score / 置信 confidence / 趋势 trend;
+}
+
+partition "采用决策(adoptionDecisionFor 有序闸门)" {
+    if (结论=conflicted 或 存在未解决维护回归\n或 复测矩阵冲突 ?) then (是)
+        :决策 = suspend(暂停采用,先收窄边界);
+        stop
+    elseif (当前版本复测未覆盖\nversionCoverage != covered ?) then (是)
+        :决策 = retest(补当前版本复测);
+        stop
+    elseif (协议合规 blocked/partial\n或 存在证据缺口 ?) then (是)
+        :决策 = repair(先补齐协议/证据);
+        stop
+    elseif (样本独立性不足\n或 样本<2 / insufficient\n或 复测矩阵 incomplete ?) then (是)
+        :决策 = retest(换时间/场景或补槽位);
+        stop
+    elseif (有恢复观察期槽位\n或 趋势走弱 / mixed ?) then (是)
+        :决策 = limit(限制在已验证场景);
+        stop
+    elseif (supported 且 score>=75 且 高置信 ?) then (是)
+        :决策 = adopt(默认行动参考);
+    else (supported 但分/置信不足)
+        :决策 = limit(限制在相似场景);
+        stop
+    endif
+}
+
+partition "采用门槛(adoptionGateFor)" {
+    :逐项执行约 15 项门槛检查\n(最小样本/明确样本/证据完整度/\n冲突控制/置信/稳定分/趋势/\n样本独立性/版本覆盖/协议一致/\n焦点覆盖/复测矩阵/维护回归/恢复观察);
+    :汇总 blockers 与 warnings;
+    if (存在 blocker ?) then (是)
+        :门槛状态 = blocked(被阻断);
+        stop
+    elseif (目标决策=adopt 且 无 blocker ?) then (是)
+        :门槛状态 = ready(可默认采用);
+        stop
+    else (仅 warning)
+        :门槛状态 = attention(需关注);
+        stop
+    endif
+}
+
+stop
+
+@enduml

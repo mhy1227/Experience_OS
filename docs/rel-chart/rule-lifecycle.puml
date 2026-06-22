@@ -1,0 +1,61 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam state {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    FontColor black
+    ArrowColor black
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+title 经验规则生命周期(新建 → 复测 → 采用决策)
+
+' ===== 状态定义 =====
+state "新建 / 未复核\n(unreviewed · watch)" as New
+state "复测中\n(watching · 累积评估)" as Retesting
+state "暂停采用\n(suspend)" as Suspend
+state "继续复测\n(retest)" as Retest
+state "修复证据\n(repair · needsFix)" as Repair
+state "限制使用\n(limit)" as Limit
+state "默认采用\n(adopt · validated)" as Adopt
+
+[*] --> New : 规则提炼入库
+
+New --> Retesting : 录入首次复测评估
+
+' ===== 决策闸门(忠于 adoptionDecisionFor 的判定顺序)=====
+' 1. suspend 优先
+Retesting --> Suspend : 结论 conflicted / 维护回归未解 / 复测矩阵冲突阻断
+' 2. retest(版本覆盖不足)
+Retesting --> Retest : 修订后当前版本复测不足(版本覆盖未 covered)
+' 3. repair(协议/证据缺口)
+Retesting --> Repair : 协议执行阻断或不完整 / 证据缺口(qualityIssues>0)
+' 4. retest(样本/矩阵不足)
+Retesting --> Retest : 样本独立性弱 / 评估<2次 / insufficient / 矩阵未完成
+' 5. limit
+Retesting --> Limit : 槽位刚恢复 / 趋势走弱(declining)/ mixed 分歧
+' 6. adopt(最严门槛,最后才到)
+Retesting --> Adopt : supported 且 稳定分≥75 且 高置信
+' supported 但门槛不足 → limit
+Retesting --> Limit : supported 但置信或稳定分不足
+
+' ===== 回流复测 =====
+Retest --> Retesting : 补充独立复测样本
+Repair --> Retesting : 补齐协议 / 场景证据后重测
+Suspend --> Retesting : 收窄边界 / 拆分场景后恢复观察
+
+' ===== 采用后的再评估回路 =====
+Limit --> Retesting : 在已验证场景持续观察 / 新增评估
+Adopt --> Retesting : 出现新冲突或趋势走弱触发复评
+
+' ===== 终止 =====
+Suspend --> [*] : 边界无法收敛 · 弃用
+Adopt --> [*] : 稳定沉淀为默认行动参考
+
+@enduml

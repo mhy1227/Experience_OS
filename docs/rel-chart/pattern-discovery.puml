@@ -1,0 +1,84 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam ConditionEndStyle diamond
+skinparam activity {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    FontSize 14
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+title 规律发现 computeInsights → discoverPatterns 流程
+
+start
+
+partition "并发守卫" {
+  if (isComputingInsights 已在运行?) then (是)
+    :直接 return,不重复计算;
+    stop
+  else (否)
+    :置 isComputingInsights = true;
+  endif
+}
+
+partition "数据筛选" {
+  :筛选 status === 'success' 的观察;
+  :取 getActiveModelClient() 拿模型 client\n(可能为 null);
+  :按 dimensions=[category, tag] 调用 discoverPatterns;
+}
+
+partition "统计聚类基座(必做)" {
+  if (success 观察为空?) then (是)
+    :返回空 insights[];
+    note right: discoverPatterns 提前返回 []
+  else (否)
+    :total = 观察总数\n初始化去重 Map(dimension::clusterKey);
+    while (遍历每个维度 category / tag?) is (有)
+      :clusterObservations 按该维度聚类\ncategory 取分类;tag 取标签集;
+      while (遍历该维度每个簇?) is (有)
+        if (dedupKey 已存在?) then (是)
+          :跳过该簇;
+        else (否)
+          if (簇成员数 < 2?) then (是)
+            :跳过单条簇\n(不构成共现/高频模式);
+          else (否)
+            :buildStatInsight 构建统计洞察\n按样本量+占比算 confidence\n(low / medium / high);
+            partition "模型增强(可选)" {
+              if (有 client 且 confidence != low?) then (是)
+                :enrichClusterWithModel\n构建归因 prompt 调 completeJson;
+                if (模型抛错 或 命中占位/空字段?) then (是)
+                  :静默回退统计描述\n(不向上抛);
+                else (否)
+                  :采用模型 rootCause / title / suggestion\ngeneratedBy = model_enhanced;
+                endif
+              else (否)
+                :保持纯统计洞察\ngeneratedBy = statistical;
+              endif
+            }
+            :写入去重 Map;
+          endif
+        endif
+      endwhile (无)
+    endwhile (无)
+    :按 percentage 降序排序,得到 Insight[];
+  endif
+}
+
+partition "写入" {
+  :insights.value = result;
+  :persist() 持久化到 localStorage;
+}
+
+partition "收尾" {
+  :finally 置 isComputingInsights = false;
+}
+
+stop
+
+@enduml

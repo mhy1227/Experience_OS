@@ -1,0 +1,168 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam class {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    ArrowColor black
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+title Experience OS 核心数据模型
+
+' ─────────────── 实体 ───────────────
+
+entity "Observation\n观察记录" as Observation {
+    id : string
+    text : string
+    category : ExperienceCategory
+    tags : string[]
+    summary : string
+    status : ProcessStatus
+    sentiment : ObservationSentiment?
+    ruleId : string?
+    location : string?
+    createdAt : string
+    processedAt : string?
+}
+
+entity "ExperienceRule\n经验规则" as ExperienceRule {
+    id : string
+    title : string
+    category : ExperienceCategory
+    conclusion : string
+    recommendation : string
+    conditions : string[]
+    warnings : string[]
+    evidenceIds : string[]
+    reusability : Reusability
+    kind : ExperienceKind?
+    feedback : Feedback
+    reviewStatus : RuleReviewStatus?
+    evaluations : RuleEvaluation[]?
+    evaluationVerdict : EvaluationVerdict?
+    evaluationConfidence : EvaluationConfidence?
+    adoptionDecision : EvaluationAdoptionDecision?
+    revisionVersion : number?
+    location : string?
+    updatedAt : string
+}
+
+entity "RuleEvaluation\n复测样本" as RuleEvaluation {
+    id : string
+    outcome : EvaluationOutcome
+    note : string
+    observationId : string?
+    source : EvaluationSource?
+    cycle : EvaluationCycle?
+    ruleVersion : number?
+    createdAt : string
+}
+
+entity "AnalysisResult\n分析产物(中间)" as AnalysisResult {
+    category : ExperienceCategory
+    tags : string[]
+    summary : string
+    title : string
+    conclusion : string
+    recommendation : string
+    conditions : string[]
+    warnings : string[]
+    reusability : Reusability
+    kind : ExperienceKind?
+    direction : positive|negative|mixed|uncertain?
+    location : string?
+}
+
+entity "ModelAnalysisResult\n(extends AnalysisResult)" as ModelAnalysisResult {
+    analysisType : ObservationAnalysisType
+    confidence : low|medium|high
+}
+
+entity "Insight\n规律发现产物" as Insight {
+    id : string
+    dimension : ClusterDimension
+    type : InsightType
+    title : string
+    summary : string
+    rootCause : string
+    percentage : number
+    confidence : InsightConfidence
+    evidenceObservationIds : string[]
+    suggestion : string
+    timeWindow : string
+    generatedBy : statistical|model_enhanced
+    status : InsightStatus
+    clusterKey : string
+    clusterSize : number
+    createdAt : string
+}
+
+' ─────────────── 关系 ───────────────
+
+' 观察归属规则:多对一(可空)
+Observation }o--|| ExperienceRule : ruleId
+
+' 规则的证据:一对多 evidenceIds
+ExperienceRule ||--o{ Observation : evidenceIds
+
+' 规则的复测样本:一对多
+ExperienceRule ||--o{ RuleEvaluation : evaluations
+
+' 复测样本可引用某条观察作为来源
+RuleEvaluation }o--o| Observation : observationId
+
+' 分析中间产物:由观察生成、写入规则
+Observation ..> AnalysisResult : 提炼生成
+AnalysisResult ..> ExperienceRule : 写入/更新
+ModelAnalysisResult --|> AnalysisResult
+
+' 洞察由多条观察聚类产出
+Observation }o--o{ Insight : evidenceObservationIds
+
+' ─────────────── 枚举可选值 ───────────────
+
+note bottom of Observation
+  ProcessStatus = pending | success | failed
+  ObservationSentiment = positive | neutral | negative
+end note
+
+note right of ExperienceRule
+  Reusability = high | medium | low | watch
+  ExperienceKind = strategy | caution | watch
+  Feedback = useful | watch | inaccurate | none
+  RuleReviewStatus = unreviewed | validated | watching | needsFix
+  EvaluationVerdict = insufficient | supported | mixed | conflicted
+  EvaluationConfidence = low | medium | high
+  EvaluationAdoptionDecision = adopt | limit | retest | repair | suspend
+end note
+
+note bottom of RuleEvaluation
+  EvaluationOutcome = passed | failed | uncertain
+  EvaluationSource = manual | recall | plan
+  EvaluationCycle = fill | maintenance
+end note
+
+note right of AnalysisResult
+  direction = positive | negative | mixed | uncertain
+end note
+
+note bottom of ModelAnalysisResult
+  ObservationAnalysisType = rule | counterexample | constraint | watch
+  confidence = low | medium | high
+end note
+
+note bottom of Insight
+  ClusterDimension = category | tag | sentiment | rootCause
+  InsightType = sentiment_pattern | root_cause_pattern | tag_pattern | category_pattern
+  InsightConfidence = low | medium | high
+  InsightStatus = active | archived | dismissed
+  generatedBy = statistical | model_enhanced
+end note
+
+@enduml

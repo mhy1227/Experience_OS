@@ -1,0 +1,67 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam ConditionEndStyle diamond
+skinparam activity {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    FontSize 14
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+title 批量导入观察 importObservations 流程
+
+start
+
+partition "并发守卫" {
+    :接收批量文本 rawText;
+    if (正在分析单条 isAnalyzing\n或正在种子 isSeedingDemo?) then (是, 已有写入进行中)
+        :返回空汇总\n(total=0, succeeded=0, failed=0);
+        stop
+    else (否, 可以进入)
+    endif
+}
+
+partition "文本解析" {
+    :按换行符拆分文本;
+    :逐行 trim 去空白;
+    :过滤空行, 得到有效行列表;
+    :初始化 ImportSummary\ntotal=有效行数, succeeded=0, failed=0;
+    if (有效行数为 0?) then (是, 无可导入内容)
+        :返回汇总 (total=0);
+        stop
+    else (否)
+    endif
+    :置 isSeedingDemo = true (加批量锁);
+    :获取当前激活模型客户端\ngetActiveModelClient();
+    :插入位置 insertAt = 0;
+}
+
+partition "逐条提炼" {
+    while (还有未处理的行?) is (有)
+        :构造 pending 占位 Observation\n(category=其他, summary=批量导入中);
+        :按输入顺序插入列表 insertAt 位置\ninsertAt += 1;
+        if (调用 analyzeObservationResilient\n(模型优先, 异常回退本地引擎) 成功?) then (成功)
+            :_writeObservation 写入结构化结果\n(经契约层校验);
+            :succeeded += 1;
+        else (抛异常 / 校验失败)
+            :标记该条 status = failed\nsummary = 结构化校验失败已保存原文;
+            :failed += 1;
+        endif
+        :persist() 持久化到 localStorage\n(单条独立, 不中断整批);
+    endwhile (无)
+}
+
+partition "汇总" {
+    :finally 释放批量锁\nisSeedingDemo = false;
+    :返回 ImportSummary\n(total / succeeded / failed);
+}
+
+stop
+
+@enduml

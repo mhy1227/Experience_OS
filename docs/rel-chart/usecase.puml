@@ -1,0 +1,55 @@
+@startuml
+' ===== Experience OS 用户能力用例图 =====
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam usecase {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+}
+skinparam actor {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+
+left to right direction
+skinparam ranksep 130
+skinparam nodesep 30
+
+actor "用户" as User
+actor "模型服务\n(DeepSeek/OpenAI)" as Model
+
+rectangle "Experience OS" {
+    usecase "录入口语观察" as UC1
+    usecase "提炼经验规则" as UC2
+    usecase "批量导入观察" as UC3
+    usecase "发现跨记录规律" as UC4
+    usecase "查看决策辅助提示" as UC5
+    usecase "对规则反馈/复测" as UC6
+    usecase "配置模型 Key" as UC7
+
+    usecase "安全契约校验" as UCX
+    usecase "本地引擎兜底" as UCF
+}
+
+User --> UC1
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+
+UC1 --> UC2
+UC3 --> UC2
+UC2 ..> Model
+UCX <|.. UC2 : <<include>>
+UCF <|.. UC2 : <<extend>>
+
+@enduml

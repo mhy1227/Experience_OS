@@ -1,0 +1,84 @@
+@startuml
+' ===== Experience OS 核心流程:口语观察 → 结构化经验规则 =====
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam ConditionEndStyle diamond
+skinparam activity {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    FontSize 14
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+
+title 观察提炼主流程 submitObservation → 规则库写入
+
+start
+
+partition "录入侧 (store.submitObservation)" {
+    :用户输入一句口语观察;
+    if (内容为空 或 正在分析?) then (是)
+        :直接返回;
+        stop
+    else (否)
+    endif
+    :创建 pending 观察记录\n(unshift + persist);
+}
+
+partition "分析引擎 (analyzeObservationResilient)" {
+    if (已配置模型 client?) then (是)
+        :调用模型 completeJson(prompt);
+        if (网络/解析异常?) then (异常)
+            :回退本地关键词引擎\n(aiAnalyzer 8 条规则);
+        else (正常)
+            :normalizeModelAnalysis\n字段归一 + 枚举兜底;
+        endif
+    else (否)
+        :本地关键词引擎\n(aiAnalyzer 8 条规则);
+    endif
+}
+
+partition "安全契约层 (enforceAnalysisContract)" {
+    if (原文负向 但 模型判正向?) then (是)
+        :降级为待观察\n(方向相反拦截);
+        :kind = watch;
+    elseif (方向不明 / watch / 低置信?) then (是)
+        :降级为待观察;
+        :kind = watch;
+    elseif (原始有效条件 < 2?) then (是)
+        :降级为待观察\n(结构不足);
+        :kind = watch;
+    elseif (正向 + rule?) then (是)
+        :策略规则 kind = strategy;
+    elseif (负向/混合 + counterexample/constraint?) then (是)
+        :避坑规则 kind = caution;
+    else (其它不一致)
+        :降级为待观察 (兜底);
+        :kind = watch;
+    endif
+}
+
+partition "写入侧 (upsertRuleFromAnalysis)" {
+    if (reusability = watch?) then (是)
+        :不合并,新建规则;
+    else (否)
+        :findSimilarRule\n同 kind + 同标题同类 / 同类同地点;
+        if (找到相似规则?) then (找到)
+            :合并 evidence / conditions / warnings;
+            :按证据条数升级 reusability;
+        else (未找到)
+            :新建规则\n(unshift 到规则库);
+        endif
+    endif
+    :观察标记 success\n回填 ruleId / sentiment;
+    :recallDecisionHints\n召回相关历史规则;
+    :persist 落盘 localStorage;
+}
+
+stop
+@enduml

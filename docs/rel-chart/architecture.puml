@@ -1,0 +1,98 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam componentStyle rectangle
+skinparam package {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+}
+skinparam component {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+skinparam note {
+    BackgroundColor white
+    BorderColor black
+}
+title Experience OS 架构分层(单向依赖 types→services→stores→pages)
+
+package "pages/(视图)" as P {
+    component "index/index.vue\nH5 单页入口" as Index
+}
+
+package "stores/" as S {
+    component "experience.ts\nPinia 状态/持久化/队列/写入" as Store
+}
+
+package "services/(纯业务逻辑)" as SV {
+
+    package "录入提炼 / AI 接入" as SV_AI {
+        component "resilientAnalysis.ts" as Resilient
+        component "analysisContract.ts" as Contract
+        component "modelAnalysisAdapter.ts" as Adapter
+        component "modelClient.ts" as Client
+        component "modelConfig.ts" as Config
+        component "aiAnalyzer.ts" as Analyzer
+    }
+
+    package "规律发现 / 决策辅助" as SV_DISC {
+        component "patternDiscovery.ts" as Pattern
+        component "decisionHints.ts" as Hints
+        component "periodicReview.ts" as Review
+    }
+
+    package "评估(降级隐藏)" as SV_EVAL {
+        component "evaluationEngine.ts" as Eval
+    }
+
+    package "导入导出 / 演示数据" as SV_IO {
+        component "markdownImport.ts" as MdIn
+        component "markdownExport.ts" as MdOut
+        component "demoWorkData.ts" as Demo
+    }
+}
+
+package "types/" as T {
+    component "experience.ts\n全部类型(枚举/接口)" as Types
+}
+
+database "localStorage\n(浏览器本地持久化)" as LS
+
+' ── 层间单向依赖(上层依赖下层) ──
+P --> S
+S --> SV
+SV --> T
+
+' ── 持久化端点 ──
+Store --> LS : 读/写
+
+' ── services 内部关键协作 ──
+Resilient --> Contract : 输出经契约校验/降级
+Resilient --> Adapter
+Adapter --> Client
+Resilient ..> Analyzer : 异常回退本地引擎
+Client --> Config : 读模型配置
+
+note right of Resilient
+  模型优先,异常回退本地引擎
+end note
+
+note right of Contract
+  AI 输出安全契约:防注入 +
+  方向一致性,防"幻觉成规律"
+end note
+
+note right of Pattern
+  跨记录聚类发现规律
+  (最小样本门槛)
+end note
+
+@enduml

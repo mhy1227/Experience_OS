@@ -1,0 +1,112 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam sequence {
+    ArrowColor black
+    LifeLineBorderColor black
+    LifeLineBackgroundColor white
+    ParticipantBorderColor black
+    ParticipantBackgroundColor white
+    ParticipantFontColor black
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+title AI 模型接入时序(模型优先 + 本地兜底 + 契约校验)
+
+actor "用户 / 页面\n(index.vue)" as User
+participant "experienceStore\n(stores/experience.ts)" as Store
+participant "modelConfig\n(getActiveModelClient)" as Config
+participant "resilientAnalysis\n(analyzeObservationResilient)" as Resilient
+participant "ModelClient\n(外部模型服务\nDeepSeek/OpenAI)" as Model
+participant "analysisContract\n(契约校验/降级)" as Contract
+participant "localEngine\n(aiAnalyzer)" as Local
+
+User -> Store : submitObservation(text)
+activate Store
+
+note right of Store
+  乐观写入:status=pending
+  unshift observation + persist()
+end note
+
+Store -> Config : getActiveModelClient()
+activate Config
+note right of Config
+  读 localStorage
+  key=experience-os:model
+  无 apiKey 则返回 null
+end note
+Config --> Store : client | null
+deactivate Config
+
+Store -> Resilient : analyzeObservationResilient(content, { client })
+activate Resilient
+
+alt 模型可用 (client != null)
+
+    Resilient -> Model : completeJson(createObservationAnalysisPrompt(text))
+    activate Model
+    note right of Model
+      防注入 prompt(系统指令)
+      POST /chat/completions
+      response_format=json_object
+      用户输入仅作待分析文本
+    end note
+    Model --> Resilient : raw JSON (HTTP 200)
+    deactivate Model
+
+    Resilient -> Contract : normalizeModelAnalysis(raw, text)
+    activate Contract
+
+    group 契约校验(模型输出不得直接写入规则库)
+        note right of Contract
+          1) 字段归一化 / 枚举兜底
+          2) enforceAnalysisContract:
+             - 负向伪装正向 -> 降级 watch
+             - direction=uncertain / watch / 低置信 -> watch
+             - 有效条件 < 2 -> watch
+             - 正向+rule -> strategy(策略规则)
+             - 负向/混合+counterexample/constraint -> caution(避坑规则)
+          3) assertValidAnalysis 结构校验
+        end note
+    end
+
+    Contract --> Resilient : 校验后的 AnalysisResult\n(kind=strategy/caution/watch)
+    deactivate Contract
+
+else 异常回退 (无 client 或 completeJson 抛错)
+
+    note over Resilient
+      网络/解析等异常被 catch
+      (契约层"降级为 watch"是正常结果,
+       不进此分支)
+    end note
+    Resilient -> Local : analyzeObservation(text)
+    activate Local
+    note right of Local
+      本地关键词分析引擎
+      8 条硬编码规则,降级兜底
+    end note
+    Local --> Resilient : AnalysisResult
+    deactivate Local
+
+end
+
+Resilient --> Store : analysis (AnalysisResult)
+deactivate Resilient
+
+Store -> Store : _writeObservation(observation, analysis, processedAt)
+note right of Store
+  仅校验通过的 analysis 才落库:
+  生成 rule、更新 observation
+  recallDecisionHints + persist()
+end note
+
+Store --> User : 规则卡片 / 决策提醒
+deactivate Store
+
+@enduml
