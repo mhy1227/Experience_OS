@@ -76,11 +76,62 @@ async function testInvalidModelOutputFallsBackToWatch() {
   assert.equal(result.reusability, 'watch')
 }
 
+async function testNegativeCounterexampleBecomesCautionRule() {
+  const result = await analyzeObservationWithModel(
+    '这个功能开发到一半，产品说方向变了，前两周全白做了',
+    clientReturning({
+      category: '工作',
+      tags: ['目标不一致', '返工'],
+      summary: '需求中途变更导致返工。',
+      title: '目标不一致导致返工',
+      conclusion: '需求或目标中途变更且未同步，导致已完成工作作废。',
+      recommendation: '开工前与产品确认目标与验收标准，变更走正式通知流程。',
+      conditions: ['多方协作', '目标可能中途变更'],
+      warnings: ['单次个例，需更多样本确认'],
+      reusability: 'medium',
+      direction: 'negative',
+      analysisType: 'counterexample',
+      confidence: 'medium',
+    }),
+  )
+
+  // 负向但结构完整 → 沉淀为避坑规则,而非待观察
+  assert.equal(result.kind, 'caution')
+  assert.notEqual(result.reusability, 'watch')
+  assert.equal(result.title, '目标不一致导致返工')
+}
+
+async function testNegativeButInsufficientStaysWatch() {
+  const result = await analyzeObservationWithModel(
+    '今天有点不太顺',
+    clientReturning({
+      category: '其他',
+      tags: [],
+      summary: '',
+      title: '',
+      conclusion: '',
+      recommendation: '',
+      conditions: [],
+      warnings: [],
+      reusability: 'watch',
+      direction: 'uncertain',
+      analysisType: 'watch',
+      confidence: 'low',
+    }),
+  )
+
+  // 方向不明 + 无条件 + 低置信 → 仍为待观察
+  assert.equal(result.kind, 'watch')
+  assert.equal(result.reusability, 'watch')
+}
+
 async function run() {
   await testPromptContainsDirectionAndJsonConstraints()
   await testModelPositiveHallucinationDowngradesToWatch()
   await testValidModelRulePassesContract()
   await testInvalidModelOutputFallsBackToWatch()
+  await testNegativeCounterexampleBecomesCautionRule()
+  await testNegativeButInsufficientStaysWatch()
   console.log('modelAnalysisAdapter tests passed')
 }
 

@@ -819,6 +819,7 @@ export const useExperienceStore = defineStore('experience', () => {
         warnings: analysis.warnings,
         evidenceIds: [observationId],
         reusability: analysis.reusability,
+        kind: analysis.kind,
         feedback: 'none',
         reviewStatus: 'unreviewed',
         evaluations: [],

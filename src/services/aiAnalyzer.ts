@@ -299,6 +299,7 @@ function materializeRule(match: ScoredRule, signals: ExtractedSignals, text: str
     category: rule.category,
     tags,
     ...rule.result,
+    kind: 'strategy',
   }
 
   if (!result.location && signals.locations.length > 0) {

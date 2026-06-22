@@ -51,28 +51,45 @@ export function enforceAnalysisContract(result: ModelAnalysisResult, sourceText:
   const sourceDirection = inferDirection(sourceText)
   const coerced = withMinimumModelFields(result, sourceText)
 
+  // 1. 不准把负向伪装成正向(原文负向但模型判正向)→ 待观察
   if (sourceDirection === 'negative' && coerced.direction === 'positive') {
     return watchResult(sourceText, coerced.category, coerced.tags, coerced.location, '模型输出方向与原文相反，已降级为待观察。')
   }
 
-  if ((coerced.analysisType === 'rule' || coerced.reusability !== 'watch') && coerced.direction !== 'positive') {
-    return watchResult(sourceText, coerced.category, coerced.tags, coerced.location, '非正向结果不能直接生成稳定规则。')
+  // 2. 信息不足 → 待观察(方向不明 / 显式 watch / 低置信)
+  if (coerced.direction === 'uncertain' || coerced.analysisType === 'watch' || coerced.confidence === 'low') {
+    return { ...coerced, kind: 'watch', analysisType: 'watch', reusability: 'watch' }
   }
 
-  if (coerced.analysisType === 'rule' && coerced.conditions.length < 2) {
-    return watchResult(sourceText, coerced.category, coerced.tags, coerced.location, '稳定规则缺少足够适用条件。')
+  // 3. 结构不足(适用条件 < 2)→ 待观察
+  if (coerced.conditions.length < 2) {
+    return watchResult(sourceText, coerced.category, coerced.tags, coerced.location, '信息有价值，但适用条件不足，暂列为待观察。')
   }
 
-  if (coerced.analysisType === 'watch' || coerced.confidence === 'low') {
-    return {
+  // 4. 正向 + rule → 策略规则
+  if (coerced.direction === 'positive' && coerced.analysisType === 'rule') {
+    const strategy: ModelAnalysisResult = { ...coerced, kind: 'strategy' }
+    assertValidAnalysis(strategy)
+    return strategy
+  }
+
+  // 5. 负向/混合 + counterexample/constraint → 避坑规则
+  //    负向经验同样可沉淀为稳定规则(教训/约束),不再一律降级为待观察
+  if (
+    (coerced.direction === 'negative' || coerced.direction === 'mixed') &&
+    (coerced.analysisType === 'counterexample' || coerced.analysisType === 'constraint')
+  ) {
+    const caution: ModelAnalysisResult = {
       ...coerced,
-      reusability: 'watch',
-      analysisType: 'watch',
+      kind: 'caution',
+      reusability: coerced.reusability === 'watch' ? 'medium' : coerced.reusability,
     }
+    assertValidAnalysis(caution)
+    return caution
   }
 
-  assertValidAnalysis(coerced)
-  return coerced
+  // 6. 其它不一致组合(如正向却标 counterexample)→ 待观察兜底
+  return watchResult(sourceText, coerced.category, coerced.tags, coerced.location)
 }
 
 export function inferDirection(text: string): ObservationDirection {
@@ -136,6 +153,7 @@ export function watchResult(
     conditions: ['需要明确触发条件', '需要再次验证结果'],
     warnings: ['不要把单次模糊感受直接当成稳定规律'],
     reusability: 'watch',
+    kind: 'watch',
     location,
     direction,
     analysisType: direction === 'negative' ? 'counterexample' : 'watch',

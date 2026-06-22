@@ -212,3 +212,5 @@
 - 2026-06-22:控制端独立验收。typecheck 0 错、11 套测试全过、`npm run build:h5` 成功(51 模块)。Plan 2–5 全部落地于 master(26 提交),工作树干净,evaluationEngine 保留,无密钥泄露。遗留若干 important/minor 质量项(弱断言测试、frequency_pattern 死变体、decisionHints 重提交未清、store 内 DOM 导出)待清理。
 
 - 2026-06-22:质量清理 pass(控制端手改)。修复:Plan3 置信度测试改为严格断言 high;移除死类型 frequency_pattern;Plan4 排序测试改用分数不同的规则(严格降序);submitObservation 开头清空 decisionHints;exportAsMarkdown 改为返回字符串、下载移到 page 层(遵守 services 无 DOM);批量导入改 splice 顶部插入(最新在上、批内保序)。typecheck/11 套测试/build 全过。
+
+- 2026-06-22:状态机拆轴(契约哲学修正)。enforceAnalysisContract 改为「类型+结构」判据,新增 kind(strategy/caution/watch),负向经验可沉淀为避坑规则而非一律待观察。改 types/analysisContract/aiAnalyzer/store,新增 2 个契约测试。typecheck/11 套测试/build 全过。

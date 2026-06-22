@@ -10,6 +10,8 @@ export type ExperienceCategory =
 
 export type ProcessStatus = 'pending' | 'success' | 'failed'
 export type Reusability = 'high' | 'medium' | 'low' | 'watch'
+// 经验种类(与方向正交):正向策略 / 负向避坑 / 信息不足待观察
+export type ExperienceKind = 'strategy' | 'caution' | 'watch'
 export type Feedback = 'useful' | 'watch' | 'inaccurate' | 'none'
 export type RuleReviewStatus = 'unreviewed' | 'validated' | 'watching' | 'needsFix'
 export type EvaluationOutcome = 'passed' | 'failed' | 'uncertain'
@@ -328,6 +330,7 @@ export interface ExperienceRule {
   warnings: string[]
   evidenceIds: string[]
   reusability: Reusability
+  kind?: ExperienceKind
   feedback: Feedback
   reviewStatus?: RuleReviewStatus
   evaluations?: RuleEvaluation[]
@@ -368,6 +371,7 @@ export interface AnalysisResult {
   conditions: string[]
   warnings: string[]
   reusability: Reusability
+  kind?: ExperienceKind
   location?: string
 }
 

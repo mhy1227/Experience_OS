@@ -129,3 +129,17 @@
 ## 9. 下一步
 
 进入 `writing-plans`,产出分阶段、带验证检查点的实施计划。
+
+---
+
+## 10. 需求修正(2026-06-22):经验三态 / 分类状态机拆轴
+
+**问题**:原 `enforceAnalysisContract` 用「方向」当"能否成规则"的闸门(`非正向 → watch`),把所有负向经验一律降为"待观察",丢失了负向经验(教训/避坑)的价值——而这恰是"减少重复犯错"的核心。表现:演示导出里 23 条全是"待观察经验"。
+
+**根因**:状态模型把正交的三轴压扁(`reusability` 里混入 `watch` 成熟度;`analysisType` 的 counterexample/constraint 活不过契约),且迁移用 direction 当闸门。
+
+**修正(拆轴)**:
+- 新增 `kind` 轴:`strategy`(正向策略)/ `caution`(负向避坑)/ `watch`(信息不足),与 `reusability`(质量)正交。
+- 迁移改用「类型 + 结构」判据:负向伪装正向→拒绝;方向不明/显式watch/低置信→watch;适用条件<2→watch;正向+rule→strategy;负向/混合+counterexample/constraint→caution(reusability medium/high,保留模型标题);其它不一致→watch 兜底。
+- 影响:负向经验可沉淀为"避坑规则"(有意义标题),不再清一色"待观察";旧"非正向→watch"测试已更新,新增 caution/watch 两用例。
+- 待办(可选 UI):规则卡按 `kind` 区分配色/图标(策略 vs 避坑)。
