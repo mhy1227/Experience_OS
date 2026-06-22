@@ -232,3 +232,5 @@
 - 2026-06-22:测试质量收尾(复审 Minor)。submitObservation 增加可选 clientOverride DI 接缝(生产路径不变);findSimilarRule.test.ts 从镜像副本改为经真实 store + 注入伪 client 直测合并守卫(I2/M5);storeV1Core 的 C1 从"剧场式"断言改为真·端到端(submitObservation 注入空条件输出 → 落库规则 reusability=watch)。typecheck/15 套测试/build 全绿。
 
 - 2026-06-22:新增 Markdown 导入模块(独立纯函数,见 spec 2026-06-22-markdown-import-design)。`src/services/markdownImport.ts`:marked(懒加载)lexer → 块级 token → 候选经验文本(列表项/段落/引用/表格行;跳标题默认/代码/front-matter;剥行内标记;去重+最小长度+maxItems 上限)。解析 0 token。新增 tests/markdownImport.test.ts(6 例)。marked 仅懒加载,主 bundle 未增大。16 套测试全过。
+
+- 2026-06-22:后端 B1 最小版(模型代理)落地。新增 `server/index.ts`(Hono:/health、/api/analyze、/api/analyze-batch)+ `src/services/batchAnalysis.ts`(可复用批量核心,逐条契约层 + 单条降级)+ `tests/batchAnalysis.test.ts`;`dev:server` 脚本读 .env.local。复用现有契约层、Key 取服务端 env、CORS 开放。typecheck/17 套测试通过;node UTF-8 真机 smoke:经 packyapi 返回 kind=caution 结构化结果。前端未接、仍可独立直连。

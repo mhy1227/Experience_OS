@@ -6,10 +6,13 @@
     "dev:h5": "vite --host 0.0.0.0",
     "build:h5": "vite build",
     "preview:h5": "vite preview --host 0.0.0.0",
+    "dev:server": "node --env-file=.env.local --import tsx server/index.ts",
     "typecheck": "vue-tsc --noEmit",
-    "test:evaluation": "tsc -p tsconfig.test.json && node dist-tests/tests/aiAnalyzer.test.js && node dist-tests/tests/modelAnalysisAdapter.test.js && node dist-tests/tests/evaluationEngine.test.js && node dist-tests/tests/experienceStore.test.js && node dist-tests/tests/modelClient.test.js && node dist-tests/tests/resilientAnalysis.test.js && node dist-tests/tests/importObservations.test.js && node dist-tests/tests/patternDiscovery.test.js && node dist-tests/tests/decisionHints.test.js && node dist-tests/tests/markdownExport.test.js && node dist-tests/tests/demoWorkData.test.js && node dist-tests/tests/periodicReview.test.js && node dist-tests/tests/analysisContract.test.js && node dist-tests/tests/findSimilarRule.test.js && node dist-tests/tests/storeV1Core.test.js && node dist-tests/tests/markdownImport.test.js"
+    "test:evaluation": "tsc -p tsconfig.test.json && node dist-tests/tests/aiAnalyzer.test.js && node dist-tests/tests/modelAnalysisAdapter.test.js && node dist-tests/tests/evaluationEngine.test.js && node dist-tests/tests/experienceStore.test.js && node dist-tests/tests/modelClient.test.js && node dist-tests/tests/resilientAnalysis.test.js && node dist-tests/tests/importObservations.test.js && node dist-tests/tests/patternDiscovery.test.js && node dist-tests/tests/decisionHints.test.js && node dist-tests/tests/markdownExport.test.js && node dist-tests/tests/demoWorkData.test.js && node dist-tests/tests/periodicReview.test.js && node dist-tests/tests/analysisContract.test.js && node dist-tests/tests/findSimilarRule.test.js && node dist-tests/tests/storeV1Core.test.js && node dist-tests/tests/markdownImport.test.js && node dist-tests/tests/batchAnalysis.test.js"
   },
   "dependencies": {
+    "@hono/node-server": "^2.0.5",
+    "hono": "^4.12.26",
     "marked": "^18.0.5",
     "pinia": "^2.1.7",
     "vue": "^3.4.21"
@@ -18,6 +21,7 @@
     "@types/node": "^20.11.0",
     "@vitejs/plugin-vue": "^5.2.4",
     "sass": "^1.72.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.4.5",
     "vite": "^5.2.0",
     "vue-tsc": "^2.0.6"
