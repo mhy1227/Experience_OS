@@ -970,6 +970,7 @@
 import { computed, defineComponent, h, ref } from 'vue'
 import { demoSamples, reusabilityLabel } from '../../services/aiAnalyzer'
 import { useExperienceStore } from '../../stores/experience'
+import { getBackendUrl } from '../../services/backendClient'
 import InsightCard from './components/InsightCard.vue'
 import DecisionHintCard from '../../components/DecisionHintCard.vue'
 import ModelConfigPanel from '../../components/ModelConfigPanel.vue'
@@ -1023,7 +1024,10 @@ async function handleImport() {
   isImporting.value = true
   importResult.value = null
   try {
-    importResult.value = await store.importObservations(text)
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+    importResult.value = getBackendUrl()
+      ? await store.importObservationsViaBackend(lines)
+      : await store.importObservations(text)
   } finally {
     // 无论成功/失败/并发被阻断,均清除输入框,避免旧输入与旧结果摘要同时显示
     importText.value = ''
@@ -1051,7 +1055,9 @@ async function handleMarkdownFile(e: Event) {
     if (!ok) return
     isImporting.value = true
     importResult.value = null
-    importResult.value = await store.importObservations(parsed.observations.join('\n'))
+    importResult.value = getBackendUrl()
+      ? await store.importObservationsViaBackend(parsed.observations)
+      : await store.importObservations(parsed.observations.join('\n'))
   } finally {
     isImporting.value = false
     input.value = '' // 允许重选同一文件

@@ -12,6 +12,7 @@ import type { Insight } from '../types/experience'
 import { recallDecisionHints, type DecisionHint } from '../services/decisionHints'
 import { renderExperienceMarkdown } from '../services/markdownExport'
 import { buildPeriodicReview, type ReviewPeriod } from '../services/periodicReview'
+import { getBackendUrl, analyzeBatchViaBackend } from '../services/backendClient'
 import { DEMO_WORK_DATA } from '../services/demoWorkData'
 import {
   deriveEvaluationState,
@@ -1763,6 +1764,52 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     return summary
   }
 
+  // 经后端代理(B1)批量导入:一次请求让服务端提炼(Key 不出浏览器),再本地写入。
+  async function importObservationsViaBackend(texts: string[]): Promise<ImportSummary> {
+    if (isAnalyzing.value || isSeedingDemo.value) {
+      return { total: 0, succeeded: 0, failed: 0 }
+    }
+    const lines = texts.map((t) => (t ?? '').trim()).filter((t) => t.length > 0)
+    const summary: ImportSummary = { total: lines.length, succeeded: 0, failed: 0 }
+    if (lines.length === 0) return summary
+
+    const url = getBackendUrl()
+    if (!url) throw new Error('后端地址未配置(experience-os:backend)')
+
+    isSeedingDemo.value = true
+    try {
+      const results = await analyzeBatchViaBackend(lines, url) // 一次请求拿全部结果
+      let insertAt = 0
+      for (const item of results) {
+        const now = new Date().toISOString()
+        const observation: Observation = {
+          id: createId('obs'),
+          text: item.text,
+          category: '其他',
+          tags: [],
+          summary: '批量导入中',
+          status: 'pending',
+          createdAt: now,
+        }
+        observations.value.splice(insertAt, 0, observation)
+        insertAt += 1
+        try {
+          await _writeObservation(observation, item.analysis, new Date().toISOString())
+          summary.succeeded += 1
+        } catch {
+          observation.status = 'failed'
+          observation.summary = '结构化校验失败，原始观察已保存。'
+        }
+        persist()
+      }
+      summary.failed = summary.total - summary.succeeded
+    } finally {
+      isSeedingDemo.value = false
+      persist()
+    }
+    return summary
+  }
+
   return {
     observations,
     rules,
@@ -1824,6 +1871,7 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     loadDemoData,
     loadDemoWorkData,
     importObservations,
+    importObservationsViaBackend,
     insights,
     isComputingInsights,
     computeInsights,
