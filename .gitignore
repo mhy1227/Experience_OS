@@ -21,3 +21,9 @@ private-doc/
 .playwright-mcp/
 caution-rule-verified.png
 *.playwright-mcp.png
+
+# 本地战略/思考分析文档(仅本地,不公开到云端)
+docs/positioning-analysis.md
+docs/input-bottleneck-analysis.md
+docs/painkiller-or-vitamin.md
+docs/privacy-status.md
