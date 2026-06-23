@@ -14,18 +14,6 @@
               清空
             </button>
           </view>
-          <!-- 经验资产管理 -->
-          <div class="asset-actions">
-            <button class="btn-load-work-demo" :disabled="store.isSeedingDemo" @click="handleLoadDemoWork">
-              {{ store.isSeedingDemo ? '载入中…' : '载入演示工作数据' }}
-            </button>
-            <button class="btn-export-md" @click="handleExportMarkdown" :disabled="store.observations.length === 0">
-              导出经验资产 (.md)
-            </button>
-            <button class="btn-clear-all" @click="handleClearAll">
-              一键清空本地数据
-            </button>
-          </div>
           <button
             class="primary-button scan-button"
             :disabled="store.observations.filter(o => o.status === 'success').length < 3 || isScanningAll"
@@ -64,7 +52,20 @@
         />
       </view>
 
-      <!-- 批量导入区块 -->
+      <!-- 批量导入 + 数据管理:默认折叠,精简首屏 -->
+      <details class="more-panel">
+        <summary class="more-summary">批量导入 / 数据管理</summary>
+        <div class="asset-actions">
+          <button class="btn-load-work-demo" :disabled="store.isSeedingDemo" @click="handleLoadDemoWork">
+            {{ store.isSeedingDemo ? '载入中…' : '载入演示工作数据' }}
+          </button>
+          <button class="btn-export-md" @click="handleExportMarkdown" :disabled="store.observations.length === 0">
+            导出经验资产 (.md)
+          </button>
+          <button class="btn-clear-all" @click="handleClearAll">
+            一键清空本地数据
+          </button>
+        </div>
       <section class="import-section">
         <h3 class="import-title">批量导入</h3>
         <p class="import-hint">粘贴多行文字（每行一条观察），一键导入历史经验</p>
@@ -104,6 +105,7 @@
           正在逐条提炼经验，请稍候…
         </div>
       </section>
+      </details>
 </template>
 
 <script setup lang="ts">
@@ -226,3 +228,9 @@ async function handleLoadDemoWork() {
   showToast('演示工作数据已载入，共 35 条观察')
 }
 </script>
+
+<style scoped>
+.more-panel { margin-top: 12px; border: 1px dashed #d6ddd6; border-radius: 8px; padding: 8px 12px; }
+.more-summary { cursor: pointer; font-size: 13px; color: #6b7a73; font-weight: 600; }
+.more-panel[open] .more-summary { margin-bottom: 8px; }
+</style>
