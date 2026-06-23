@@ -16,6 +16,8 @@
   - [版本规划(V1–V5)](docs/version-roadmap.md)
   - [后端版本规划(B0–B4,按需)](docs/backend-roadmap.md)
   - [需求设计 spec](docs/superpowers/specs/2026-06-22-requirement-restructure-design.md)
+  - [V2 规律发现设计 spec](docs/superpowers/specs/2026-06-23-v2-pattern-discovery-design.md)
+  - [产品定位分析(与笔记/知识库的差异)](docs/positioning-analysis.md)
   - [实施计划与执行日志](docs/superpowers/plans/)
 - 调研
   - [数据"梳理"工具/项目调研(待取舍)](docs/research/2026-06-22-data-structuring-tools-survey.md)
@@ -83,12 +85,13 @@ npm run build:h5
 ## 常用操作
 
 - 首页输入一句观察，点击“生成规则”。
-- 点击“载入演示数据”可预置 8 条样例。
+- “批量导入”支持多行文本或 `.md`/`.txt` 文件一次性导入历史经验。
+- 点击“载入演示数据”可预置样例。
 - “经验列表”保留原始观察和结构化摘要。
-- “规则库”查看沉淀后的策略卡。
-- “评估工作台”处理复测队列、复测矩阵、维护回归、导入导出。
-- “导出评估数据”输出 JSON。
-- “导出 CSV”输出表格分析数据。
+- “规则库”查看沉淀后的策略卡(策略 / 避坑 / 待观察)。
+- **“规律发现”→“规律库”(V2)**:点“扫描我的 90 天”，把同根因不同表述的多条观察归成一条**规律**(带复发次数 / 趋势 / 置信),区分高频避坑与高频成功；每条规律可“标记已复盘 / 已针对它改进 / 已解决”,复发时自动重新激活。同屏还有统计洞察卡与周·月复盘。
+- “评估工作台”(高级面板)处理复测队列、复测矩阵、维护回归、导入导出。
+- “导出经验资产 (.md)” / “导出评估数据 (JSON)” / “导出 CSV”。
 
 应用规则修订草案后，旧评估会保留为历史审计样本，但不会继续支撑新版本的采用结论。新版本至少需要补足 2 次明确复测；JSON/CSV 导出会包含 `ruleVersion`、当前版本复测覆盖状态、当前版本样本数和历史版本样本数。
 
@@ -137,18 +140,18 @@ npm run build:h5
 
 ## 当前边界
 
-- 当前 AI 分析是本地规则引擎，入口在 `src/services/aiAnalyzer.ts`。
-- 外部模型接入预留在 `src/services/modelAnalysisAdapter.ts`，prompt 和输出校验在 `src/services/analysisContract.ts`。
-- 接火山引擎/方舟/豆包时，只实现模型 JSON client；模型输出必须经过 `normalizeModelAnalysis()`，不能直接写入规则库。
-- 没有接入真实后端、账号、多端同步或真实地图 SDK。
-- 不把单条模糊记录强行包装成稳定规律。
-- 稳定性需要通过后续复测、评估矩阵和采用门槛逐步确认。
+- **AI 提炼已接入真实模型**(DeepSeek,OpenAI 兼容),走 `analyzeObservationResilient`:模型优先、异常自动降级到本地关键词引擎(`src/services/aiAnalyzer.ts`)。
+- 模型抽象在 `src/services/modelAnalysisAdapter.ts` / `modelClient.ts`;prompt 防注入 + 输出校验 + 方向一致性 + 三态降级在 `src/services/analysisContract.ts`。**任何模型输出必须经 `normalizeModelAnalysis()` / 契约层,不能直接写入规则库。**
+- **API Key 只存浏览器本地(自配)或经可选后端代理转发,绝不提交、绝不烤进仓库。** 演示可前端直连(BYO/演示 Key)或走 `server/`(Hono)代理。
+- 数据存浏览器 `localStorage`(唯一真相源),无账号 / 多端同步;无真实地图 SDK。
+- 不把单条模糊记录强行包装成稳定规律;负向经验沉淀为“避坑规则”而非一律降级。
+- 规律(V2)稳定性靠复发次数 + 置信 + 生命周期标注逐步确认。
 
 ## 后续规划
 
-下一阶段不建议继续堆复杂复测页面，优先把系统从“结构化记录原型”推进到“真的能从多条生活观察里发现可用经验”。
+> 状态更新(2026-06):下方 **P0(真实模型)与 P1(相似聚合 / 规律发现)已完成**,分别对应 V1 真模型提炼与 V2 规律库。完整路线见 [版本规划](docs/version-roadmap.md)。下面保留各阶段目标作为背景。
 
-### P0 接入真实模型
+### ✅ P0 接入真实模型(已完成)
 
 接入火山方舟/豆包等真实模型，但不能让 H5 前端直接持有 API Key。推荐新增服务端代理：
 
@@ -168,7 +171,7 @@ npm run build:h5
 
 模型负责语义理解，业务层负责兜住风险：输出必须经过 `normalizeModelAnalysis()` 或等价校验，不能直接写入规则库。
 
-### P1 相似记录聚合
+### ✅ P1 相似记录聚合(已完成 = V2 规律库)
 
 单条观察价值有限，真正有用的是多条相似观察形成趋势。例如：
 
@@ -185,7 +188,7 @@ npm run build:h5
 - 相似反向记录进入反例池。
 - 正反样本混杂时生成冲突或拆分建议。
 
-### P2 反例自动改写规则边界
+### 🟡 P2 反例自动改写规则边界(部分:负向已沉淀为避坑规则;自动改写已有规则边界待做)
 
 反向观察不应该永远只是“待观察”。当反例和已有规则高度相似时，应挂到原规则下：
 
@@ -195,7 +198,7 @@ npm run build:h5
 
 例如“下雨天走B口到公司更远”应能修正“雨天走B口更近”的适用范围，而不是只生成一条孤立记录。
 
-### P3 简化真实用户体验
+### 🟡 P3 简化真实用户体验(评估矩阵已折叠为高级面板;主路径收敛持续进行)
 
 现有评估矩阵适合 Demo 证明流程完整，但真实用户不应该每天处理复杂面板。主体验应收敛成三个入口：
 
@@ -205,7 +208,7 @@ npm run build:h5
 
 复测矩阵、采用门槛、维护回归保留为后台判断或高级面板，不作为主路径负担。
 
-### P4 完善演示数据
+### ⬜ P4 完善演示数据(待办)
 
 补充一组能体现“系统在学习”的样例数据：
 
@@ -220,9 +223,15 @@ npm run build:h5
 
 ## 主要目录
 
-- `src/services/aiAnalyzer.ts`：一句话观察结构化分析。
-- `src/services/evaluationEngine.ts`：评估、采用、复测矩阵等纯业务推导。
-- `src/stores/experience.ts`：Pinia 状态、导入导出、队列和写入动作。
-- `src/pages/index/index.vue`：H5 页面入口。
-- `tests/`：业务回归测试。
-- `000_PRD/`：产品需求、边界和演示文档。
+- `src/services/analysisContract.ts`:AI 输出安全契约(prompt 防注入 + `normalizeModelAnalysis` + 三态/方向校验 + 降级)。
+- `src/services/modelClient.ts` / `modelAnalysisAdapter.ts` / `resilientAnalysis.ts` / `modelConfig.ts`:真模型接入(client 抽象、模型优先+本地兜底、读取本地模型配置)。
+- `src/services/aiAnalyzer.ts`:本地关键词分析引擎(现作降级兜底)。
+- `src/services/patternDiscovery.ts`:V2 统计聚类 + 模型归因(洞察)。
+- `src/services/lawDiscovery.ts`:V2 规律库(语义聚类 + 持久化 Law + 时间维度 + 生命周期)。
+- `src/services/periodicReview.ts`:周·月复盘。
+- `src/services/evaluationEngine.ts`:评估、采用、复测矩阵等纯业务推导(高级面板)。
+- `src/stores/experience.ts`:Pinia 状态、导入导出、规律扫描、队列和写入动作。
+- `src/pages/index/index.vue`:H5 页面入口。
+- `server/`:可选的极简模型代理(Hono),让 Key 留在服务端;前端不配则直连降级。
+- `tests/`:业务回归测试(纯 TS,经 `test:evaluation` 运行)。
+- `docs/`:架构 / 版本规划 / 设计 spec(见上方“项目文档”)。
