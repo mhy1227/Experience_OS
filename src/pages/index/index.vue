@@ -44,37 +44,6 @@
         <span class="trust-text">数据只在本机 — 零云端上传，随时可导出或清空</span>
       </div>
 
-        <InputModule @navigate="activeTab = $event" @reset-filters="afterClear" @toast="showToast" />
-
-      <view class="ops-board">
-        <view class="ops-item">
-          <text class="ops-label">分析模式</text>
-          <text class="ops-value">结构化引擎 v1</text>
-        </view>
-        <view class="ops-item">
-          <text class="ops-label">评估次数</text>
-          <text class="ops-value">{{ store.evaluationStats.total }}</text>
-        </view>
-        <view class="ops-item">
-          <text class="ops-label">闭环状态</text>
-          <text class="ops-value">{{ store.repeatEvaluatedRuleCount }} 条重复评估</text>
-        </view>
-      </view>
-
-      <view v-if="store.latestRule" class="hero-rule">
-        <view class="section-head">
-          <text class="section-title">最新策略卡</text>
-          <text class="section-meta">下次可用</text>
-        </view>
-        <RuleCard
-          :rule="store.latestRule"
-          :evidence="ruleEvidence(store.latestRule)"
-          @feedback="store.setFeedback"
-          @evaluate="store.addEvaluation"
-          @apply-revision="applyRevisionDraft"
-        />
-      </view>
-
       <view class="tabs">
         <button
           v-for="tab in tabs"
@@ -92,6 +61,28 @@
         >
           高级
         </button>
+      </view>
+
+      <view v-if="activeTab === 'compose'" class="panel">
+        <InputModule @navigate="activeTab = $event" @reset-filters="afterClear" @toast="showToast" />
+        <view v-if="store.latestRule" class="hero-rule">
+          <view class="section-head">
+            <text class="section-title">最新策略卡</text>
+            <text class="section-meta">下次可用</text>
+          </view>
+          <RuleCard
+            :rule="store.latestRule"
+            :evidence="ruleEvidence(store.latestRule)"
+            @feedback="store.setFeedback"
+            @evaluate="store.addEvaluation"
+            @apply-revision="applyRevisionDraft"
+          />
+        </view>
+        <view class="ops-board">
+          <view class="ops-item"><text class="ops-label">分析模式</text><text class="ops-value">结构化引擎 v1</text></view>
+          <view class="ops-item"><text class="ops-label">评估次数</text><text class="ops-value">{{ store.evaluationStats.total }}</text></view>
+          <view class="ops-item"><text class="ops-label">闭环状态</text><text class="ops-value">{{ store.repeatEvaluatedRuleCount }} 条重复评估</text></view>
+        </view>
       </view>
 
       <view v-if="activeTab === 'records'" class="panel">
@@ -206,13 +197,13 @@ import type {
   RuleReviewStatus,
 } from '../../types/experience'
 
-type TabKey = 'records' | 'rules' | 'map' | 'timeline' | 'insights'
+type TabKey = 'compose' | 'records' | 'rules' | 'map' | 'timeline' | 'insights'
 
 const store = useExperienceStore()
 
 
 
-const activeTab = ref<TabKey>('records')
+const activeTab = ref<TabKey>('compose')
 const showSettings = ref(false)
 const toastMessage = ref('')
 let toastTimer: ReturnType<typeof setTimeout> | null = null
@@ -226,6 +217,7 @@ const ruleQuery = ref('')
 const selectedCategory = ref<ExperienceCategory | '全部'>('全部')
 
 const tabs: Array<{ key: TabKey; label: string }> = [
+  { key: 'compose', label: '记录' },
   { key: 'records', label: '经验' },
   { key: 'rules', label: '规则库' },
   { key: 'map', label: '地图' },
@@ -276,7 +268,7 @@ function resetFilters() {
 // InputModule 清空/一键清空后:重置筛选 + 回到经验 tab(由 @reset-filters 触发)
 function afterClear() {
   resetFilters()
-  activeTab.value = 'records'
+  activeTab.value = 'compose'
 }
 
 function applyRevisionDraft(ruleId: string) {
