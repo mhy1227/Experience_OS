@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict'
-import { parseRecallMatches, buildRecallUserText } from '../src/services/recallWithModel'
+import { parseRecallMatches, buildRecallUserText, recallRulesWithModel } from '../src/services/recallWithModel'
+import type { ExperienceRule } from '../src/types/experience'
+import type { ObservationModelClient } from '../src/services/modelAnalysisAdapter'
+
+function stubRule(id: string, title: string): ExperienceRule {
+  return { id, title, conclusion: `${title}的结论` } as unknown as ExperienceRule
+}
+function fakeClient(raw: unknown): ObservationModelClient {
+  return { completeJson: async () => raw }
+}
 
 // ---------------------------------------------------------------------------
 // 模型语义召回的纯解析层。核心红线:丢弃任何不在候选集中的 id(防幻觉规则)。
@@ -56,4 +65,26 @@ const valid = new Set(['r1', 'r2', 'r3'])
   assert.ok(text.includes('id=r1'))
 }
 
-console.log('recallWithModel tests passed')
+async function asyncTests() {
+  // 端到端:模型挑出的 id 映射回规则,顺序保持,幻觉 id 丢弃
+  {
+    const rules = [stubRule('r1', '需求评审'), stubRule('r2', '健身低峰'), stubRule('r3', '雨天路线')]
+    const client = fakeClient({ matches: [{ id: 'r3', why: '下雨相关' }, { id: 'ghost', why: '编的' }, { id: 'r1', why: '评审相关' }] })
+    const out = await recallRulesWithModel('明天下雨怎么走', rules, client)
+    assert.deepEqual(out.map((o) => o.rule.id), ['r3', 'r1'], '幻觉 id 必须丢弃,保留模型顺序')
+    assert.equal(out[0].why, '下雨相关')
+  }
+
+  // 空场景 / 无规则 → 不调用、返回空
+  {
+    let called = false
+    const watchClient: ObservationModelClient = { completeJson: async () => { called = true; return {} } }
+    assert.deepEqual(await recallRulesWithModel('   ', [stubRule('r1', 'x')], watchClient), [])
+    assert.deepEqual(await recallRulesWithModel('场景', [], watchClient), [])
+    assert.equal(called, false, '空输入不应触发模型调用(省成本)')
+  }
+}
+
+asyncTests()
+  .then(() => console.log('recallWithModel tests passed'))
+  .catch((err) => { console.error(err); process.exit(1) })
