@@ -101,6 +101,35 @@ export function confidenceLabel(value: EvaluationConfidence | undefined) {
   return map[value ?? 'low']
 }
 
+// 把一堆评估字段(判定/置信/稳定分/趋势/评估次数)收敛成"一眼能懂该不该信"的单一信号。
+// 决策辅助用:可信 / 谨慎 / 待验证。
+export type TrustLevel = 'trusted' | 'caution' | 'unproven'
+export function trustSignal(rule: ExperienceRule): { level: TrustLevel; label: string; note: string } {
+  const verdict = rule.evaluationVerdict ?? 'insufficient'
+  const confidence = rule.evaluationConfidence ?? 'low'
+  const score = rule.evaluationScore ?? 0
+  const count = rule.evaluations?.length ?? 0
+  const trend = rule.evaluationTrend ?? 'unknown'
+
+  // 谨慎:复测有冲突 / 分歧 / 近期走弱
+  if (verdict === 'conflicted') return { level: 'caution', label: '⚠️ 谨慎', note: `复测有冲突·稳定分${score}` }
+  if (verdict === 'mixed') return { level: 'caution', label: '⚠️ 谨慎', note: `复测结果分歧·${count}次` }
+  if (trend === 'declining') return { level: 'caution', label: '⚠️ 谨慎', note: `近期趋势走弱·稳定分${score}` }
+
+  // 待验证:证据不足 / 评估少于 2 次
+  if (verdict === 'insufficient' || count < 2) {
+    return { level: 'unproven', label: '🔍 待验证', note: count === 0 ? '还没复测·先当线索' : `仅${count}次评估·样本不足` }
+  }
+
+  // 可信:已支持且够稳
+  if (verdict === 'supported' && (confidence === 'high' || score >= 70)) {
+    return { level: 'trusted', label: '✅ 可信', note: `复测${count}次支持·稳定分${score}` }
+  }
+
+  // 其余:已有支持但强度一般
+  return { level: 'caution', label: '☑️ 一般', note: `复测${count}次·${confidenceLabel(confidence)}` }
+}
+
 export function trendLabel(value: EvaluationTrend | undefined) {
   const map: Record<EvaluationTrend, string> = {
     unknown: '趋势不足',

@@ -269,6 +269,18 @@
   font-weight: 800;
 }
 
+// 一眼信任信号(决策辅助):比其它 badge 更显眼,放在 rule-meta 最前
+.trust-badge {
+  font-weight: 700;
+  font-size: 13px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.trust-badge.trusted { background: #e3f3e6; color: #1f7a36; border-color: #b6dcbd; }
+.trust-badge.caution { background: #fdeede; color: #9a5a12; border-color: #f0d2a6; }
+.trust-badge.unproven { background: #eef1f4; color: #5a6b73; border-color: #d4dbe0; }
+
 .rule-card,
 .record-item,
 .location-card {

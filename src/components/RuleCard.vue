@@ -8,7 +8,7 @@ import {
   adoptionLabel, gateStatusLabel, gateCheckStatusLabel, repeatabilityLevelLabel, sampleIndependenceLevelLabel,
   versionCoverageStatusLabel, consistencyStatusLabel, replicationMatrixStatusLabel, replicationSlotStatusLabel,
   maintenanceHealthLabel, boundarySeverityLabel, percentLabel, planPriorityLabel, planFocusLabel, scoreClass,
-  latestAdoptionEvents, evaluationSummary,
+  latestAdoptionEvents, evaluationSummary, trustSignal,
 } from '../services/ruleLabels'
 import type { ExperienceRule, Observation, Feedback, EvaluationOutcome } from '../types/experience'
 
@@ -57,11 +57,13 @@ export default defineComponent({
         label,
       )
 
-    return () =>
-      h('view', { class: ['rule-card', props.compact ? 'compact' : ''] }, [
+    return () => {
+      const trust = trustSignal(props.rule)
+      return h('view', { class: ['rule-card', props.compact ? 'compact' : ''] }, [
         h('view', { class: 'rule-head' }, [
           h('text', { class: 'badge' }, props.rule.category),
           h('view', { class: 'rule-meta' }, [
+            h('text', { class: ['trust-badge', trust.level] }, `${trust.label} · ${trust.note}`),
             h('text', { class: ['reuse', props.rule.reusability] }, `可复用度 ${reusabilityLabel(props.rule.reusability)}`),
             h('text', { class: ['review-badge', props.rule.reviewStatus ?? 'unreviewed'] }, reviewLabel(props.rule.reviewStatus)),
             h('text', { class: ['verdict-badge', props.rule.evaluationVerdict ?? 'insufficient'] }, verdictLabel(props.rule.evaluationVerdict)),
@@ -381,6 +383,7 @@ export default defineComponent({
           button('不准确', 'inaccurate'),
         ]),
       ])
+    }
   },
 })
 </script>
