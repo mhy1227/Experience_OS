@@ -1667,6 +1667,7 @@ const RuleCard = defineComponent({
   setup(props, { emit }) {
     const evaluationNote = ref('')
     const evaluationObservation = ref('')
+    const expanded = ref(false) // 评估矩阵默认折叠(复测/采用门槛/协议…),按需展开,首屏更短
     const button = (label: string, value: Feedback) =>
       h(
         'button',
@@ -1727,7 +1728,12 @@ const RuleCard = defineComponent({
               h('text', { class: 'evidence-text' }, `${formatTime(item.createdAt)} ${item.text}`),
             ),
           ]),
-        h('view', { class: 'evaluation-panel' }, [
+        h(
+          'button',
+          { class: 'eval-toggle', onClick: () => { expanded.value = !expanded.value } },
+          expanded.value ? '收起评估详情 ▲' : '展开评估详情(复测 / 采用门槛 / 协议)▼',
+        ),
+        expanded.value && h('view', { class: 'evaluation-panel' }, [
           h('text', { class: 'mini-title' }, '重复评估'),
           h('text', { class: 'evaluation-summary' }, evaluationSummary(props.rule.evaluations)),
           props.rule.repeatabilityProfile &&
@@ -2546,6 +2552,18 @@ const RuleCard = defineComponent({
 }
 
 .action-label,
+.eval-toggle {
+  margin-top: 10px;
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed #cdd6d2;
+  color: #6b7a73;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.eval-toggle:hover { color: #246a53; border-color: #246a53; }
 .mini-title {
   display: block;
   margin-bottom: 6px;
