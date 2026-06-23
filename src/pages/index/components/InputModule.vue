@@ -59,6 +59,15 @@
           :hints="store.decisionHints"
           @dismiss="store.dismissDecisionHint"
         />
+        <!-- 规律主动浮现:刚记的这条命中了哪些已沉淀规律 -->
+        <view v-if="store.decisionLaws.length" class="decision-laws">
+          <text class="decision-laws-title">🔁 这关联到你已沉淀的规律:</text>
+          <view v-for="law in store.decisionLaws" :key="law.id" :class="['recall-law', law.kind]">
+            <text class="recall-law-badge">{{ law.kind === 'caution' ? '🟥 避坑' : '🟩 成功' }} · {{ confLabel(law.confidence) }}</text>
+            <text class="recall-law-theme">{{ law.theme }}</text>
+            <text v-if="law.suggestion" class="recall-law-sug">建议:{{ law.suggestion }}</text>
+          </view>
+        </view>
       </view>
 
       <!-- 找经验:把当前输入当成"我面临的场景",在做决定时浮现相关经验规则 + 规律 -->
@@ -338,6 +347,8 @@ async function handleLoadDemoWork() {
 .recall-law-badge { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 4px; }
 .recall-law-theme { display: block; font-size: 14px; font-weight: 600; color: #252923; }
 .recall-law-sug { display: block; font-size: 13px; color: #4d5a4e; margin-top: 4px; }
+.decision-laws { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.decision-laws-title { font-size: 13px; font-weight: 600; color: #5a6b62; }
 .recall-rule { margin-top: 8px; }
 .recall-reason { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 2px; }
 .recall-outcome {

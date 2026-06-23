@@ -210,6 +210,7 @@ export const useExperienceStore = defineStore('experience', () => {
   const laws = ref<Law[]>(persisted.laws ?? [])
   const isScanningLaws = ref(false)
   const decisionHints = ref<DecisionHint[]>([])
+  const decisionLaws = ref<Law[]>([])
   const latestRuleId = ref(rules.value[0]?.id ?? '')
 
   const latestRule = computed(() => rules.value.find((rule) => rule.id === latestRuleId.value) ?? rules.value[0])
@@ -762,6 +763,7 @@ export const useExperienceStore = defineStore('experience', () => {
 
     // 清空上一次提交残留的决策提醒,避免新提交期间/失败时旧卡片悬挂
     decisionHints.value = []
+    decisionLaws.value = []
 
     const now = new Date().toISOString()
     const observation: Observation = {
@@ -783,8 +785,9 @@ export const useExperienceStore = defineStore('experience', () => {
       const analysis = await analyzeObservationResilient(content, { client })
       const processedAt = new Date().toISOString()
       await _writeObservation(observation, analysis, processedAt)
-      // M4 决策辅助:分析完成后召回相关历史规则
+      // M4 决策辅助:分析完成后召回相关历史规则 + 规律(主动浮现,无需手动搜索)
       decisionHints.value = recallDecisionHints(content, rules.value, observations.value)
+      decisionLaws.value = recallRelatedLaws(content)
     } catch {
       observation.status = 'failed'
       observation.summary = '结构化校验失败，原始观察已保存。'
@@ -1939,6 +1942,7 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
       return buildPeriodicReview(observations.value, period, new Date())
     },
     decisionHints,
+    decisionLaws,
     dismissDecisionHint(ruleId: string) {
       decisionHints.value = decisionHints.value.filter((h) => h.ruleId !== ruleId)
     },
