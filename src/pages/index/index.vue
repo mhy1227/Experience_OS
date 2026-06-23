@@ -936,7 +936,8 @@
             <text v-if="law.status === 'reviewed'" class="law-flag">已复盘{{ law.note ? '·' + law.note : '' }}</text>
             <view class="law-actions">
               <button class="law-btn" @click="store.markLaw(law.id, 'reviewed')">标记已复盘</button>
-              <button class="law-btn" @click="store.markLaw(law.id, 'resolved', '已针对它改进')">标记已解决</button>
+              <button class="law-btn" @click="store.markLaw(law.id, 'reviewed', '已针对它改进')">已针对它改进</button>
+              <button class="law-btn" @click="store.markLaw(law.id, 'resolved')">标记已解决</button>
             </view>
           </view>
           <view v-if="resolvedLaws.length" class="law-resolved">
@@ -1052,8 +1053,9 @@ const review = computed(() => store.periodicReview(reviewPeriod.value))
 // V2 规律库:扫描(同时建洞察 + 规律)、排序、展示助手
 const isScanningAll = computed(() => store.isComputingInsights || store.isScanningLaws)
 async function handleScan() {
-  await store.scanLaws()
-  await store.computeInsights('过去 90 天')
+  // 错误隔离:两步各自降级(store 内已不抛),这里再兜一层,避免一个失败连带另一个 / 未捕获 rejection
+  try { await store.scanLaws() } catch { /* 已降级 */ }
+  try { await store.computeInsights('过去 90 天') } catch { /* 已降级 */ }
 }
 function rankConf(c: string): number {
   return c === 'high' ? 3 : c === 'medium' ? 2 : 1
@@ -1062,7 +1064,12 @@ const activeLaws = computed(() =>
   store.laws
     .filter((l) => l.status !== 'resolved')
     .slice()
-    .sort((a, b) => rankConf(b.confidence) * b.recurrence - rankConf(a.confidence) * a.recurrence),
+    .sort((a, b) => {
+      const s = rankConf(b.confidence) * b.recurrence - rankConf(a.confidence) * a.recurrence
+      if (s !== 0) return s
+      if (a.lastSeenAt !== b.lastSeenAt) return b.lastSeenAt.localeCompare(a.lastSeenAt) // 稳定:近期优先
+      return a.id.localeCompare(b.id)
+    }),
 )
 const resolvedLaws = computed(() => store.laws.filter((l) => l.status === 'resolved'))
 function trendArrow(t: string): string {

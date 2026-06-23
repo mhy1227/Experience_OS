@@ -11,7 +11,6 @@ import { validateModelField } from './patternDiscovery'
 // ─── 常量(集中,避免魔数)──────────────────────────────────────────────────
 export const MIN_LAW_MEMBERS = 2 // 少于此不成规律
 const HIGH_CONF_SIZE = 6
-const HIGH_CONF_RATIO = 0.5
 const MEDIUM_CONF_SIZE = 3
 const TREND_MIN_RECURRENCE = 4 // 低于此样本不足,trend 一律 flat
 const RECENT_WINDOW_MS = 30 * 24 * 60 * 60 * 1000 // 近 30 天
@@ -34,9 +33,10 @@ export function dominantKind(members: Observation[]): LawKind | null {
   return neg >= pos ? 'caution' : 'strategy'
 }
 
-export function lawConfidence(recurrence: number, total: number): InsightConfidence {
-  const ratio = total > 0 ? recurrence / total : 0
-  if (recurrence >= HIGH_CONF_SIZE && ratio >= HIGH_CONF_RATIO) return 'high'
+// 置信度按"复发次数"判定(不再用 recurrence/总观察数 的比例:那个分母是全量观察,
+// 会让单一主题永远到不了 high——review 修复)。复发越多越可信。
+export function lawConfidence(recurrence: number): InsightConfidence {
+  if (recurrence >= HIGH_CONF_SIZE) return 'high'
   if (recurrence >= MEDIUM_CONF_SIZE) return 'medium'
   return 'low'
 }
@@ -122,7 +122,6 @@ function buildCandidate(
   theme: string,
   kind: LawKind,
   members: Observation[],
-  total: number,
   nowMs: number,
   nowIso: string,
   attribution: ThemeAttribution | null,
@@ -146,7 +145,7 @@ function buildCandidate(
     firstSeenAt: first,
     lastSeenAt: last,
     trend: computeTrend(members.map((o) => o.createdAt), nowMs),
-    confidence: lawConfidence(recurrence, total),
+    confidence: lawConfidence(recurrence),
     status: 'active',
     generatedBy: attribution ? 'model' : 'statistical',
     createdAt: nowIso,
@@ -172,8 +171,9 @@ function dedupeCandidates(candidates: Law[]): Law[] {
       recurrence: ids.length,
       firstSeenAt: [existing.firstSeenAt, c.firstSeenAt].filter(Boolean).sort()[0] ?? existing.firstSeenAt,
       lastSeenAt: [existing.lastSeenAt, c.lastSeenAt].filter(Boolean).sort().slice(-1)[0] ?? existing.lastSeenAt,
-      // 置信度/趋势取成员更多的一方(更可信)
-      confidence: c.recurrence > existing.recurrence ? c.confidence : existing.confidence,
+      // 置信度按并集复发数重算(review 修复:此前不重算);趋势取成员更多的一方
+      confidence: lawConfidence(ids.length),
+      trend: c.recurrence > existing.recurrence ? c.trend : existing.trend,
       generatedBy: existing.generatedBy === 'model' || c.generatedBy === 'model' ? 'model' : 'statistical',
     })
   }
@@ -193,7 +193,7 @@ function overlaps(a: string[], b: string[]): boolean {
  * - 未命中:作为新 active 规律加入。
  * - 已有规律无候选命中:原样保留。
  */
-export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string): Law[] {
+export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string, scopedIds?: Set<string>): Law[] {
   const result = existing.map((l) => ({ ...l }))
   for (const cand of candidates) {
     // kind 感知匹配:同 kind 且(成员重叠 或 主题归一相同)。绝不跨 kind 合并。
@@ -208,8 +208,12 @@ export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string): L
       continue
     }
     const prev = result[idx]!
-    // 窗口准确:成员 = 本次候选(仅窗口内),而非历次并集——recurrence/confidence 都反映 90 天窗口,
-    // 二者来源一致不再对不上;firstSeenAt 仍保留全时段最早(首次出现是历史事实)。
+    // 成员 = 旧成员中"仍在本次窗口内"的 ∪ 本次候选成员(去重)。
+    // - 过期/已删除的旧成员被剔除 → recurrence 反映 90 天窗口(window-accurate);
+    // - 但旧成员里仍在窗口、来自其它桶的不被误删 → 修复"多候选命中同一规律时硬替换丢成员"。
+    // - confidence 按并集复发数重算,与 recurrence 同源;firstSeenAt 保留全时段最早。
+    const keptPrev = scopedIds ? prev.memberObservationIds.filter((id) => scopedIds.has(id)) : prev.memberObservationIds
+    const members = [...new Set([...keptPrev, ...cand.memberObservationIds])]
     const hasNewMembers = cand.memberObservationIds.some((id) => !prev.memberObservationIds.includes(id))
     result[idx] = {
       ...prev,
@@ -217,12 +221,12 @@ export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string): L
       theme: cand.generatedBy === 'model' ? cand.theme : prev.theme,
       rootCause: cand.generatedBy === 'model' ? cand.rootCause : prev.rootCause,
       suggestion: cand.generatedBy === 'model' ? cand.suggestion : prev.suggestion,
-      memberObservationIds: cand.memberObservationIds,
-      recurrence: cand.recurrence,
+      memberObservationIds: members,
+      recurrence: members.length,
       firstSeenAt: [prev.firstSeenAt, cand.firstSeenAt].filter(Boolean).sort()[0] ?? cand.firstSeenAt,
       lastSeenAt: cand.lastSeenAt || prev.lastSeenAt,
       trend: cand.trend,
-      confidence: cand.confidence,
+      confidence: lawConfidence(members.length),
       generatedBy: cand.generatedBy === 'model' ? 'model' : prev.generatedBy,
       // 已解决但又复发(出现旧成员之外的新成员)→ 重新激活
       status: prev.status === 'resolved' && hasNewMembers ? 'active' : prev.status,
@@ -232,9 +236,10 @@ export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string): L
   return result
 }
 
-/** 生命周期:纯函数,返回新对象 */
+/** 生命周期:纯函数,返回新对象。回到 active 时清掉旧 note(已解决/复盘的备注不应残留)。 */
 export function markLawStatus(law: Law, status: LawStatus, nowIso: string, note?: string): Law {
-  return { ...law, status, note: note ?? law.note, updatedAt: nowIso }
+  const nextNote = status === 'active' ? undefined : (note ?? law.note)
+  return { ...law, status, note: nextNote, updatedAt: nowIso }
 }
 
 // ─── 主入口 ──────────────────────────────────────────────────────────────────
@@ -258,14 +263,14 @@ export async function discoverLaws(
   const { client = null, existingLaws = [], nowMs = Date.now() } = options
   const nowIso = new Date(nowMs).toISOString()
 
-  // 仅取成功处理 + 90 天窗口内的观察
+  // 仅取成功处理 + 90 天窗口内的观察。NaN 日期视为无效 → 排除(否则虚增复发数,review 修复)。
   const scoped = observations.filter((o) => {
     if (o.status !== 'success') return false
     const t = Date.parse(o.createdAt)
-    return Number.isNaN(t) || nowMs - t <= SCAN_WINDOW_MS
+    return !Number.isNaN(t) && nowMs - t <= SCAN_WINDOW_MS
   })
   if (scoped.length === 0) return existingLaws
-  const total = scoped.length
+  const scopedIds = new Set(scoped.map((o) => o.id))
 
   // 粗分:category × kind(正负分簇),避免混合情绪簇被 dominantKind 一刀切吞掉少数方向
   const buckets = new Map<string, { kind: LawKind; members: Observation[] }>()
@@ -286,9 +291,9 @@ export async function discoverLaws(
     if (client) attribution = await attributeTheme(members, kind, client)
     const theme = attribution?.theme || `${members[0]!.category}·${topTag(members) || '高频'}`
 
-    candidates.push(buildCandidate(theme, kind, members, total, nowMs, nowIso, attribution))
+    candidates.push(buildCandidate(theme, kind, members, nowMs, nowIso, attribution))
   }
 
   const merged = dedupeCandidates(candidates)
-  return mergeLaws(existingLaws, merged, nowIso)
+  return mergeLaws(existingLaws, merged, nowIso, scopedIds)
 }

@@ -46,9 +46,9 @@ async function testDominantKind() {
 }
 
 async function testLawConfidence() {
-  assert.equal(lawConfidence(6, 10), 'high', '≥6 且占比≥0.5 → high')
-  assert.equal(lawConfidence(3, 100), 'medium', '≥3 → medium')
-  assert.equal(lawConfidence(2, 100), 'low')
+  assert.equal(lawConfidence(6), 'high', '≥6 → high(按复发数,不再受全量分母拖累)')
+  assert.equal(lawConfidence(3), 'medium', '≥3 → medium')
+  assert.equal(lawConfidence(2), 'low')
 }
 
 async function testComputeTrend() {
@@ -134,10 +134,47 @@ async function testMerge_ResolvedReactivatesOnRecurrence() {
     memberObservationIds: ['a', 'b', 'c'], // 新成员 c → 复发
     recurrence: 3,
   }
-  const merged = mergeLaws([resolved], [candidate], daysAgo(0))
+  const merged = mergeLaws([resolved], [candidate], daysAgo(0), new Set(['a', 'b', 'c']))
   assert.equal(merged.length, 1, '应合并不新增')
   assert.equal(merged[0]!.status, 'active', '已解决 + 新成员复发 → 重新激活')
   assert.equal(merged[0]!.recurrence, 3)
+}
+
+// 🔴 review 修复:旧成员里仍在窗口、来自其它桶的不被硬替换丢掉
+async function testMerge_KeepsInScopePrevMembers() {
+  const prev: Law = {
+    id: 'law_p', theme: '前期对齐不足', kind: 'caution', rootCause: '', suggestion: '',
+    memberObservationIds: ['x', 'y'], recurrence: 2, firstSeenAt: daysAgo(10), lastSeenAt: daysAgo(5),
+    trend: 'flat', confidence: 'low', status: 'active', generatedBy: 'statistical',
+    createdAt: daysAgo(10), updatedAt: daysAgo(5),
+  }
+  // 候选只含 [x, z](按 x 重叠命中),y 仍在窗口内
+  const cand: Law = { ...prev, id: 'law_c', memberObservationIds: ['x', 'z'], recurrence: 2 }
+  const merged = mergeLaws([prev], [cand], daysAgo(0), new Set(['x', 'y', 'z']))
+  assert.equal(merged.length, 1)
+  assert.deepEqual([...merged[0]!.memberObservationIds].sort(), ['x', 'y', 'z'], 'y 在窗口内不应被丢;z 应并入')
+  assert.equal(merged[0]!.recurrence, 3)
+}
+
+// 🟢 review 补:契约路径——模型返回占位/超长主题应被拦(此前假 client 永返固定值,未覆盖)
+async function testContract_PlaceholderAndLongTheme() {
+  const placeholderClient: ObservationModelClient = {
+    completeJson: async () => ({ theme: '暂无明确主题', rootCause: '', suggestion: '' }),
+  }
+  const ph = await discoverLaws(
+    [obs({ id: 'a', sentiment: 'negative', category: '工作', tags: ['返工'] }), obs({ id: 'b', sentiment: 'negative', category: '工作', tags: ['返工'] })],
+    { nowMs: NOW, client: placeholderClient },
+  )
+  assert.equal(ph[0]!.generatedBy, 'statistical', '占位主题被拒 → 回退统计')
+
+  const longClient: ObservationModelClient = {
+    completeJson: async () => ({ theme: '这是一个非常非常非常非常冗长的主题名称超过十六个字', rootCause: '', suggestion: '' }),
+  }
+  const lg = await discoverLaws(
+    [obs({ id: 'c', sentiment: 'positive', category: '运动', tags: ['健身'] }), obs({ id: 'd', sentiment: 'positive', category: '运动', tags: ['健身'] })],
+    { nowMs: NOW, client: longClient },
+  )
+  assert.ok(lg[0]!.theme.length <= 16, '超长主题应被截断到 ≤16 字')
 }
 
 // 🔴 修复:窗口准确——过期成员不计入复发数(recurrence 反映 90 天窗口,不无限并集)
@@ -194,6 +231,8 @@ async function run() {
   await testDiscover_WithModelTheme()
   await testDiscover_Idempotent()
   await testMerge_ResolvedReactivatesOnRecurrence()
+  await testMerge_KeepsInScopePrevMembers()
+  await testContract_PlaceholderAndLongTheme()
   await testWindowAccurateRecurrence()
   await testSplitsByKindWithinCategory()
   await testMarkLawStatus()
