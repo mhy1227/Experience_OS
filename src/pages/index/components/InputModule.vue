@@ -188,17 +188,6 @@ function ruleEvidence(rule: ExperienceRule) {
 function confLabel(c: string): string {
   return c === 'high' ? '高置信' : c === 'medium' ? '中置信' : '低置信·参考'
 }
-// 中文无分词:用 2-gram 子串重合做轻量相关性判断
-function shareKeyword(a: string, b: string): boolean {
-  const clean = (s: string) => s.toLowerCase().replace(/[\s,.。，、!！?？;；:：「」""''()（）]/g, '')
-  const x = clean(a)
-  const y = clean(b)
-  if (!x || !y) return false
-  for (let i = 0; i + 2 <= x.length; i++) {
-    if (y.includes(x.slice(i, i + 2))) return true
-  }
-  return false
-}
 // 用了某条召回规则后,把当前场景作为本次复测证据回填(source=recall),并刷新召回结果
 function markUsed(ruleId: string, outcome: EvaluationOutcome) {
   const scene = lastScene.value.trim()
@@ -223,10 +212,7 @@ function refreshRecall(scene: string) {
     .filter((c) => c.reasons.some((r) => r.includes('匹配')))
     .map((c) => ({ rule: store.rules.find((r) => r.id === c.ruleId), reasons: c.reasons.filter((r) => r.includes('匹配')) }))
     .filter((x): x is { rule: ExperienceRule; reasons: string[] } => Boolean(x.rule))
-  recalledLaws.value = store.laws
-    .filter((l) => l.status !== 'resolved' && [l.theme, l.rootCause, l.suggestion].some((t) => t && shareKeyword(scene, t)))
-    .sort((a, b) => b.recurrence - a.recurrence)
-    .slice(0, 3)
+  recalledLaws.value = store.recallRelatedLaws(scene)
 }
 
 const canSubmit = computed(() => draft.value.trim().length > 0 && !store.isAnalyzing && !store.isSeedingDemo)

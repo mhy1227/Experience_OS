@@ -1065,6 +1065,27 @@ export const useExperienceStore = defineStore('experience', () => {
       .slice(0, 5)
   }
 
+  // 找经验:按场景召回相关「规律」。复用规则召回同一套 tokenize(中文 2-gram),
+  // 匹配 law 的 theme/rootCause/suggestion;按命中数→复发数→id 稳定排序,取前 3。
+  function recallRelatedLaws(scene: string): Law[] {
+    const content = scene.trim()
+    if (!content) return []
+    const tokens = tokenize(content)
+    if (tokens.length === 0) return []
+
+    return laws.value
+      .filter((law) => law.status !== 'resolved')
+      .map((law) => {
+        const haystack = normalizeText([law.theme, law.rootCause, law.suggestion].filter(Boolean).join(' '))
+        const matched = tokens.filter((token) => haystack.includes(token)).length
+        return { law, matched }
+      })
+      .filter((entry) => entry.matched > 0)
+      .sort((a, b) => (b.matched - a.matched) || (b.law.recurrence - a.law.recurrence) || a.law.id.localeCompare(b.law.id))
+      .slice(0, 3)
+      .map((entry) => entry.law)
+  }
+
   function exportEvaluationData() {
     const exportedAt = new Date().toISOString()
     return {
@@ -1895,6 +1916,7 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     replicationMaintenanceHealth,
     applyRevisionDraft,
     recallEvaluationCandidates,
+    recallRelatedLaws,
     exportEvaluationData,
     exportEvaluationCsv,
     updateEvaluationSettings,
