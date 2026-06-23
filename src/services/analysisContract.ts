@@ -136,7 +136,7 @@ export function enforceAnalysisContract(result: ModelAnalysisResult, sourceText:
 // 模型自报的 direction 仍为主路由,此函数只作安全网。
 export function inferDirection(text: string): ObservationDirection {
   const normalized = text.toLowerCase()
-  const positiveScore = countMatches(normalized, [
+  const positiveScore = countDirectionalMatches(normalized, [
     // 原有正向词
     '人少',
     '不用排队',
@@ -178,8 +178,8 @@ export function inferDirection(text: string): ObservationDirection {
     '满意',
     '节约',
     '省了',
-  ])
-  const negativeScore = countMatches(normalized, [
+  ], false)
+  const negativeScore = countDirectionalMatches(normalized, [
     // 原有负向词
     '人很多',
     '人多',
@@ -273,7 +273,7 @@ export function inferDirection(text: string): ObservationDirection {
     '迟到',
     '误点',
     '出问题',
-  ])
+  ], true)
 
   if (positiveScore > 0 && negativeScore > 0) return 'mixed'
   if (negativeScore > 0) return 'negative'
@@ -364,6 +364,32 @@ function inferTags(text: string) {
 
 function countMatches(text: string, values: string[]) {
   return values.filter((value) => text.includes(value)).length
+}
+
+// 否定词(出现在方向词「之前」会把方向反转,如"没出事故""不顺利")
+const DIRECTION_NEGATORS = ['没有', '没', '未', '无', '不', '别', '免', '避免', '防止', '杜绝', '勿', '杜']
+// 削减词(出现在「负向词之后」表示坏结果减少 = 改善,如"返工变少""事故减少")
+const DIRECTION_REDUCERS = ['变少', '减少', '更少', '降低', '下降', '消失', '变好', '改善', '没了']
+
+// 否定感知的方向词计数:命中方向词时,若其前方近邻有否定词、或(负向词)后方近邻有削减词,
+// 则该命中不计入本方向(避免"没出事故""返工变少"这类被子串匹配误判)。
+// 这是 inferDirection 的语境兜底,模型自报 direction 仍为主路由。
+function countDirectionalMatches(text: string, words: string[], isNegativeList: boolean) {
+  let count = 0
+  for (const w of words) {
+    let from = 0
+    let idx = text.indexOf(w, from)
+    while (idx !== -1) {
+      const before = text.slice(Math.max(0, idx - 3), idx)
+      const after = text.slice(idx + w.length, idx + w.length + 4)
+      const negatedBefore = DIRECTION_NEGATORS.some((n) => before.includes(n))
+      const reducedAfter = isNegativeList && DIRECTION_REDUCERS.some((r) => after.includes(r))
+      if (!negatedBefore && !reducedAfter) count += 1
+      from = idx + w.length
+      idx = text.indexOf(w, from)
+    }
+  }
+  return count
 }
 
 function hasAny(text: string, keywords: string[]) {

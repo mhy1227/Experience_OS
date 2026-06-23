@@ -192,6 +192,38 @@ async function testIncompleteCoreFields_Downgraded() {
   )
 }
 
+// ─── 否定/削减语境感知:含负向词但实为正向的句子,不应被判负向(修 #4 #9 误降级)──
+
+async function testNegationAware_NotFalseNegative() {
+  // "没出事故" 含"事故"(负向词)但被"没"否定 → 不应判 negative
+  assert.notEqual(inferDirection('周二上午发版，全天平稳没出事故'), 'negative', '"没出事故"含否定,不应判负向')
+  // "返工明显变少" 含"返工"但被"变少"削减 → 不应判 negative
+  assert.notEqual(inferDirection('需求评审拉上测试，后面验收返工明显变少'), 'negative', '"返工变少"是改善,不应判负向')
+  // "没有返工" 否定 → 不应判 negative
+  assert.notEqual(inferDirection('这次没有返工，提前对齐了需求'), 'negative', '"没有返工"含否定,不应判负向')
+}
+
+async function testNegationAware_RealNegativeStillDetected() {
+  // 真负向(无否定/削减)仍应判 negative,安全网不被削弱
+  assert.equal(inferDirection('这次返工了，全白做'), 'negative', '真负向仍应判 negative')
+  assert.equal(inferDirection('当晚出了线上事故', ), 'negative', '真事故仍应判 negative')
+}
+
+async function testNegationAware_OverrideDoesNotFalseFire() {
+  // 模型正确判正向 + 文本含负向词(被否定)→ 不应被"方向与原文相反"误降级为 watch
+  const result = enforceAnalysisContract(
+    makeResult({
+      direction: 'positive',
+      analysisType: 'rule',
+      confidence: 'high',
+      reusability: 'high',
+      conditions: ['工作日上午发版', '流程平稳'],
+    }),
+    '周二上午发版，全天平稳没出事故',
+  )
+  assert.notEqual(result.kind, 'watch', '正向含被否定的负向词,不应被误降级为 watch')
+}
+
 // ─── C2 专项:扩充后的 inferDirection 能识别新增负向词 ────────────────────────────
 
 // 新增负向词(不在旧词表)现在能被判为 negative
@@ -275,6 +307,11 @@ async function run() {
 
   // 完整性闸门
   await testIncompleteCoreFields_Downgraded()
+
+  // 否定/削减语境感知
+  await testNegationAware_NotFalseNegative()
+  await testNegationAware_RealNegativeStillDetected()
+  await testNegationAware_OverrideDoesNotFalseFire()
 
   // C2 专项
   await testC2_NewNegativeKeywords_Detected()

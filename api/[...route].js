@@ -3196,7 +3196,7 @@ function enforceAnalysisContract(result, sourceText) {
 }
 function inferDirection(text) {
   const normalized = text.toLowerCase();
-  const positiveScore = countMatches(normalized, [
+  const positiveScore = countDirectionalMatches(normalized, [
     // 原有正向词
     "\u4EBA\u5C11",
     "\u4E0D\u7528\u6392\u961F",
@@ -3238,8 +3238,8 @@ function inferDirection(text) {
     "\u6EE1\u610F",
     "\u8282\u7EA6",
     "\u7701\u4E86"
-  ]);
-  const negativeScore = countMatches(normalized, [
+  ], false);
+  const negativeScore = countDirectionalMatches(normalized, [
     // 原有负向词
     "\u4EBA\u5F88\u591A",
     "\u4EBA\u591A",
@@ -3333,7 +3333,7 @@ function inferDirection(text) {
     "\u8FDF\u5230",
     "\u8BEF\u70B9",
     "\u51FA\u95EE\u9898"
-  ]);
+  ], true);
   if (positiveScore > 0 && negativeScore > 0) return "mixed";
   if (negativeScore > 0) return "negative";
   if (positiveScore > 0) return "positive";
@@ -3401,8 +3401,24 @@ function inferTags(text) {
   if (text.includes("\u4E0B\u96E8") || text.includes("\u96E8\u5929")) tags.push("\u5929\u6C14");
   return tags;
 }
-function countMatches(text, values) {
-  return values.filter((value) => text.includes(value)).length;
+var DIRECTION_NEGATORS = ["\u6CA1\u6709", "\u6CA1", "\u672A", "\u65E0", "\u4E0D", "\u522B", "\u514D", "\u907F\u514D", "\u9632\u6B62", "\u675C\u7EDD", "\u52FF", "\u675C"];
+var DIRECTION_REDUCERS = ["\u53D8\u5C11", "\u51CF\u5C11", "\u66F4\u5C11", "\u964D\u4F4E", "\u4E0B\u964D", "\u6D88\u5931", "\u53D8\u597D", "\u6539\u5584", "\u6CA1\u4E86"];
+function countDirectionalMatches(text, words, isNegativeList) {
+  let count = 0;
+  for (const w of words) {
+    let from = 0;
+    let idx = text.indexOf(w, from);
+    while (idx !== -1) {
+      const before = text.slice(Math.max(0, idx - 3), idx);
+      const after = text.slice(idx + w.length, idx + w.length + 4);
+      const negatedBefore = DIRECTION_NEGATORS.some((n) => before.includes(n));
+      const reducedAfter = isNegativeList && DIRECTION_REDUCERS.some((r) => after.includes(r));
+      if (!negatedBefore && !reducedAfter) count += 1;
+      from = idx + w.length;
+      idx = text.indexOf(w, from);
+    }
+  }
+  return count;
 }
 function hasAny(text, keywords) {
   return keywords.some((keyword) => text.includes(keyword.toLowerCase()));
