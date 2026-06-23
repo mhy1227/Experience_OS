@@ -125,6 +125,7 @@ async function testMerge_ResolvedReactivatesOnRecurrence() {
     confidence: 'medium',
     status: 'resolved',
     generatedBy: 'statistical',
+    note: '已针对它改进',
     createdAt: daysAgo(60),
     updatedAt: daysAgo(40),
   }
@@ -138,6 +139,7 @@ async function testMerge_ResolvedReactivatesOnRecurrence() {
   assert.equal(merged.length, 1, '应合并不新增')
   assert.equal(merged[0]!.status, 'active', '已解决 + 新成员复发 → 重新激活')
   assert.equal(merged[0]!.recurrence, 3)
+  assert.equal(merged[0]!.note, undefined, '重新激活时旧 note 应清空(与 markLawStatus 一致)')
 }
 
 // 🔴 review 修复:旧成员里仍在窗口、来自其它桶的不被硬替换丢掉

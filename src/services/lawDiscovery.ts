@@ -215,8 +215,10 @@ export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string, sc
     const keptPrev = scopedIds ? prev.memberObservationIds.filter((id) => scopedIds.has(id)) : prev.memberObservationIds
     const members = [...new Set([...keptPrev, ...cand.memberObservationIds])]
     const hasNewMembers = cand.memberObservationIds.some((id) => !prev.memberObservationIds.includes(id))
+    const reactivated = prev.status === 'resolved' && hasNewMembers // 已解决又复发 → 重新激活
     result[idx] = {
       ...prev,
+      note: reactivated ? undefined : prev.note, // 与 markLawStatus 一致:回到 active 清掉旧 note
       // 主题/根因/建议:优先采用本次模型结果(更新鲜),否则保留旧的
       theme: cand.generatedBy === 'model' ? cand.theme : prev.theme,
       rootCause: cand.generatedBy === 'model' ? cand.rootCause : prev.rootCause,
@@ -229,7 +231,7 @@ export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string, sc
       confidence: lawConfidence(members.length),
       generatedBy: cand.generatedBy === 'model' ? 'model' : prev.generatedBy,
       // 已解决但又复发(出现旧成员之外的新成员)→ 重新激活
-      status: prev.status === 'resolved' && hasNewMembers ? 'active' : prev.status,
+      status: reactivated ? 'active' : prev.status,
       updatedAt: nowIso,
     }
   }
