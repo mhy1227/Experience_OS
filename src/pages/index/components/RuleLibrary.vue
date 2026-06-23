@@ -29,7 +29,7 @@
     <view v-if="store.rules.length === 0" class="empty">策略卡会自动沉淀到这里。</view>
     <view v-else-if="filteredRules.length === 0" class="empty">没有匹配的规则，换个关键词或分类。</view>
     <RuleCard
-      v-for="rule in visibleRules"
+      v-for="rule in pagedRules"
       :key="rule.id"
       :rule="rule"
       :evidence="ruleEvidence(rule)"
@@ -38,14 +38,16 @@
       @evaluate="store.addEvaluation"
       @apply-revision="(id) => store.applyRevisionDraft(id)"
     />
-    <button v-if="filteredRules.length > LIMIT" class="more-link" @click="showAll = !showAll">
-      {{ showAll ? '收起' : `展开剩余 ${filteredRules.length - LIMIT} 条规则` }}
-    </button>
+    <view v-if="totalPages > 1" class="pager">
+      <button class="pager-btn" :disabled="page === 1" @click="page--">上一页</button>
+      <text class="pager-info">{{ page }} / {{ totalPages }}（共 {{ filteredRules.length }} 条）</text>
+      <button class="pager-btn" :disabled="page === totalPages" @click="page++">下一页</button>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useExperienceStore } from '../../../stores/experience'
 import RuleCard from '../../../components/RuleCard.vue'
 import type { ExperienceCategory, ExperienceRule, Observation } from '../../../types/experience'
@@ -53,8 +55,8 @@ import type { ExperienceCategory, ExperienceRule, Observation } from '../../../t
 const store = useExperienceStore()
 const ruleQuery = ref('')
 const selectedCategory = ref<ExperienceCategory | '全部'>('全部')
-const LIMIT = 8
-const showAll = ref(false)
+const PAGE_SIZE = 8
+const page = ref(1)
 
 const categoryTiles = computed(() =>
   Object.entries(store.rulesByCategory).map(([category, count]) => ({ category: category as ExperienceCategory, count })),
@@ -80,7 +82,12 @@ const filteredRules = computed(() => {
   })
 })
 
-const visibleRules = computed(() => (showAll.value ? filteredRules.value : filteredRules.value.slice(0, LIMIT)))
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredRules.value.length / PAGE_SIZE)))
+const pagedRules = computed(() => filteredRules.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
+
+// 筛选变化时回到第 1 页；删规则导致页数缩减时夹紧当前页
+watch([ruleQuery, selectedCategory], () => { page.value = 1 })
+watch(totalPages, (n) => { if (page.value > n) page.value = n })
 
 function toggleCategory(category: ExperienceCategory) {
   selectedCategory.value = selectedCategory.value === category ? '全部' : category
@@ -108,16 +115,22 @@ function ruleEvidence(rule: ExperienceRule) {
   color: #5a6b62;
 }
 .category-fold[open] .category-summary { margin-bottom: 8px; }
-.more-link {
-  display: block;
-  width: 100%;
-  margin: 8px 0 4px;
-  padding: 8px;
-  background: transparent;
-  border: 1px dashed #c8d2cb;
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 4px;
+}
+.pager-btn {
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #c8d2cb;
   border-radius: 8px;
-  color: #5a6b62;
+  color: #3a4a42;
   font-size: 13px;
   cursor: pointer;
 }
+.pager-btn:disabled { opacity: 0.4; cursor: default; }
+.pager-info { font-size: 13px; color: #5a6b62; }
 </style>
