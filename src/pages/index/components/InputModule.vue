@@ -48,6 +48,14 @@
             >
               找经验
             </button>
+            <button
+              v-if="hasModel"
+              class="ghost-button find-button"
+              :disabled="!draft.trim() || store.rules.length === 0 || isModelRecalling"
+              @click="findExperienceWithModel"
+            >
+              {{ isModelRecalling ? '模型找中…' : '🧠 模型精准找' }}
+            </button>
             <button class="primary-button" :disabled="!canSubmit" @click="submit">
               {{ store.isAnalyzing ? '提炼中' : '生成规则' }}
             </button>
@@ -173,6 +181,8 @@ import { getBackendUrl } from '../../../services/backendClient'
 import { useToast } from '../../../composables/useToast'
 import DecisionHintCard from '../../../components/DecisionHintCard.vue'
 import RuleCard from '../../../components/RuleCard.vue'
+import { getActiveModelClient } from '../../../services/modelConfig'
+import { recallRulesWithModel } from '../../../services/recallWithModel'
 import type { ImportSummary } from '../../../stores/experience'
 import type { EvaluationOutcome, ExperienceRule, Law, Observation } from '../../../types/experience'
 
@@ -190,6 +200,8 @@ const hasSearched = ref(false)
 const lastScene = ref('')
 const recalledRules = ref<{ rule: ExperienceRule; reasons: string[] }[]>([])
 const recalledLaws = ref<Law[]>([])
+const isModelRecalling = ref(false)
+const hasModel = computed(() => Boolean(getActiveModelClient()))
 
 function ruleEvidence(rule: ExperienceRule) {
   return rule.evidenceIds.map((id) => store.observations.find((o) => o.id === id)).filter((o): o is Observation => Boolean(o))
@@ -211,6 +223,27 @@ function findExperience() {
   if (!scene || store.rules.length === 0) return
   lastScene.value = scene
   refreshRecall(scene)
+}
+
+// 可选:模型语义召回。模型只从已有规则里挑 id(防幻觉);失败/无 client 自动降级关键词。
+async function findExperienceWithModel() {
+  const scene = draft.value.trim()
+  if (!scene || store.rules.length === 0 || isModelRecalling.value) return
+  const client = getActiveModelClient()
+  if (!client) { findExperience(); return }
+  lastScene.value = scene
+  isModelRecalling.value = true
+  try {
+    const matched = await recallRulesWithModel(scene, store.rules, client)
+    hasSearched.value = true
+    recalledRules.value = matched.map((m) => ({ rule: m.rule, reasons: [m.why] }))
+    recalledLaws.value = store.recallRelatedLaws(scene)
+  } catch {
+    showToast('模型召回失败,已按关键词召回')
+    refreshRecall(scene)
+  } finally {
+    isModelRecalling.value = false
+  }
 }
 
 function refreshRecall(scene: string) {
