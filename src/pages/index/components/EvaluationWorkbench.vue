@@ -56,6 +56,8 @@
             />
           </label>
         </view>
+        <details class="analytics-fold">
+          <summary class="analytics-summary">评估指标与画像（{{ store.rules.length }} 条规则的全量分析，点击展开）</summary>
         <view class="evaluation-dashboard">
           <view>
             <text class="stat-value">{{ store.evaluationAnalysis.averageScore }}</text>
@@ -587,6 +589,7 @@
           </view>
         </view>
         <view class="boundary-note">优先复测待观察、待修正、评估少于 2 次的规则。</view>
+        </details>
         <view class="recall-box">
           <input v-model="recallScene" class="search-input" placeholder="输入新场景，召回可复测规则" />
           <button class="ghost-button" @click="recallCandidates">匹配规则</button>
@@ -792,3 +795,20 @@ const protocolBlockedRuleCount = computed(() => {
   return store.rules.filter((rule) => rule.protocolComplianceProfile?.status === 'blocked' || rule.protocolComplianceProfile?.status === 'partial').length
 })
 </script>
+
+<style scoped>
+.analytics-fold {
+  margin: 8px 0 16px;
+  border: 1px dashed #c8d2cb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #fafcfa;
+}
+.analytics-summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5a6b62;
+}
+.analytics-fold[open] .analytics-summary { margin-bottom: 12px; }
+</style>
