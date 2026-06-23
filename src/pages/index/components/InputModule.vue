@@ -40,9 +40,18 @@
               {{ sample.label }}
             </button>
           </view>
-          <button class="primary-button" :disabled="!canSubmit" @click="submit">
-            {{ store.isAnalyzing ? '提炼中' : '生成规则' }}
-          </button>
+          <view class="composer-buttons">
+            <button
+              class="ghost-button find-button"
+              :disabled="!draft.trim() || store.rules.length === 0"
+              @click="findExperience"
+            >
+              找经验
+            </button>
+            <button class="primary-button" :disabled="!canSubmit" @click="submit">
+              {{ store.isAnalyzing ? '提炼中' : '生成规则' }}
+            </button>
+          </view>
         </view>
 
         <!-- M4 决策辅助提醒 -->
@@ -50,6 +59,35 @@
           :hints="store.decisionHints"
           @dismiss="store.dismissDecisionHint"
         />
+      </view>
+
+      <!-- 找经验:把当前输入当成"我面临的场景",在做决定时浮现相关经验规则 + 规律 -->
+      <view v-if="hasSearched" class="recall-results">
+        <view class="section-head">
+          <text class="section-title">相关经验</text>
+          <text class="section-meta">{{ recalledRules.length }} 条规则 / {{ recalledLaws.length }} 条规律</text>
+        </view>
+        <view v-if="recalledRules.length === 0 && recalledLaws.length === 0" class="empty">
+          还没有匹配的经验。多记几条,下次做类似决定时,相关规则会自动浮现在这里。
+        </view>
+        <view v-if="recalledLaws.length" class="recall-laws">
+          <view v-for="law in recalledLaws" :key="law.id" :class="['recall-law', law.kind]">
+            <text class="recall-law-badge">{{ law.kind === 'caution' ? '🟥 避坑' : '🟩 成功' }} · {{ confLabel(law.confidence) }}</text>
+            <text class="recall-law-theme">{{ law.theme }}</text>
+            <text v-if="law.suggestion" class="recall-law-sug">建议:{{ law.suggestion }}</text>
+          </view>
+        </view>
+        <view v-for="item in recalledRules" :key="item.rule.id" class="recall-rule">
+          <text class="recall-reason">🔎 {{ item.reasons.join('；') }}</text>
+          <RuleCard
+            :rule="item.rule"
+            :evidence="ruleEvidence(item.rule)"
+            compact
+            @feedback="store.setFeedback"
+            @evaluate="store.addEvaluation"
+            @apply-revision="(id) => store.applyRevisionDraft(id)"
+          />
+        </view>
       </view>
 
       <!-- 批量导入 + 数据管理:默认折叠,精简首屏 -->
@@ -116,7 +154,9 @@ import { demoSamples } from '../../../services/aiAnalyzer'
 import { getBackendUrl } from '../../../services/backendClient'
 import { useToast } from '../../../composables/useToast'
 import DecisionHintCard from '../../../components/DecisionHintCard.vue'
+import RuleCard from '../../../components/RuleCard.vue'
 import type { ImportSummary } from '../../../stores/experience'
+import type { ExperienceRule, Law, Observation } from '../../../types/experience'
 
 const store = useExperienceStore()
 const router = useRouter()
@@ -126,6 +166,42 @@ const draft = ref('')
 const importText = ref('')
 const isImporting = ref(false)
 const importResult = ref<ImportSummary | null>(null)
+
+// 找经验:决策时召回相关经验
+const hasSearched = ref(false)
+const recalledRules = ref<{ rule: ExperienceRule; reasons: string[] }[]>([])
+const recalledLaws = ref<Law[]>([])
+
+function ruleEvidence(rule: ExperienceRule) {
+  return rule.evidenceIds.map((id) => store.observations.find((o) => o.id === id)).filter((o): o is Observation => Boolean(o))
+}
+function confLabel(c: string): string {
+  return c === 'high' ? '高置信' : c === 'medium' ? '中置信' : '低置信·参考'
+}
+// 中文无分词:用 2-gram 子串重合做轻量相关性判断
+function shareKeyword(a: string, b: string): boolean {
+  const clean = (s: string) => s.toLowerCase().replace(/[\s,.。，、!！?？;；:：「」""''()（）]/g, '')
+  const x = clean(a)
+  const y = clean(b)
+  if (!x || !y) return false
+  for (let i = 0; i + 2 <= x.length; i++) {
+    if (y.includes(x.slice(i, i + 2))) return true
+  }
+  return false
+}
+function findExperience() {
+  const scene = draft.value.trim()
+  if (!scene || store.rules.length === 0) return
+  hasSearched.value = true
+  recalledRules.value = store
+    .recallEvaluationCandidates(scene)
+    .map((c) => ({ rule: store.rules.find((r) => r.id === c.ruleId), reasons: c.reasons }))
+    .filter((x): x is { rule: ExperienceRule; reasons: string[] } => Boolean(x.rule))
+  recalledLaws.value = store.laws
+    .filter((l) => l.status !== 'resolved' && [l.theme, l.rootCause, l.suggestion].some((t) => t && shareKeyword(scene, t)))
+    .sort((a, b) => b.recurrence - a.recurrence)
+    .slice(0, 3)
+}
 
 const canSubmit = computed(() => draft.value.trim().length > 0 && !store.isAnalyzing && !store.isSeedingDemo)
 const canLoadDemo = computed(() => !store.isAnalyzing && !store.isSeedingDemo)
@@ -233,4 +309,23 @@ async function handleLoadDemoWork() {
 .more-panel { margin-top: 12px; border: 1px dashed #d6ddd6; border-radius: 8px; padding: 8px 12px; }
 .more-summary { cursor: pointer; font-size: 13px; color: #6b7a73; font-weight: 600; }
 .more-panel[open] .more-summary { margin-bottom: 8px; }
+
+.composer-buttons { display: flex; gap: 8px; align-items: center; }
+.find-button { white-space: nowrap; }
+
+.recall-results { margin-top: 16px; }
+.recall-laws { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.recall-law {
+  border: 1px solid #dfe5dc;
+  border-left: 4px solid #9bb39e;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fbfcf8;
+}
+.recall-law.caution { border-left-color: #d98b8b; }
+.recall-law-badge { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 4px; }
+.recall-law-theme { display: block; font-size: 14px; font-weight: 600; color: #252923; }
+.recall-law-sug { display: block; font-size: 13px; color: #4d5a4e; margin-top: 4px; }
+.recall-rule { margin-top: 8px; }
+.recall-reason { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 2px; }
 </style>
