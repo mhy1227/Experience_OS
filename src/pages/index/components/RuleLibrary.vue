@@ -38,10 +38,13 @@
       @evaluate="store.addEvaluation"
       @apply-revision="(id) => store.applyRevisionDraft(id)"
     />
-    <view v-if="totalPages > 1" class="pager">
+    <view v-if="filteredRules.length > 0" class="pager">
       <button class="pager-btn" :disabled="page === 1" @click="page--">上一页</button>
       <text class="pager-info">{{ page }} / {{ totalPages }}（共 {{ filteredRules.length }} 条）</text>
       <button class="pager-btn" :disabled="page === totalPages" @click="page++">下一页</button>
+      <select v-model.number="pageSize" class="pager-size">
+        <option v-for="n in pageSizeOptions" :key="n" :value="n">每页 {{ n }}</option>
+      </select>
     </view>
   </view>
 </template>
@@ -55,7 +58,8 @@ import type { ExperienceCategory, ExperienceRule, Observation } from '../../../t
 const store = useExperienceStore()
 const ruleQuery = ref('')
 const selectedCategory = ref<ExperienceCategory | '全部'>('全部')
-const PAGE_SIZE = 8
+const pageSizeOptions = [8, 16, 32]
+const pageSize = ref(8) // 默认 8，用户可自定义
 const page = ref(1)
 
 const categoryTiles = computed(() =>
@@ -82,11 +86,11 @@ const filteredRules = computed(() => {
   })
 })
 
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredRules.value.length / PAGE_SIZE)))
-const pagedRules = computed(() => filteredRules.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredRules.value.length / pageSize.value)))
+const pagedRules = computed(() => filteredRules.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value))
 
-// 筛选变化时回到第 1 页；删规则导致页数缩减时夹紧当前页
-watch([ruleQuery, selectedCategory], () => { page.value = 1 })
+// 筛选或每页条数变化时回到第 1 页；删规则导致页数缩减时夹紧当前页
+watch([ruleQuery, selectedCategory, pageSize], () => { page.value = 1 })
 watch(totalPages, (n) => { if (page.value > n) page.value = n })
 
 function toggleCategory(category: ExperienceCategory) {
@@ -133,4 +137,13 @@ function ruleEvidence(rule: ExperienceRule) {
 }
 .pager-btn:disabled { opacity: 0.4; cursor: default; }
 .pager-info { font-size: 13px; color: #5a6b62; }
+.pager-size {
+  padding: 6px 8px;
+  border: 1px solid #c8d2cb;
+  border-radius: 8px;
+  background: #fff;
+  color: #3a4a42;
+  font-size: 13px;
+  cursor: pointer;
+}
 </style>
