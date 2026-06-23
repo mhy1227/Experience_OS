@@ -146,62 +146,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, ref } from 'vue'
-import { demoSamples, reusabilityLabel } from '../../services/aiAnalyzer'
+import { computed, ref } from 'vue'
 import { useExperienceStore } from '../../stores/experience'
-import { getBackendUrl } from '../../services/backendClient'
 import LawLibrary from './components/LawLibrary.vue'
 import EvaluationWorkbench from './components/EvaluationWorkbench.vue'
 import ExperienceList from './components/ExperienceList.vue'
 import ExperienceMap from './components/ExperienceMap.vue'
 import Timeline from './components/Timeline.vue'
 import InputModule from './components/InputModule.vue'
-import DecisionHintCard from '../../components/DecisionHintCard.vue'
 import ModelConfigPanel from '../../components/ModelConfigPanel.vue'
 import RuleCard from '../../components/RuleCard.vue'
-import {
-  formatTime, feedbackLabel, evaluationLabel, protocolExecutionLabel, adoptionLabel,
-  gateStatusLabel, repeatabilityLevelLabel, sampleIndependenceLevelLabel, consistencyStatusLabel,
-  replicationMatrixStatusLabel, maintenanceHealthLabel, boundarySeverityLabel, percentLabel,
-  planPriorityLabel, planFocusLabel, gateIssues,
-} from '../../services/ruleLabels'
-import type { ImportSummary } from '../../stores/experience'
-import type {
-  AdoptionDecisionEvent,
-  EvaluationBoundarySeverity,
-  EvaluationOutcome,
-  EvaluationCandidate,
-  EvaluationConfidence,
-  EvaluationConsistencyStatus,
-  EvaluationAdoptionDecision,
-  EvaluationGateCheckStatus,
-  EvaluationGateStatus,
-  EvaluationImportResult,
-  EvaluationPlanFocus,
-  EvaluationPlanPriority,
-  EvaluationMaintenanceHealth,
-  EvaluationProtocolComplianceStatus,
-  EvaluationReplicationMatrixStatus,
-  EvaluationReplicationSlotStatus,
-  EvaluationRepeatabilityLevel,
-  EvaluationSampleIndependenceLevel,
-  EvaluationSettings,
-  EvaluationTrend,
-  EvaluationVerdict,
-  EvaluationVersionCoverageStatus,
-  ExperienceCategory,
-  ExperienceRule,
-  Feedback,
-  Observation,
-  RuleEvaluation,
-  RuleReviewStatus,
-} from '../../types/experience'
+import type { ExperienceCategory, ExperienceRule, Observation } from '../../types/experience'
 
 type TabKey = 'compose' | 'records' | 'rules' | 'map' | 'timeline' | 'insights'
 
 const store = useExperienceStore()
-
-
 
 const activeTab = ref<TabKey>('compose')
 const showSettings = ref(false)
