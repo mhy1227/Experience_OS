@@ -108,14 +108,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useExperienceStore } from '../../../stores/experience'
 import { demoSamples } from '../../../services/aiAnalyzer'
 import { getBackendUrl } from '../../../services/backendClient'
+import { useToast } from '../../../composables/useToast'
 import DecisionHintCard from '../../../components/DecisionHintCard.vue'
 import type { ImportSummary } from '../../../stores/experience'
 
 const store = useExperienceStore()
-const emit = defineEmits<{ navigate: [tab: 'rules']; 'reset-filters': []; toast: [msg: string] }>()
+const router = useRouter()
+const { show: showToast } = useToast()
 
 const draft = ref('')
 const importText = ref('')
@@ -163,7 +166,7 @@ async function handleMarkdownFile(e: Event) {
     const { parseMarkdownToObservations } = await import('../../../services/markdownImport')
     const parsed = await parseMarkdownToObservations(text)
     if (parsed.observations.length === 0) {
-      emit('toast', '未从文件解析出可导入的经验')
+      showToast('未从文件解析出可导入的经验')
       return
     }
     const truncNote = parsed.truncated ? `（已截断，原 ${parsed.totalParsed} 条）` : ''
@@ -184,13 +187,12 @@ async function handleMarkdownFile(e: Event) {
 
 async function loadDemoData() {
   await store.loadDemoData()
-  emit('navigate', 'rules')
+  router.push('/rules')
 }
 
 function clearData() {
   store.clearAll()
   draft.value = ''
-  emit('reset-filters')
 }
 
 function handleExportMarkdown() {
@@ -213,15 +215,14 @@ function handleClearAll() {
   if (!confirmed) return
   const { observationCount, ruleCount } = store.clearAllData()
   draft.value = ''
-  emit('reset-filters')
-  emit('toast', `已清空 ${observationCount} 条观察、${ruleCount} 条规则`)
+  showToast(`已清空 ${observationCount} 条观察、${ruleCount} 条规则`)
 }
 
 async function handleLoadDemoWork() {
   const confirmed = store.observations.length === 0 || window.confirm('载入演示数据将清空现有数据，确认继续？')
   if (!confirmed) return
   await store.loadDemoWorkData()
-  emit('navigate', 'rules')
-  emit('toast', '演示工作数据已载入，共 35 条观察')
+  router.push('/rules')
+  showToast('演示工作数据已载入，共 35 条观察')
 }
 </script>

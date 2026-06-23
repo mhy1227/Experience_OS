@@ -1,0 +1,83 @@
+<!-- 「规则库」路由:搜索/分类筛选 + 规则卡列表 -->
+<template>
+  <view>
+    <view class="section-head">
+      <text class="section-title">规则库</text>
+      <text class="section-meta">{{ filteredRules.length }} / {{ store.rules.length }} 条规则</text>
+    </view>
+    <view class="filter-bar">
+      <input v-model="ruleQuery" class="search-input" placeholder="搜索规则、地点、行动建议" />
+      <button class="ghost-button" @click="resetFilters">重置</button>
+    </view>
+    <view v-if="categoryTiles.length > 0" class="category-grid">
+      <button
+        v-for="{ category, count } in categoryTiles"
+        :key="category"
+        class="category-tile"
+        :class="{ selected: selectedCategory === category }"
+        @click="toggleCategory(category)"
+      >
+        <text class="category-name">{{ category }}</text>
+        <text class="category-count">{{ count }}</text>
+      </button>
+    </view>
+    <view v-if="store.rules.length === 0" class="empty">策略卡会自动沉淀到这里。</view>
+    <view v-else-if="filteredRules.length === 0" class="empty">没有匹配的规则，换个关键词或分类。</view>
+    <RuleCard
+      v-for="rule in filteredRules"
+      :key="rule.id"
+      :rule="rule"
+      :evidence="ruleEvidence(rule)"
+      compact
+      @feedback="store.setFeedback"
+      @evaluate="store.addEvaluation"
+      @apply-revision="(id) => store.applyRevisionDraft(id)"
+    />
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useExperienceStore } from '../../../stores/experience'
+import RuleCard from '../../../components/RuleCard.vue'
+import type { ExperienceCategory, ExperienceRule, Observation } from '../../../types/experience'
+
+const store = useExperienceStore()
+const ruleQuery = ref('')
+const selectedCategory = ref<ExperienceCategory | '全部'>('全部')
+
+const categoryTiles = computed(() =>
+  Object.entries(store.rulesByCategory).map(([category, count]) => ({ category: category as ExperienceCategory, count })),
+)
+
+const filteredRules = computed(() => {
+  const keyword = ruleQuery.value.trim().toLowerCase()
+  return store.rules.filter((rule) => {
+    const matchCategory = selectedCategory.value === '全部' || rule.category === selectedCategory.value
+    const haystack = [
+      rule.title,
+      rule.category,
+      rule.conclusion,
+      rule.recommendation,
+      rule.location ?? '',
+      ...rule.conditions,
+      ...rule.warnings,
+    ]
+      .join(' ')
+      .toLowerCase()
+    const matchKeyword = !keyword || haystack.includes(keyword)
+    return matchCategory && matchKeyword
+  })
+})
+
+function toggleCategory(category: ExperienceCategory) {
+  selectedCategory.value = selectedCategory.value === category ? '全部' : category
+}
+function resetFilters() {
+  selectedCategory.value = '全部'
+  ruleQuery.value = ''
+}
+function ruleEvidence(rule: ExperienceRule) {
+  return rule.evidenceIds.map((id) => store.observations.find((o) => o.id === id)).filter((o): o is Observation => Boolean(o))
+}
+</script>

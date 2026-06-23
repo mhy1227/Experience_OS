@@ -1,10 +1,11 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import { router } from './router'
 
 seedDemoModelConfig()
 
-createApp(App).use(createPinia()).mount('#app')
+createApp(App).use(createPinia()).use(router).mount('#app')
 
 // 演示用:若用户尚未配置模型,则从构建期环境变量注入一份默认模型配置。
 // Key 仅来自 gitignored 的 .env.local,不写死、不提交;用户在 UI 配置后不会被覆盖。

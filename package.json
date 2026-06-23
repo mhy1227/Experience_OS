@@ -16,7 +16,8 @@
     "hono": "^4.12.26",
     "marked": "^18.0.5",
     "pinia": "^2.1.7",
-    "vue": "^3.4.21"
+    "vue": "^3.4.21",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
