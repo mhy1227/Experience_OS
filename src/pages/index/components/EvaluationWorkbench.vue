@@ -620,7 +620,7 @@
         </view>
         <view v-if="store.evaluationQueue.length === 0" class="empty">当前没有待复测规则。</view>
         <RuleCard
-          v-for="rule in store.evaluationQueue"
+          v-for="rule in pagedQueue"
           :key="rule.id"
           :rule="rule"
           :evidence="ruleEvidence(rule)"
@@ -629,12 +629,21 @@
           @evaluate="store.addEvaluation"
           @apply-revision="applyRevisionDraft"
         />
+        <Pager
+          v-model:page="queuePage"
+          v-model:page-size="queuePageSize"
+          :total-pages="queueTotalPages"
+          :total="queueTotal"
+          :page-size-options="queuePageSizeOptions"
+        />
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useExperienceStore } from '../../../stores/experience'
 import RuleCard from '../../../components/RuleCard.vue'
+import Pager from '../../../components/Pager.vue'
+import { usePagination } from '../../../composables/usePagination'
 import {
   formatTime, evaluationLabel, protocolExecutionLabel, adoptionLabel, gateStatusLabel,
   repeatabilityLevelLabel, sampleIndependenceLevelLabel, consistencyStatusLabel, replicationMatrixStatusLabel,
@@ -649,6 +658,11 @@ const store = useExperienceStore()
 function ruleEvidence(rule: ExperienceRule) {
   return rule.evidenceIds.map((id) => store.observations.find((o) => o.id === id)).filter((o): o is Observation => Boolean(o))
 }
+const evaluationQueue = computed(() => store.evaluationQueue)
+const {
+  page: queuePage, pageSize: queuePageSize, pageSizeOptions: queuePageSizeOptions,
+  totalPages: queueTotalPages, total: queueTotal, paged: pagedQueue,
+} = usePagination(evaluationQueue)
 const recallScene = ref('')
 const recalledCandidates = ref<EvaluationCandidate[]>([])
 const evaluationFileInput = ref<HTMLInputElement | null>(null)

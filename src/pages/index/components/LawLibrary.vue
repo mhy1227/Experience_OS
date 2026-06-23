@@ -21,9 +21,13 @@
               <button class="law-btn" @click="store.markLaw(law.id, 'resolved')">标记已解决</button>
             </view>
           </view>
-          <button v-if="activeLaws.length > LIMIT" class="more-link" @click="showAllLaws = !showAllLaws">
-            {{ showAllLaws ? '收起' : `展开剩余 ${activeLaws.length - LIMIT} 条规律` }}
-          </button>
+          <Pager
+            v-model:page="lawPage"
+            v-model:page-size="lawPageSize"
+            :total-pages="lawTotalPages"
+            :total="lawTotal"
+            :page-size-options="pageSizeOptions"
+          />
           <view v-if="resolvedLaws.length" class="law-resolved">
             <text class="law-resolved-title">已解决 {{ resolvedLaws.length }} 条</text>
             <view v-for="law in resolvedLaws" :key="law.id" class="law-resolved-item">
@@ -53,9 +57,13 @@
           :insight="insight"
           :observations="store.observations"
         />
-        <button v-if="store.insights.length > LIMIT" class="more-link" @click="showAllInsights = !showAllInsights">
-          {{ showAllInsights ? '收起' : `展开剩余 ${store.insights.length - LIMIT} 条洞察` }}
-        </button>
+        <Pager
+          v-model:page="insightPage"
+          v-model:page-size="insightPageSize"
+          :total-pages="insightTotalPages"
+          :total="insightTotal"
+          :page-size-options="pageSizeOptions"
+        />
 
         <view class="review-block">
           <view class="section-head">
@@ -84,15 +92,12 @@
 import { computed, ref } from 'vue'
 import { useExperienceStore } from '../../../stores/experience'
 import InsightCard from './InsightCard.vue'
+import Pager from '../../../components/Pager.vue'
+import { usePagination } from '../../../composables/usePagination'
 
 const store = useExperienceStore()
 const reviewPeriod = ref<'week' | 'month'>('week')
 const review = computed(() => store.periodicReview(reviewPeriod.value))
-const LIMIT = 5
-const showAllLaws = ref(false)
-const showAllInsights = ref(false)
-const visibleLaws = computed(() => (showAllLaws.value ? activeLaws.value : activeLaws.value.slice(0, LIMIT)))
-const visibleInsights = computed(() => (showAllInsights.value ? store.insights : store.insights.slice(0, LIMIT)))
 function rankConf(c: string): number { return c === 'high' ? 3 : c === 'medium' ? 2 : 1 }
 const activeLaws = computed(() =>
   store.laws
@@ -106,21 +111,16 @@ const activeLaws = computed(() =>
     }),
 )
 const resolvedLaws = computed(() => store.laws.filter((l) => l.status === 'resolved'))
+const insights = computed(() => store.insights)
+
+const pageSizeOptions = [5, 10, 20]
+const {
+  page: lawPage, pageSize: lawPageSize, totalPages: lawTotalPages, total: lawTotal, paged: visibleLaws,
+} = usePagination(activeLaws, 5, pageSizeOptions)
+const {
+  page: insightPage, pageSize: insightPageSize, totalPages: insightTotalPages, total: insightTotal, paged: visibleInsights,
+} = usePagination(insights, 5, pageSizeOptions)
+
 function trendArrow(t: string): string { return t === 'rising' ? '↑' : t === 'falling' ? '↓' : '→' }
 function confLabel(c: string): string { return c === 'high' ? '高置信' : c === 'medium' ? '中置信' : '低置信·参考' }
 </script>
-
-<style scoped>
-.more-link {
-  display: block;
-  width: 100%;
-  margin: 8px 0 4px;
-  padding: 8px;
-  background: transparent;
-  border: 1px dashed #c8d2cb;
-  border-radius: 8px;
-  color: #5a6b62;
-  font-size: 13px;
-  cursor: pointer;
-}
-</style>
