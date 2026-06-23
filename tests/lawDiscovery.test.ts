@@ -140,6 +140,40 @@ async function testMerge_ResolvedReactivatesOnRecurrence() {
   assert.equal(merged[0]!.recurrence, 3)
 }
 
+// 🔴 修复:窗口准确——过期成员不计入复发数(recurrence 反映 90 天窗口,不无限并集)
+async function testWindowAccurateRecurrence() {
+  const recent = [
+    obs({ id: 'a', sentiment: 'negative', category: '工作', tags: ['返工'], createdAt: daysAgo(1) }),
+    obs({ id: 'b', sentiment: 'negative', category: '工作', tags: ['返工'], createdAt: daysAgo(2) }),
+    obs({ id: 'c', sentiment: 'negative', category: '工作', tags: ['返工'], createdAt: daysAgo(3) }),
+  ]
+  const s1 = await discoverLaws(recent, { nowMs: NOW })
+  assert.equal(s1[0]!.recurrence, 3)
+  // a 变成 100 天前(超窗口)→ 再扫只剩 2 条在窗口内
+  const aged = [
+    obs({ id: 'a', sentiment: 'negative', category: '工作', tags: ['返工'], createdAt: daysAgo(100) }),
+    obs({ id: 'b', sentiment: 'negative', category: '工作', tags: ['返工'], createdAt: daysAgo(2) }),
+    obs({ id: 'c', sentiment: 'negative', category: '工作', tags: ['返工'], createdAt: daysAgo(3) }),
+  ]
+  const s2 = await discoverLaws(aged, { nowMs: NOW, existingLaws: s1 })
+  assert.equal(s2.length, 1, '仍是同一条规律')
+  assert.equal(s2[0]!.recurrence, 2, '过期成员不计入窗口复发数(不无限并集)')
+}
+
+// 🟡 修复:同一 category 的正负观察分成两条规律(kind 轴干净,即使主题字符串相同也不合并)
+async function testSplitsByKindWithinCategory() {
+  const observations = [
+    obs({ id: 'n1', sentiment: 'negative', category: '工作', text: '返工1' }),
+    obs({ id: 'n2', sentiment: 'negative', category: '工作', text: '返工2' }),
+    obs({ id: 'p1', sentiment: 'positive', category: '工作', text: '顺利1' }),
+    obs({ id: 'p2', sentiment: 'positive', category: '工作', text: '顺利2' }),
+  ]
+  // 假模型对所有簇返回相同主题 → 验证 kind 感知 dedupe 不会把避坑/成功并成一条
+  const laws = await discoverLaws(observations, { nowMs: NOW, client: fakeClient('共同主题') })
+  assert.equal(laws.length, 2, '同 category 正负 + 同主题字符串 → 仍应是 2 条(按 kind 区分)')
+  assert.deepEqual(laws.map((l) => l.kind).sort(), ['caution', 'strategy'])
+}
+
 async function testMarkLawStatus() {
   const law = (await discoverLaws(
     [obs({ id: 'a', sentiment: 'negative', tags: ['返工'] }), obs({ id: 'b', sentiment: 'negative', tags: ['返工'] })],
@@ -160,6 +194,8 @@ async function run() {
   await testDiscover_WithModelTheme()
   await testDiscover_Idempotent()
   await testMerge_ResolvedReactivatesOnRecurrence()
+  await testWindowAccurateRecurrence()
+  await testSplitsByKindWithinCategory()
   await testMarkLawStatus()
   console.log('lawDiscovery tests passed')
 }

@@ -69,7 +69,8 @@ export interface Law {
 纯函数 + 服务层,沿用 `services/` 分层,可测。新增 `src/services/lawDiscovery.ts`(不污染现有 `patternDiscovery.ts`)。
 
 **第一段(统计粗分,控 token、可降级):**
-- 复用 `clusterObservations` 按 `category` 粗分,限定送模型的范围。
+- 按 `category × kind`(正向→strategy / 负向→caution,中性跳过)粗分,限定送模型的范围。
+- 正负分簇而非仅按 category:避免混合情绪簇被"多数方向"一刀切吞掉少数方向(代码 review 修复)。
 
 **第二段(模型语义归并):**
 - 对每个粗簇(成员 ≥ 2),把成员文本送模型,要求:识别**共同主题/根因**,输出 `theme / kind / rootCause / suggestion`,并指出哪些成员**不属于**该主题(剔除噪声)。
@@ -86,7 +87,7 @@ export interface Law {
   - 未命中 → 新建 `active` Law。
   - 已被用户标 `resolved/reviewed` 且无新成员 → 状态不变。
 - **时间维度**:
-  - `recurrence` = 成员数;`firstSeenAt/lastSeenAt` 取成员时间极值。
+  - `recurrence` = **窗口内**成员数(合并时取本次候选成员,而非历次并集——保证"过去90天"语义准确,且与 confidence 同源不打架;代码 review 修复);`firstSeenAt` 保留全时段最早。
   - `trend`:近 30 天成员数占比 vs 前 31–90 天;明显升→`rising`、降→`falling`、否则 `flat`(阈值在 `config` 集中,避免魔数)。
   - UI 文案:"过去 90 天:〈theme〉复发 N 次,趋势 ↑/→/↓"。
 - **降级**:无模型 → 统计卡(现状),不阻断。

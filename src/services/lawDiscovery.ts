@@ -6,7 +6,7 @@
 
 import type { Observation, Law, LawKind, LawTrend, LawStatus, InsightConfidence } from '../types/experience'
 import type { ObservationModelClient } from './modelAnalysisAdapter'
-import { clusterObservations, validateModelField } from './patternDiscovery'
+import { validateModelField } from './patternDiscovery'
 
 // ─── 常量(集中,避免魔数)──────────────────────────────────────────────────
 export const MIN_LAW_MEMBERS = 2 // 少于此不成规律
@@ -158,7 +158,8 @@ function buildCandidate(
 function dedupeCandidates(candidates: Law[]): Law[] {
   const byTheme = new Map<string, Law>()
   for (const c of candidates) {
-    const key = normalizeTheme(c.theme)
+    // kind 感知:同主题但不同 kind(避坑/成功)绝不合并
+    const key = `${c.kind}::${normalizeTheme(c.theme)}`
     const existing = byTheme.get(key)
     if (!existing) {
       byTheme.set(key, c)
@@ -195,15 +196,20 @@ function overlaps(a: string[], b: string[]): boolean {
 export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string): Law[] {
   const result = existing.map((l) => ({ ...l }))
   for (const cand of candidates) {
+    // kind 感知匹配:同 kind 且(成员重叠 或 主题归一相同)。绝不跨 kind 合并。
     const idx = result.findIndex(
-      (l) => overlaps(l.memberObservationIds, cand.memberObservationIds) || normalizeTheme(l.theme) === normalizeTheme(cand.theme),
+      (l) =>
+        l.kind === cand.kind &&
+        (overlaps(l.memberObservationIds, cand.memberObservationIds) ||
+          normalizeTheme(l.theme) === normalizeTheme(cand.theme)),
     )
     if (idx === -1) {
       result.push({ ...cand })
       continue
     }
     const prev = result[idx]!
-    const ids = [...new Set([...prev.memberObservationIds, ...cand.memberObservationIds])]
+    // 窗口准确:成员 = 本次候选(仅窗口内),而非历次并集——recurrence/confidence 都反映 90 天窗口,
+    // 二者来源一致不再对不上;firstSeenAt 仍保留全时段最早(首次出现是历史事实)。
     const hasNewMembers = cand.memberObservationIds.some((id) => !prev.memberObservationIds.includes(id))
     result[idx] = {
       ...prev,
@@ -211,15 +217,14 @@ export function mergeLaws(existing: Law[], candidates: Law[], nowIso: string): L
       theme: cand.generatedBy === 'model' ? cand.theme : prev.theme,
       rootCause: cand.generatedBy === 'model' ? cand.rootCause : prev.rootCause,
       suggestion: cand.generatedBy === 'model' ? cand.suggestion : prev.suggestion,
-      kind: cand.kind,
-      memberObservationIds: ids,
-      recurrence: ids.length,
-      firstSeenAt: [prev.firstSeenAt, cand.firstSeenAt].filter(Boolean).sort()[0] ?? prev.firstSeenAt,
-      lastSeenAt: [prev.lastSeenAt, cand.lastSeenAt].filter(Boolean).sort().slice(-1)[0] ?? prev.lastSeenAt,
+      memberObservationIds: cand.memberObservationIds,
+      recurrence: cand.recurrence,
+      firstSeenAt: [prev.firstSeenAt, cand.firstSeenAt].filter(Boolean).sort()[0] ?? cand.firstSeenAt,
+      lastSeenAt: cand.lastSeenAt || prev.lastSeenAt,
       trend: cand.trend,
       confidence: cand.confidence,
-      generatedBy: prev.generatedBy === 'model' || cand.generatedBy === 'model' ? 'model' : 'statistical',
-      // 已解决但又复发 → 重新激活
+      generatedBy: cand.generatedBy === 'model' ? 'model' : prev.generatedBy,
+      // 已解决但又复发(出现旧成员之外的新成员)→ 重新激活
       status: prev.status === 'resolved' && hasNewMembers ? 'active' : prev.status,
       updatedAt: nowIso,
     }
@@ -262,13 +267,20 @@ export async function discoverLaws(
   if (scoped.length === 0) return existingLaws
   const total = scoped.length
 
-  const clusters = clusterObservations(scoped, 'category')
-  const candidates: Law[] = []
+  // 粗分:category × kind(正负分簇),避免混合情绪簇被 dominantKind 一刀切吞掉少数方向
+  const buckets = new Map<string, { kind: LawKind; members: Observation[] }>()
+  for (const o of scoped) {
+    const kind: LawKind | null = o.sentiment === 'positive' ? 'strategy' : o.sentiment === 'negative' ? 'caution' : null
+    if (!kind) continue // 中性观察不构成方向性规律
+    const key = `${o.category}|${kind}`
+    const bucket = buckets.get(key)
+    if (bucket) bucket.members.push(o)
+    else buckets.set(key, { kind, members: [o] })
+  }
 
-  for (const [, members] of clusters) {
+  const candidates: Law[] = []
+  for (const { kind, members } of buckets.values()) {
     if (members.length < MIN_LAW_MEMBERS) continue
-    const kind = dominantKind(members)
-    if (!kind) continue // 全中性,不成方向性规律
 
     let attribution: ThemeAttribution | null = null
     if (client) attribution = await attributeTheme(members, kind, client)
