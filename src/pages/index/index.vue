@@ -44,110 +44,7 @@
         <span class="trust-text">数据只在本机 — 零云端上传，随时可导出或清空</span>
       </div>
 
-      <view class="composer">
-        <view class="composer-header">
-          <view>
-            <text class="section-title">快速记录</text>
-            <text class="section-meta">8 条样例可直接预置</text>
-          </view>
-          <view class="utility-actions">
-            <button class="ghost-button" :disabled="!canLoadDemo" @click="loadDemoData">
-              {{ demoLoadLabel }}
-            </button>
-            <button class="ghost-button danger" :disabled="store.observations.length === 0" @click="clearData">
-              清空
-            </button>
-          </view>
-          <!-- 经验资产管理 -->
-          <div class="asset-actions">
-            <button class="btn-load-work-demo" :disabled="store.isSeedingDemo" @click="handleLoadDemoWork">
-              {{ store.isSeedingDemo ? '载入中…' : '载入演示工作数据' }}
-            </button>
-            <button class="btn-export-md" @click="handleExportMarkdown" :disabled="store.observations.length === 0">
-              导出经验资产 (.md)
-            </button>
-            <button class="btn-clear-all" @click="handleClearAll">
-              一键清空本地数据
-            </button>
-          </div>
-          <button
-            class="primary-button scan-button"
-            :disabled="store.observations.filter(o => o.status === 'success').length < 3 || isScanningAll"
-            @click="handleScan"
-          >
-            {{ isScanningAll ? '扫描中…' : '扫描我的 90 天' }}
-          </button>
-        </view>
-        <textarea
-          v-model="draft"
-          class="input"
-          auto-height
-          maxlength="120"
-          placeholder="写一句观察，比如：周末10点健身房人少，器械不用排队"
-        />
-        <view class="composer-actions">
-          <view class="sample-row">
-            <button
-              v-for="sample in demoSamples"
-              :key="sample.label"
-              class="sample-chip"
-              @click="draft = sample.text"
-            >
-              {{ sample.label }}
-            </button>
-          </view>
-          <button class="primary-button" :disabled="!canSubmit" @click="submit">
-            {{ store.isAnalyzing ? '提炼中' : '生成规则' }}
-          </button>
-        </view>
-
-        <!-- M4 决策辅助提醒 -->
-        <DecisionHintCard
-          :hints="store.decisionHints"
-          @dismiss="store.dismissDecisionHint"
-        />
-      </view>
-
-      <!-- 批量导入区块 -->
-      <section class="import-section">
-        <h3 class="import-title">批量导入</h3>
-        <p class="import-hint">粘贴多行文字（每行一条观察），一键导入历史经验</p>
-        <textarea
-          v-model="importText"
-          class="import-textarea"
-          placeholder="每行一条，例如：&#10;周末10点健身房人少&#10;工作日早高峰避开8点出门&#10;..."
-          :disabled="isImporting"
-          rows="6"
-        />
-        <div class="import-actions">
-          <button
-            class="import-btn"
-            :disabled="!importText.trim() || isImporting"
-            @click="handleImport"
-          >
-            {{ isImporting ? '导入中…' : '批量导入' }}
-          </button>
-        </div>
-        <div class="import-md-row">
-          <label class="import-md-label">📄 从 .md / .txt 文件导入
-            <input
-              type="file"
-              accept=".md,.markdown,.txt,text/markdown,text/plain"
-              class="import-md-input"
-              :disabled="isImporting"
-              @change="handleMarkdownFile"
-            />
-          </label>
-        </div>
-        <!-- 结果反馈 -->
-        <div v-if="importResult" class="import-result">
-          <span>共 {{ importResult.total }} 条 · 成功 {{ importResult.succeeded }} · 失败 {{ importResult.failed }}</span>
-          <span v-if="importResult.note" class="import-note">{{ importResult.note }}</span>
-        </div>
-        <div v-if="isImporting" class="import-progress">
-          正在逐条提炼经验，请稍候…
-        </div>
-      </section>
+        <InputModule @navigate="activeTab = $event" @reset-filters="afterClear" @toast="showToast" />
 
       <view class="ops-board">
         <view class="ops-item">
@@ -267,6 +164,7 @@ import EvaluationWorkbench from './components/EvaluationWorkbench.vue'
 import ExperienceList from './components/ExperienceList.vue'
 import ExperienceMap from './components/ExperienceMap.vue'
 import Timeline from './components/Timeline.vue'
+import InputModule from './components/InputModule.vue'
 import DecisionHintCard from '../../components/DecisionHintCard.vue'
 import ModelConfigPanel from '../../components/ModelConfigPanel.vue'
 import RuleCard from '../../components/RuleCard.vue'
@@ -312,65 +210,8 @@ type TabKey = 'records' | 'rules' | 'map' | 'timeline' | 'insights'
 
 const store = useExperienceStore()
 
-const importText = ref('')
-const isImporting = ref(false)
-const importResult = ref<ImportSummary | null>(null)
 
-// V2 规律库扫描:同时建洞察 + 规律(规律库/复盘的展示与排序已移入 LawLibrary.vue)
-const isScanningAll = computed(() => store.isComputingInsights || store.isScanningLaws)
-async function handleScan() {
-  // 错误隔离:两步各自降级(store 内已不抛),这里再兜一层,避免未捕获 rejection
-  try { await store.scanLaws() } catch { /* 已降级 */ }
-  try { await store.computeInsights('过去 90 天') } catch { /* 已降级 */ }
-}
 
-async function handleImport() {
-  const text = importText.value.trim()
-  if (!text || isImporting.value) return
-  isImporting.value = true
-  importResult.value = null
-  try {
-    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
-    importResult.value = getBackendUrl()
-      ? await store.importObservationsViaBackend(lines)
-      : await store.importObservations(text)
-  } finally {
-    // 无论成功/失败/并发被阻断,均清除输入框,避免旧输入与旧结果摘要同时显示
-    importText.value = ''
-    isImporting.value = false
-  }
-}
-
-// 从 .md/.txt 文件导入:解析内容为候选经验(0 token)→ 确认 → 复用批量导入管线
-async function handleMarkdownFile(e: Event) {
-  const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file || isImporting.value) return
-  try {
-    const text = await file.text()
-    const { parseMarkdownToObservations } = await import('../../services/markdownImport')
-    const parsed = await parseMarkdownToObservations(text)
-    if (parsed.observations.length === 0) {
-      showToast('未从文件解析出可导入的经验')
-      return
-    }
-    const truncNote = parsed.truncated ? `（已截断，原 ${parsed.totalParsed} 条）` : ''
-    const ok = window.confirm(
-      `将从「${file.name}」导入 ${parsed.observations.length} 条经验${truncNote}，约需 ${parsed.observations.length} 次模型调用。继续？`,
-    )
-    if (!ok) return
-    isImporting.value = true
-    importResult.value = null
-    importResult.value = getBackendUrl()
-      ? await store.importObservationsViaBackend(parsed.observations)
-      : await store.importObservations(parsed.observations.join('\n'))
-  } finally {
-    isImporting.value = false
-    input.value = '' // 允许重选同一文件
-  }
-}
-
-const draft = ref('')
 const activeTab = ref<TabKey>('records')
 const showSettings = ref(false)
 const toastMessage = ref('')
@@ -394,9 +235,6 @@ const tabs: Array<{ key: TabKey; label: string }> = [
 
 const showAdvancedPanel = ref(false)
 
-const canSubmit = computed(() => draft.value.trim().length > 0 && !store.isAnalyzing && !store.isSeedingDemo)
-const canLoadDemo = computed(() => !store.isAnalyzing && !store.isSeedingDemo)
-const demoLoadLabel = computed(() => (store.isSeedingDemo ? '载入中' : '载入演示数据'))
 
 const categoryTiles = computed(() => {
   return Object.entries(store.rulesByCategory).map(([category, count]) => ({
@@ -426,60 +264,6 @@ const filteredRules = computed(() => {
   })
 })
 
-async function submit() {
-  const text = draft.value
-  draft.value = ''
-  await store.submitObservation(text)
-}
-
-async function loadDemoData() {
-  await store.loadDemoData()
-  activeTab.value = 'rules'
-}
-
-function clearData() {
-  store.clearAll()
-  draft.value = ''
-  ruleQuery.value = ''
-  selectedCategory.value = '全部'
-  activeTab.value = 'records'
-}
-
-function handleExportMarkdown() {
-  const md = store.exportAsMarkdown()
-  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `experience-os-export-${new Date().toISOString().slice(0, 10)}.md`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
-
-function handleClearAll() {
-  const confirmed = window.confirm(
-    `确认清空全部本地数据？\n当前有 ${store.observations.length} 条观察、${store.rules.length} 条规则。\n此操作不可撤销。`
-  )
-  if (!confirmed) return
-  const { observationCount, ruleCount } = store.clearAllData()
-  draft.value = ''
-  ruleQuery.value = ''
-  selectedCategory.value = '全部'
-  activeTab.value = 'records'
-  showToast(`已清空 ${observationCount} 条观察、${ruleCount} 条规则`)
-}
-
-async function handleLoadDemoWork() {
-  const confirmed = store.observations.length === 0
-    || window.confirm('载入演示数据将清空现有数据，确认继续？')
-  if (!confirmed) return
-  await store.loadDemoWorkData()
-  activeTab.value = 'rules'
-  showToast('演示工作数据已载入，共 35 条观察')
-}
-
 function toggleCategory(category: ExperienceCategory) {
   selectedCategory.value = selectedCategory.value === category ? '全部' : category
 }
@@ -487,6 +271,12 @@ function toggleCategory(category: ExperienceCategory) {
 function resetFilters() {
   selectedCategory.value = '全部'
   ruleQuery.value = ''
+}
+
+// InputModule 清空/一键清空后:重置筛选 + 回到经验 tab(由 @reset-filters 触发)
+function afterClear() {
+  resetFilters()
+  activeTab.value = 'records'
 }
 
 function applyRevisionDraft(ruleId: string) {
