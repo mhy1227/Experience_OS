@@ -242,12 +242,18 @@
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 8px;
   margin-top: 18px;
 }
 
 .tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
   background: #e7ece4;
   color: #4d5a4e;
 }
