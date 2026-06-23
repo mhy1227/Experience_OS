@@ -5,7 +5,7 @@
             <text class="section-title">规律库</text>
             <text class="section-meta">{{ activeLaws.length }} 条活跃规律</text>
           </view>
-          <view v-for="law in activeLaws" :key="law.id" :class="['law-card', law.kind]">
+          <view v-for="law in visibleLaws" :key="law.id" :class="['law-card', law.kind]">
             <view class="law-top">
               <text class="law-badge">{{ law.kind === 'caution' ? '🟥 避坑' : '🟩 成功' }}</text>
               <text class="law-recur">过去90天复发 {{ law.recurrence }} 次 {{ trendArrow(law.trend) }}</text>
@@ -21,6 +21,9 @@
               <button class="law-btn" @click="store.markLaw(law.id, 'resolved')">标记已解决</button>
             </view>
           </view>
+          <button v-if="activeLaws.length > LIMIT" class="more-link" @click="showAllLaws = !showAllLaws">
+            {{ showAllLaws ? '收起' : `展开剩余 ${activeLaws.length - LIMIT} 条规律` }}
+          </button>
           <view v-if="resolvedLaws.length" class="law-resolved">
             <text class="law-resolved-title">已解决 {{ resolvedLaws.length }} 条</text>
             <view v-for="law in resolvedLaws" :key="law.id" class="law-resolved-item">
@@ -45,11 +48,14 @@
         </view>
 
         <InsightCard
-          v-for="insight in store.insights"
+          v-for="insight in visibleInsights"
           :key="insight.id"
           :insight="insight"
           :observations="store.observations"
         />
+        <button v-if="store.insights.length > LIMIT" class="more-link" @click="showAllInsights = !showAllInsights">
+          {{ showAllInsights ? '收起' : `展开剩余 ${store.insights.length - LIMIT} 条洞察` }}
+        </button>
 
         <view class="review-block">
           <view class="section-head">
@@ -82,6 +88,11 @@ import InsightCard from './InsightCard.vue'
 const store = useExperienceStore()
 const reviewPeriod = ref<'week' | 'month'>('week')
 const review = computed(() => store.periodicReview(reviewPeriod.value))
+const LIMIT = 5
+const showAllLaws = ref(false)
+const showAllInsights = ref(false)
+const visibleLaws = computed(() => (showAllLaws.value ? activeLaws.value : activeLaws.value.slice(0, LIMIT)))
+const visibleInsights = computed(() => (showAllInsights.value ? store.insights : store.insights.slice(0, LIMIT)))
 function rankConf(c: string): number { return c === 'high' ? 3 : c === 'medium' ? 2 : 1 }
 const activeLaws = computed(() =>
   store.laws
@@ -98,3 +109,18 @@ const resolvedLaws = computed(() => store.laws.filter((l) => l.status === 'resol
 function trendArrow(t: string): string { return t === 'rising' ? '↑' : t === 'falling' ? '↓' : '→' }
 function confLabel(c: string): string { return c === 'high' ? '高置信' : c === 'medium' ? '中置信' : '低置信·参考' }
 </script>
+
+<style scoped>
+.more-link {
+  display: block;
+  width: 100%;
+  margin: 8px 0 4px;
+  padding: 8px;
+  background: transparent;
+  border: 1px dashed #c8d2cb;
+  border-radius: 8px;
+  color: #5a6b62;
+  font-size: 13px;
+  cursor: pointer;
+}
+</style>
