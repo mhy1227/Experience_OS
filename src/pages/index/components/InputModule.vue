@@ -84,6 +84,10 @@
           <text class="section-title">相关经验</text>
           <text class="section-meta">{{ recalledRules.length }} 条规则 / {{ recalledLaws.length }} 条规律</text>
         </view>
+        <!-- 决策风险前置:召回里有需谨慎/冲突的经验时,先提醒(它们最该在决策时被看见) -->
+        <view v-if="cautionCount > 0" class="recall-caution">
+          ⚠️ 其中 {{ cautionCount }} 条需谨慎对待(复测冲突/分歧/走弱),采纳前先看可信度标记。
+        </view>
         <view v-if="recalledRules.length === 0 && recalledLaws.length === 0" class="empty">
           还没有匹配的经验。多记几条,下次做类似决定时,相关规则会自动浮现在这里。
         </view>
@@ -183,6 +187,7 @@ import DecisionHintCard from '../../../components/DecisionHintCard.vue'
 import RuleCard from '../../../components/RuleCard.vue'
 import { getActiveModelClient } from '../../../services/modelConfig'
 import { recallRulesWithModel } from '../../../services/recallWithModel'
+import { trustSignal } from '../../../services/ruleLabels'
 import type { ImportSummary } from '../../../stores/experience'
 import type { EvaluationOutcome, ExperienceRule, Law, Observation } from '../../../types/experience'
 
@@ -202,6 +207,7 @@ const recalledRules = ref<{ rule: ExperienceRule; reasons: string[] }[]>([])
 const recalledLaws = ref<Law[]>([])
 const isModelRecalling = ref(false)
 const hasModel = computed(() => Boolean(getActiveModelClient()))
+const cautionCount = computed(() => recalledRules.value.filter((x) => trustSignal(x.rule).level === 'caution').length)
 
 function ruleEvidence(rule: ExperienceRule) {
   return rule.evidenceIds.map((id) => store.observations.find((o) => o.id === id)).filter((o): o is Observation => Boolean(o))
@@ -368,6 +374,15 @@ async function handleLoadDemoWork() {
 .find-button { white-space: nowrap; }
 
 .recall-results { margin-top: 16px; }
+.recall-caution {
+  margin: 6px 0 4px;
+  padding: 8px 12px;
+  background: #fdeede;
+  border: 1px solid #f0d2a6;
+  border-radius: 8px;
+  color: #9a5a12;
+  font-size: 13px;
+}
 .recall-laws { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 .recall-law {
   border: 1px solid #dfe5dc;
