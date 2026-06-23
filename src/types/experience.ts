@@ -437,3 +437,55 @@ export interface Insight {
   /** 聚类内观察总数 */
   clusterSize: number
 }
+
+// ─── V2 规律(Law)──────────────────────────────────────────────────────────
+// 规律是"可沉淀的经验资产":跨记录、同根因不同表述归一,带时间维度与生命周期。
+// 与 Insight 并存——Insight 是统计快照/降级层,Law 是持久化资产层。
+
+/** 规律方向轴(复用 V1 的 kind):高频避坑 / 高频成功 */
+export type LawKind = 'caution' | 'strategy'
+
+/** 规律生命周期:活跃 → 已复盘 → 已解决 */
+export type LawStatus = 'active' | 'reviewed' | 'resolved'
+
+/** 规律时间趋势:近期相对早期是上升/平稳/下降 */
+export type LawTrend = 'rising' | 'flat' | 'falling'
+
+/**
+ * Law — V2 规律发现的核心产出单元(持久化资产)
+ * 对应设计文档 docs/superpowers/specs/2026-06-23-v2-pattern-discovery-design.md
+ */
+export interface Law {
+  /** 唯一 ID,格式 law_{timestamp}_{random} */
+  id: string
+  /** 规律主题(模型语义命名,如"前期对齐不足导致返工") */
+  theme: string
+  /** 方向轴:高频避坑 / 高频成功 */
+  kind: LawKind
+  /** 共同根因(模型归因;降级时 = 统计描述) */
+  rootCause: string
+  /** 可执行建议(模型;降级时 = 统计模板) */
+  suggestion: string
+  /** 命中的观察 id(去重) */
+  memberObservationIds: string[]
+  /** 复发次数 = memberObservationIds.length */
+  recurrence: number
+  /** 成员最早 createdAt(ISO) */
+  firstSeenAt: string
+  /** 成员最晚 createdAt(ISO) */
+  lastSeenAt: string
+  /** 时间趋势(样本不足时为 flat,UI 标注样本不足) */
+  trend: LawTrend
+  /** 置信度(复用 InsightConfidence 阈值) */
+  confidence: InsightConfidence
+  /** 生命周期状态 */
+  status: LawStatus
+  /** 生成方式 */
+  generatedBy: 'statistical' | 'model'
+  /** 用户备注(如"已针对它改进"的说明),可选 */
+  note?: string
+  /** 创建时间 ISO */
+  createdAt: string
+  /** 最近更新时间 ISO */
+  updatedAt: string
+}

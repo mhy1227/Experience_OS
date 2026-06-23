@@ -208,7 +208,7 @@ const PLACEHOLDER_PATTERNS = [
  * - 命中占位黑名单 → 回退(返回 undefined)
  * fallback 为统计兜底值。
  */
-function validateModelField(
+export function validateModelField(
   value: string,
   fallback: string,
   maxLen: number = MODEL_FIELD_MAX_LEN,

@@ -72,10 +72,10 @@
           </div>
           <button
             class="primary-button scan-button"
-            :disabled="store.observations.filter(o => o.status === 'success').length < 3 || store.isComputingInsights"
-            @click="store.computeInsights('过去 90 天')"
+            :disabled="store.observations.filter(o => o.status === 'success').length < 3 || isScanningAll"
+            @click="handleScan"
           >
-            {{ store.isComputingInsights ? '扫描中…' : '扫描我的 90 天' }}
+            {{ isScanningAll ? '扫描中…' : '扫描我的 90 天' }}
           </button>
         </view>
         <textarea
@@ -918,6 +918,36 @@
       </view>
 
       <view v-if="activeTab === 'insights'" class="panel">
+        <!-- V2 规律库:可沉淀的经验资产(语义聚类 + 时间维度 + 生命周期) -->
+        <view v-if="store.laws.length" class="law-library">
+          <view class="section-head">
+            <text class="section-title">规律库</text>
+            <text class="section-meta">{{ activeLaws.length }} 条活跃规律</text>
+          </view>
+          <view v-for="law in activeLaws" :key="law.id" :class="['law-card', law.kind]">
+            <view class="law-top">
+              <text class="law-badge">{{ law.kind === 'caution' ? '🟥 避坑' : '🟩 成功' }}</text>
+              <text class="law-recur">过去90天复发 {{ law.recurrence }} 次 {{ trendArrow(law.trend) }}</text>
+              <text class="law-conf">{{ confLabel(law.confidence) }}</text>
+            </view>
+            <text class="law-theme">{{ law.theme }}</text>
+            <text v-if="law.rootCause" class="law-line">根因:{{ law.rootCause }}</text>
+            <text v-if="law.suggestion" class="law-line">建议:{{ law.suggestion }}</text>
+            <text v-if="law.status === 'reviewed'" class="law-flag">已复盘{{ law.note ? '·' + law.note : '' }}</text>
+            <view class="law-actions">
+              <button class="law-btn" @click="store.markLaw(law.id, 'reviewed')">标记已复盘</button>
+              <button class="law-btn" @click="store.markLaw(law.id, 'resolved', '已针对它改进')">标记已解决</button>
+            </view>
+          </view>
+          <view v-if="resolvedLaws.length" class="law-resolved">
+            <text class="law-resolved-title">已解决 {{ resolvedLaws.length }} 条</text>
+            <view v-for="law in resolvedLaws" :key="law.id" class="law-resolved-item">
+              <text>✓ {{ law.theme }}(复发 {{ law.recurrence }} 次)</text>
+              <button class="law-btn" @click="store.markLaw(law.id, 'active')">重新激活</button>
+            </view>
+          </view>
+        </view>
+
         <view class="section-head">
           <text class="section-title">规律发现</text>
           <text class="section-meta">{{ store.insights.length }} 条洞察</text>
@@ -1018,6 +1048,29 @@ const importResult = ref<ImportSummary | null>(null)
 // V1 周期复盘:随观察数据与所选周期响应式计算
 const reviewPeriod = ref<'week' | 'month'>('week')
 const review = computed(() => store.periodicReview(reviewPeriod.value))
+
+// V2 规律库:扫描(同时建洞察 + 规律)、排序、展示助手
+const isScanningAll = computed(() => store.isComputingInsights || store.isScanningLaws)
+async function handleScan() {
+  await store.scanLaws()
+  await store.computeInsights('过去 90 天')
+}
+function rankConf(c: string): number {
+  return c === 'high' ? 3 : c === 'medium' ? 2 : 1
+}
+const activeLaws = computed(() =>
+  store.laws
+    .filter((l) => l.status !== 'resolved')
+    .slice()
+    .sort((a, b) => rankConf(b.confidence) * b.recurrence - rankConf(a.confidence) * a.recurrence),
+)
+const resolvedLaws = computed(() => store.laws.filter((l) => l.status === 'resolved'))
+function trendArrow(t: string): string {
+  return t === 'rising' ? '↑' : t === 'falling' ? '↓' : '→'
+}
+function confLabel(c: string): string {
+  return c === 'high' ? '高置信' : c === 'medium' ? '中置信' : '低置信·参考'
+}
 
 async function handleImport() {
   const text = importText.value.trim()
@@ -3981,6 +4034,24 @@ const RuleCard = defineComponent({
 .review-row { display: flex; gap: 8px; font-size: 13px; }
 .review-label { color: #888; min-width: 56px; }
 .review-suggestion { font-size: 13px; color: #2f6feb; }
+
+/* V2 规律库 */
+.law-library { margin-bottom: 16px; }
+.law-card { border-radius: 10px; padding: 12px 14px; margin-top: 10px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+.law-card.caution { background: #fff6f5; border-color: #f3d6d2; }
+.law-card.strategy { background: #f3faf4; border-color: #cfe9d6; }
+.law-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.law-badge { font-size: 12px; font-weight: 600; }
+.law-recur { font-size: 12px; color: #444; }
+.law-conf { font-size: 11px; color: #888; margin-left: auto; }
+.law-theme { font-size: 15px; font-weight: 600; color: #1c1c1e; }
+.law-line { font-size: 13px; color: #555; }
+.law-flag { font-size: 12px; color: #2f6feb; }
+.law-actions { display: flex; gap: 8px; margin-top: 4px; }
+.law-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid #ccd; background: #fff; cursor: pointer; }
+.law-resolved { margin-top: 12px; padding-top: 8px; border-top: 1px dashed #ddd; }
+.law-resolved-title { font-size: 12px; color: #999; }
+.law-resolved-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #888; margin-top: 4px; }
 </style>
 
 <style scoped>

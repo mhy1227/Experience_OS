@@ -8,7 +8,8 @@ import { inferDirection } from '../services/analysisContract'
 import type { ObservationDirection } from '../services/analysisContract'
 import type { ObservationSentiment } from '../types/experience'
 import { discoverPatterns } from '../services/patternDiscovery'
-import type { Insight } from '../types/experience'
+import { discoverLaws, markLawStatus } from '../services/lawDiscovery'
+import type { Insight, Law, LawStatus } from '../types/experience'
 import { recallDecisionHints, type DecisionHint } from '../services/decisionHints'
 import { renderExperienceMarkdown } from '../services/markdownExport'
 import { buildPeriodicReview, type ReviewPeriod } from '../services/periodicReview'
@@ -77,6 +78,7 @@ interface PersistedState {
   rules: ExperienceRule[]
   evaluationSettings: EvaluationSettings
   insights?: Insight[]
+  laws?: Law[]
 }
 
 const DEFAULT_EVALUATION_SETTINGS: EvaluationSettings = {
@@ -132,6 +134,7 @@ function readPersisted(): PersistedState {
       rules: Array.isArray(state.rules) ? state.rules.map(normalizeRule) : [],
       evaluationSettings: normalizeEvaluationSettings(state.evaluationSettings),
       insights: Array.isArray(state.insights) ? state.insights as Insight[] : [],
+      laws: Array.isArray(state.laws) ? state.laws as Law[] : [],
     }
   } catch {
     return { observations: [], rules: [], evaluationSettings: DEFAULT_EVALUATION_SETTINGS }
@@ -204,6 +207,8 @@ export const useExperienceStore = defineStore('experience', () => {
   const isSeedingDemo = ref(false)
   const insights = ref<Insight[]>(persisted.insights ?? [])
   const isComputingInsights = ref(false)
+  const laws = ref<Law[]>(persisted.laws ?? [])
+  const isScanningLaws = ref(false)
   const decisionHints = ref<DecisionHint[]>([])
   const latestRuleId = ref(rules.value[0]?.id ?? '')
 
@@ -718,6 +723,7 @@ export const useExperienceStore = defineStore('experience', () => {
         rules: rules.value,
         evaluationSettings: evaluationSettings.value,
         insights: insights.value,
+        laws: laws.value,
       }),
     )
   }
@@ -809,6 +815,28 @@ export const useExperienceStore = defineStore('experience', () => {
     } finally {
       isComputingInsights.value = false
     }
+  }
+
+  // V2 规律发现:语义聚类 + 幂等合并进规律库(模型不可用时降级统计,不中断)
+  async function scanLaws() {
+    if (isScanningLaws.value) return
+    isScanningLaws.value = true
+    try {
+      const successObs = observations.value.filter((o) => o.status === 'success')
+      const client = getActiveModelClient()
+      laws.value = await discoverLaws(successObs, { client, existingLaws: laws.value })
+      persist()
+    } finally {
+      isScanningLaws.value = false
+    }
+  }
+
+  // V2 规律生命周期:标记 已复盘 / 已解决 / 已针对它改进(纯函数 markLawStatus)
+  function markLaw(lawId: string, status: LawStatus, note?: string) {
+    const idx = laws.value.findIndex((l) => l.id === lawId)
+    if (idx === -1) return
+    laws.value.splice(idx, 1, markLawStatus(laws.value[idx]!, status, new Date().toISOString(), note))
+    persist()
   }
 
   function upsertRuleFromAnalysis(analysis: AnalysisResult, observationId: string, updatedAt: string) {
@@ -1557,6 +1585,7 @@ export const useExperienceStore = defineStore('experience', () => {
     rules.value = []
     latestRuleId.value = ''
     insights.value = []
+    laws.value = []
     persist()
   }
 
@@ -1880,6 +1909,10 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     insights,
     isComputingInsights,
     computeInsights,
+    laws,
+    isScanningLaws,
+    scanLaws,
+    markLaw,
     periodicReview(period: ReviewPeriod = 'week') {
       return buildPeriodicReview(observations.value, period, new Date())
     },
