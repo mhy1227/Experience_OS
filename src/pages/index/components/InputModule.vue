@@ -195,7 +195,9 @@ function findExperience() {
   hasSearched.value = true
   recalledRules.value = store
     .recallEvaluationCandidates(scene)
-    .map((c) => ({ rule: store.rules.find((r) => r.id === c.ruleId), reasons: c.reasons }))
+    // 召回打分器会给"评估次数不足"等加分(本为挑复测用);找经验只要真正内容命中的(reason 含"匹配")
+    .filter((c) => c.reasons.some((r) => r.includes('匹配')))
+    .map((c) => ({ rule: store.rules.find((r) => r.id === c.ruleId), reasons: c.reasons.filter((r) => r.includes('匹配')) }))
     .filter((x): x is { rule: ExperienceRule; reasons: string[] } => Boolean(x.rule))
   recalledLaws.value = store.laws
     .filter((l) => l.status !== 'resolved' && [l.theme, l.rootCause, l.suggestion].some((t) => t && shareKeyword(scene, t)))
