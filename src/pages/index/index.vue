@@ -198,22 +198,7 @@
       </view>
 
       <view v-if="activeTab === 'records'" class="panel">
-        <view class="section-head">
-          <text class="section-title">经验列表</text>
-          <text class="section-meta">{{ store.observations.length }} 条观察</text>
-        </view>
-        <view v-if="store.observations.length === 0" class="empty">还没有观察。先写一句具体经验。</view>
-        <view v-for="item in store.observations" :key="item.id" class="record-item">
-          <view class="record-top">
-            <text class="badge">{{ item.category }}</text>
-            <text class="time">{{ formatTime(item.createdAt) }}</text>
-          </view>
-          <text class="record-text">{{ item.text }}</text>
-          <text class="record-summary">{{ item.summary }}</text>
-          <view class="tag-row">
-            <text v-for="tag in item.tags" :key="tag" class="tag">{{ tag }}</text>
-          </view>
-        </view>
+        <ExperienceList />
       </view>
 
       <view v-if="activeTab === 'rules'" class="panel">
@@ -256,40 +241,11 @@
       </view>
 
       <view v-if="activeTab === 'map'" class="panel">
-        <view class="section-head">
-          <text class="section-title">经验地图</text>
-          <text class="section-meta">地点经验视图</text>
-        </view>
-        <view class="boundary-note">按地点聚合经验，不做导航，也不依赖真实地图。</view>
-        <view v-if="store.locationGroups.length === 0" class="empty">带地点的规则会在这里聚合。</view>
-        <view v-for="group in store.locationGroups" :key="group.location" class="location-card">
-          <view class="location-top">
-            <text class="location-name">{{ group.location }}</text>
-            <text class="section-meta">{{ group.rules.length }} 条规则 / {{ group.observations.length }} 条证据</text>
-          </view>
-          <text v-for="rule in group.rules.slice(0, 2)" :key="rule.id" class="location-rule">
-            {{ rule.recommendation }}（{{ rule.evidenceIds.length }} 条证据）
-          </text>
-        </view>
+        <ExperienceMap />
       </view>
 
       <view v-if="activeTab === 'timeline'" class="panel">
-        <view class="section-head">
-          <text class="section-title">时间轴</text>
-          <text class="section-meta">经验演化</text>
-        </view>
-        <view class="boundary-note">展示观察如何变成规则，不是日记或流水账。</view>
-        <view v-if="store.timelineItems.length === 0" class="empty">提交观察后会形成时间线。</view>
-        <view v-for="item in store.timelineItems" :key="item.observation.id" class="timeline-item">
-          <view class="timeline-dot" />
-          <view class="timeline-content">
-            <text class="time">{{ formatTime(item.observation.createdAt) }}</text>
-            <text class="record-text">{{ item.observation.text }}</text>
-            <text v-if="item.rule" class="record-summary">形成规则：{{ item.rule.title }}</text>
-            <text v-if="item.rule" class="record-summary">规则证据数：{{ item.rule.evidenceIds.length }}</text>
-            <text v-if="item.rule" class="record-summary">当前反馈：{{ feedbackLabel(item.rule.feedback) }}</text>
-          </view>
-        </view>
+        <Timeline />
       </view>
 
       <view v-if="activeTab === 'insights'" class="panel">
@@ -308,6 +264,9 @@ import { useExperienceStore } from '../../stores/experience'
 import { getBackendUrl } from '../../services/backendClient'
 import LawLibrary from './components/LawLibrary.vue'
 import EvaluationWorkbench from './components/EvaluationWorkbench.vue'
+import ExperienceList from './components/ExperienceList.vue'
+import ExperienceMap from './components/ExperienceMap.vue'
+import Timeline from './components/Timeline.vue'
 import DecisionHintCard from '../../components/DecisionHintCard.vue'
 import ModelConfigPanel from '../../components/ModelConfigPanel.vue'
 import RuleCard from '../../components/RuleCard.vue'
