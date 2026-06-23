@@ -87,6 +87,15 @@
             @evaluate="store.addEvaluation"
             @apply-revision="(id) => store.applyRevisionDraft(id)"
           />
+          <!-- 结果回流:用这条做决定后,直接把本场景当复测证据回填,闭环在决策点完成 -->
+          <view class="recall-outcome">
+            <text class="recall-outcome-label">用了这条?回填结果让它进化:</text>
+            <view class="recall-outcome-btns">
+              <button class="evaluation-button passed" @click="markUsed(item.rule.id, 'passed')">这次有效</button>
+              <button class="evaluation-button failed" @click="markUsed(item.rule.id, 'failed')">这次无效</button>
+              <button class="evaluation-button uncertain" @click="markUsed(item.rule.id, 'uncertain')">不确定</button>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -156,7 +165,7 @@ import { useToast } from '../../../composables/useToast'
 import DecisionHintCard from '../../../components/DecisionHintCard.vue'
 import RuleCard from '../../../components/RuleCard.vue'
 import type { ImportSummary } from '../../../stores/experience'
-import type { ExperienceRule, Law, Observation } from '../../../types/experience'
+import type { EvaluationOutcome, ExperienceRule, Law, Observation } from '../../../types/experience'
 
 const store = useExperienceStore()
 const router = useRouter()
@@ -169,6 +178,7 @@ const importResult = ref<ImportSummary | null>(null)
 
 // 找经验:决策时召回相关经验
 const hasSearched = ref(false)
+const lastScene = ref('')
 const recalledRules = ref<{ rule: ExperienceRule; reasons: string[] }[]>([])
 const recalledLaws = ref<Law[]>([])
 
@@ -189,9 +199,23 @@ function shareKeyword(a: string, b: string): boolean {
   }
   return false
 }
+// 用了某条召回规则后,把当前场景作为本次复测证据回填(source=recall),并刷新召回结果
+function markUsed(ruleId: string, outcome: EvaluationOutcome) {
+  const scene = lastScene.value.trim()
+  if (!scene) return
+  store.addEvaluation(ruleId, outcome, '来自「找经验」场景的一键回填。', scene, 'recall')
+  showToast('已回填结果,这条经验会据此进化')
+  refreshRecall(scene)
+}
+
 function findExperience() {
   const scene = draft.value.trim()
   if (!scene || store.rules.length === 0) return
+  lastScene.value = scene
+  refreshRecall(scene)
+}
+
+function refreshRecall(scene: string) {
   hasSearched.value = true
   recalledRules.value = store
     .recallEvaluationCandidates(scene)
@@ -330,4 +354,13 @@ async function handleLoadDemoWork() {
 .recall-law-sug { display: block; font-size: 13px; color: #4d5a4e; margin-top: 4px; }
 .recall-rule { margin-top: 8px; }
 .recall-reason { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 2px; }
+.recall-outcome {
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: #f6f8f5;
+  border: 1px solid #e3e9e0;
+  border-radius: 8px;
+}
+.recall-outcome-label { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 6px; }
+.recall-outcome-btns { display: flex; gap: 8px; }
 </style>
