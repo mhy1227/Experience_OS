@@ -1,6 +1,6 @@
 # A1 实施方案:中文分词(HMM + Viterbi)
 
-> 日期:2026-06-23 · 状态:实施方案(纯方案,未编码)
+> 日期:2026-06-23 · 状态:✅ 已实现(2026-06-24,commit 40b1b5b;`src/services/segmentation.ts`,概率表由内置 demo 语料训练,集成到下游待后续)
 > 关联:`docs/algorithm-upgrade-plan.md`(A1 阶段)、`src/services/decisionHints.ts`(现朴素分词)、`src/stores/experience.ts:inferDirection`
 > 目标:用纯 TS、离线、可测的 **HMM + Viterbi** 中文分词,替换当前朴素分词,作为"本地语义引擎"的地基。
 

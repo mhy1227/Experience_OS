@@ -79,7 +79,7 @@
 | 项 | 算法 | 状态 | 强化 |
 |----|------|:--:|------|
 | A6 | 隐私脱敏(Luhn + 香农熵 + 正则 + gitleaks) | ✅ 已实现 | 隐私红线(发模型前脱敏) |
-| A1 | 中文分词(HMM + Viterbi) | 🟡 方案就绪 | 所有下游精度的地基 |
+| A1 | 中文分词(HMM + Viterbi) | ✅ 已实现 | `src/services/segmentation.ts`;下游集成待后续 |
 | A8 | 情绪分类(朴素贝叶斯) | 🟡 方案就绪 | 修 `inferDirection` 真痛 |
 | A7 | 趋势检验(Mann-Kendall) | 🟡 方案就绪 | `Law.trend` 精度 |
 | A2+A3 | TF-IDF + DBSCAN 聚类 | 🟡 方案就绪(待数据量) | V2 规律发现离线降级 |
