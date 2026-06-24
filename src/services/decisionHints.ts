@@ -1,4 +1,5 @@
 import type { ExperienceRule, Observation } from '../types/experience'
+import { segment } from './segmentation'
 
 export interface DecisionHint {
   ruleId: string
@@ -94,7 +95,9 @@ function tokenize(value: string): string[] {
     }
     return [token, ...result]
   })
-  return uniqueArr(chunks.filter((t) => t.length >= 2))
+  // A1 分词接入:并入 HMM 真词(union),保留原 bigram 不破坏既有匹配,只增不减召回。
+  const words = segment(value).map((w) => w.toLowerCase()).filter((w) => w.length >= 2)
+  return uniqueArr([...chunks, ...words].filter((t) => t.length >= 2))
 }
 
 function uniqueArr<T>(arr: T[]): T[] {

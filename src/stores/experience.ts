@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { demoSamples } from '../services/aiAnalyzer'
+import { segment } from '../services/segmentation'
 import { analyzeObservationResilient } from '../services/resilientAnalysis'
 import { getActiveModelClient } from '../services/modelConfig'
 import type { ObservationModelClient } from '../services/modelAnalysisAdapter'
@@ -2946,7 +2947,9 @@ function tokenize(value: string) {
     }
     return [token, ...chunks]
   })
-  return uniqueValues(chineseChunks.filter((token) => token.length >= 2))
+  // A1 \u5206\u8bcd\u63a5\u5165:\u5e76\u5165 HMM \u771f\u8bcd(union),\u4fdd\u7559\u539f bigram \u4e0d\u7834\u574f\u65e2\u6709\u53ec\u56de,\u53ea\u589e\u4e0d\u51cf\u3002
+  const words = segment(value).map((word) => word.toLowerCase()).filter((word) => word.length >= 2)
+  return uniqueValues([...chineseChunks, ...words].filter((token) => token.length >= 2))
 }
 
 function isEvaluationStale(rule: ExperienceRule, settings: EvaluationSettings) {

@@ -1,4 +1,5 @@
 import type { AnalysisResult, ExperienceCategory, Reusability } from '../types/experience'
+import { classifyText } from './sentiment'
 
 export type ObservationDirection = 'positive' | 'negative' | 'mixed' | 'uncertain'
 export type ObservationAnalysisType = 'rule' | 'counterexample' | 'constraint' | 'watch'
@@ -278,6 +279,11 @@ export function inferDirection(text: string): ObservationDirection {
   if (positiveScore > 0 && negativeScore > 0) return 'mixed'
   if (negativeScore > 0) return 'negative'
   if (positiveScore > 0) return 'positive'
+  // A8 接入:关键词无定论时,用朴素贝叶斯兜底(只在 uncertain 时介入,不动关键词已决断的;
+  // 修"多数真实文本→中性"的真痛)。NB 判中性 → 仍 uncertain。
+  const nb = classifyText(text)
+  if (nb === 'positive') return 'positive'
+  if (nb === 'negative') return 'negative'
   return 'uncertain'
 }
 

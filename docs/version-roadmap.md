@@ -79,8 +79,8 @@
 | 项 | 算法 | 状态 | 强化 |
 |----|------|:--:|------|
 | A6 | 隐私脱敏(Luhn + 香农熵 + 正则 + gitleaks) | ✅ 已实现 | 隐私红线(发模型前脱敏) |
-| A1 | 中文分词(HMM + Viterbi) | ✅ 已实现 | `src/services/segmentation.ts`;下游集成待后续 |
-| A8 | 情绪分类(朴素贝叶斯) | ✅ 已实现 | `src/services/sentiment.ts`(否定处理+平滑);inferDirection 集成待后续 |
+| A1 | 中文分词(HMM + Viterbi) | ✅ 已实现 + 已集成 | `segmentation.ts`;已 union 接入 decisionHints + 找经验召回的分词 |
+| A8 | 情绪分类(朴素贝叶斯) | ✅ 已实现 + 已集成 | `sentiment.ts`;已接入 `inferDirection`(关键词无定论时兜底,修"多数→中性") |
 | A7 | 趋势检验(Mann-Kendall) | ✅ 已实现 | `src/services/trend.ts`;Law.trend 集成待后续 |
 | A2+A3 | TF-IDF + DBSCAN 聚类 | ✅ 已实现 | `tfidf.ts` + `dbscan.ts`;lawDiscovery 集成待数据量/后续 |
 | A9 | TextRank 主题词 | ✅ 已实现 | `src/services/textrank.ts`;集成待后续 |
