@@ -1,6 +1,6 @@
 # V3 经验验证 · 就地极简复测 —— 设计文档
 
-> 状态:Draft(brainstorming 产出,待执行)
+> 状态:✅ 已完成(2026-06-24 落地;实现计划见 `docs/superpowers/plans/2026-06-24-v3-inline-retest.md`)
 > 日期:2026-06-24
 > 关联:`docs/version-roadmap.md`(V3)、`src/services/evaluationEngine.ts`(已有验证引擎)、`src/services/ruleLabels.ts`(`trustSignal`)、`docs/superpowers/specs/2026-06-24-decision-support-right-half.md`(右半边/结果回填)
 
@@ -40,7 +40,7 @@ V3 的 roadmap 能力(验证次数 / 成功率 / 可信度 / 策略演化)**在 
   - `取消` → 收起,不写入。
   - 设计取舍:采用"展开确认"而非"一键直记",用可选输入那一步天然做二次确认,**防误评**。
 - 复测后小结:在快速复测条旁/下显示一行「复测 N 次 · X 有效 / Y 无效」(数据取 `rule.evaluations`,沿用 `evaluationSummary` 同源口径);`trustSignal` 芯片本就随响应式刷新。
-- **compact 模式不渲染快速复测条**:`props.compact === true`(找经验召回里的卡)已有"结果回填",避免重复入口。
+- **召回卡不渲染快速复测条**:通过新增 `hideQuickRetest` prop 控制(**不**复用 `compact` —— 实现时发现规则库也用 `compact` 做密度,若按 compact 关闭会误伤规则库这一主验证面;故 InputModule 找经验召回卡设 `hide-quick-retest`,其它一律显示)。召回卡已有"结果回填",避免重复入口。
 - 原「展开评估详情(复测 / 采用门槛 / 协议)」面板**完全保留**,折叠给高级用户;其内部旧的复测输入不动。
 - 新增状态:`setup` 内用 `ref` 维护"当前展开的 outcome"与"输入值"(单条卡片内,沿用现有 render 函数写法)。
 
@@ -78,7 +78,7 @@ V3 的 roadmap 能力(验证次数 / 成功率 / 可信度 / 策略演化)**在 
 - **防误触** → "展开确认"两步;`确认` 前可改/清空输入。
 - **空规则 / 找不到 rule** → `addEvaluation` 内已 `if (!rule) return`,安全。
 - **无模型 / 无网络** → 复测全程本地同步,不触发任何模型路径,无降级分支。
-- **compact 卡** → 不渲染快速复测条,杜绝与结果回填重复。
+- **召回卡(`hide-quick-retest`)** → 不渲染快速复测条,杜绝与结果回填重复。
 
 ## 6. 测试策略(纯 TS + `node:assert`,追加进 `package.json` 的 `test:evaluation`)
 
