@@ -1,6 +1,6 @@
 # A8 + A9 实施方案:朴素贝叶斯情绪分类 + TextRank 主题词
 
-> 日期:2026-06-23 · 状态:实施方案(纯方案,未编码)
+> 日期:2026-06-23 · 状态:A8 ✅ 已实现(2026-06-24,`src/services/sentiment.ts`,集成 inferDirection 待后续);A9 🟡 方案就绪未编码
 > 关联:`docs/algorithm-upgrade-plan.md`(扩展菜单为 A8/A9)、`stores/experience.ts:inferDirection`、`services/lawDiscovery.ts`(Law.theme)
 > 定位:补两个之前没强调的候选算法,各修一个现有真痛。它们扩展总规划 §3 菜单(A8/A9)。
 
