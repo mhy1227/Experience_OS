@@ -26,6 +26,11 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    // 隐藏「就地快速复测条」:用于找经验召回卡(那里已有"结果回填",避免重复入口)
+    hideQuickRetest: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['feedback', 'evaluate', 'apply-revision'],
   setup(props, { emit }) {
@@ -33,6 +38,26 @@ export default defineComponent({
     const evaluationNote = ref('')
     const evaluationObservation = ref('')
     const expanded = ref(false) // 评估矩阵默认折叠(复测/采用门槛/协议…),按需展开,首屏更短
+
+    // V3 就地极简复测:常显 有效/无效/不确定;点后展开可选一句 + 确认(防误评)
+    const quickOutcome = ref<EvaluationOutcome | null>(null)
+    const quickLine = ref('')
+    const quickBtn = (label: string, value: EvaluationOutcome) =>
+      h(
+        'button',
+        {
+          class: ['quick-btn', value, quickOutcome.value === value ? 'active' : ''],
+          onClick: () => {
+            quickOutcome.value = quickOutcome.value === value ? null : value
+          },
+        },
+        label,
+      )
+    const submitQuick = (outcome: EvaluationOutcome) => {
+      emit('evaluate', props.rule.id, outcome, '', quickLine.value.trim(), 'manual')
+      quickOutcome.value = null
+      quickLine.value = ''
+    }
     const button = (label: string, value: Feedback) =>
       h(
         'button',
@@ -380,6 +405,41 @@ export default defineComponent({
             ),
           ),
         ]),
+        !props.hideQuickRetest &&
+          h('view', { class: 'quick-retest' }, [
+            h('view', { class: 'quick-retest-head' }, [
+              h('text', { class: 'quick-retest-q' }, '上次管用吗?'),
+              evalCount > 0 && h('text', { class: 'quick-retest-summary' }, evaluationSummary(props.rule.evaluations)),
+            ]),
+            h('view', { class: 'quick-retest-btns' }, [
+              quickBtn('✓ 有效', 'passed'),
+              quickBtn('✗ 无效', 'failed'),
+              quickBtn('? 不确定', 'uncertain'),
+            ]),
+            quickOutcome.value &&
+              h('view', { class: 'quick-retest-confirm' }, [
+                h('input', {
+                  class: 'quick-retest-input',
+                  value: quickLine.value,
+                  placeholder: '这次的情况(可不填)',
+                  onInput: (e: Event) => {
+                    quickLine.value = (e.target as HTMLInputElement).value
+                  },
+                }),
+                h('button', { class: 'primary-button quick-confirm', onClick: () => submitQuick(quickOutcome.value!) }, '确认'),
+                h(
+                  'button',
+                  {
+                    class: 'ghost-button quick-cancel',
+                    onClick: () => {
+                      quickOutcome.value = null
+                      quickLine.value = ''
+                    },
+                  },
+                  '取消',
+                ),
+              ]),
+          ]),
         h('view', { class: 'feedback-row' }, [
           button('有用', 'useful'),
           button('待观察', 'watch'),

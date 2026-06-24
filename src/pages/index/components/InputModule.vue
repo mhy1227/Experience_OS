@@ -104,6 +104,7 @@
             :rule="item.rule"
             :evidence="ruleEvidence(item.rule)"
             compact
+            hide-quick-retest
             @feedback="store.setFeedback"
             @evaluate="store.addEvaluation"
             @apply-revision="(id) => store.applyRevisionDraft(id)"
