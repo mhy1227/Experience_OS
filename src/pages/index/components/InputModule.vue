@@ -84,6 +84,15 @@
           <text class="section-title">相关经验</text>
           <text class="section-meta">{{ recalledRules.length }} 条规则 / {{ recalledLaws.length }} 条规律</text>
         </view>
+        <!-- V4 决策建议卡:把召回经验的可信度+战绩合成一句结论(本地确定性 + 可选 AI 润色) -->
+        <view v-if="advice" :class="['decision-advice', advice.verdict]">
+          <text class="advice-label">{{ advice.label }}</text>
+          <text class="advice-stats">命中 {{ advice.stats.ruleCount }} 条经验（{{ advice.stats.trustedCount }} 可信 · {{ advice.stats.unprovenCount }} 待验证）· 历史 {{ advice.stats.passed }} 有效 / {{ advice.stats.failed }} 无效<template v-if="advice.stats.successRate !== null">（有效率 {{ pct(advice.stats.successRate) }}%）</template></text>
+          <text class="advice-reason">{{ polishedReason || advice.reason }}</text>
+          <button v-if="hasModel" class="ghost-button small advice-polish" :disabled="isPolishing" @click="polishCurrentAdvice">
+            {{ isPolishing ? '思考中…' : '🧠 让 AI 说句人话' }}
+          </button>
+        </view>
         <!-- 决策风险前置:召回里有需谨慎/冲突的经验时,先提醒(它们最该在决策时被看见) -->
         <view v-if="cautionCount > 0" class="recall-caution">
           ⚠️ 其中 {{ cautionCount }} 条需谨慎对待(复测冲突/分歧/走弱),采纳前先看可信度标记。
@@ -178,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useExperienceStore } from '../../../stores/experience'
 import { demoSamples } from '../../../services/aiAnalyzer'
@@ -189,6 +198,8 @@ import RuleCard from '../../../components/RuleCard.vue'
 import { getActiveModelClient } from '../../../services/modelConfig'
 import { recallRulesWithModel } from '../../../services/recallWithModel'
 import { trustSignal } from '../../../services/ruleLabels'
+import { synthesizeAdvice } from '../../../services/decisionAdvice'
+import { polishAdvice } from '../../../services/adviceWithModel'
 import type { ImportSummary } from '../../../stores/experience'
 import type { EvaluationOutcome, ExperienceRule, Law, Observation } from '../../../types/experience'
 
@@ -209,6 +220,29 @@ const recalledLaws = ref<Law[]>([])
 const isModelRecalling = ref(false)
 const hasModel = computed(() => Boolean(getActiveModelClient()))
 const cautionCount = computed(() => recalledRules.value.filter((x) => trustSignal(x.rule).level === 'caution').length)
+
+// V4 决策建议:把召回经验合成一档结论(纯本地);AI 润色 opt-in。
+const advice = computed(() => synthesizeAdvice(recalledRules.value, recalledLaws.value))
+const polishedReason = ref('')
+const isPolishing = ref(false)
+watch(recalledRules, () => { polishedReason.value = '' })
+function pct(rate: number): number {
+  return Math.round(rate * 100)
+}
+async function polishCurrentAdvice() {
+  const current = advice.value
+  if (!current || isPolishing.value) return
+  const client = getActiveModelClient()
+  if (!client) return
+  isPolishing.value = true
+  try {
+    polishedReason.value = await polishAdvice(lastScene.value, current, client)
+  } catch {
+    // 失败保留本地 reason
+  } finally {
+    isPolishing.value = false
+  }
+}
 
 function ruleEvidence(rule: ExperienceRule) {
   return rule.evidenceIds.map((id) => store.observations.find((o) => o.id === id)).filter((o): o is Observation => Boolean(o))
