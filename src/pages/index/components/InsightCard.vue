@@ -124,24 +124,25 @@ function formatTime(iso: string): string {
 
 <style lang="scss" scoped>
 .insight-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  border-left: 4px solid #94a3b8;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 18px;
+  margin-bottom: 14px;
+  border-left: 3px solid var(--info);
+  box-shadow: var(--shadow-1);
 
   &.confidence-high {
-    border-left-color: #10b981;
+    border-left-color: var(--ok);
   }
 
   &.confidence-medium {
-    border-left-color: #f59e0b;
+    border-left-color: var(--warn);
   }
 
   &.confidence-low {
-    border-left-color: #94a3b8;
-    opacity: 0.85;
+    border-left-color: var(--info);
+    opacity: 0.9;
   }
 }
 
@@ -155,25 +156,27 @@ function formatTime(iso: string): string {
 
 .dimension-badge {
   font-size: 11px;
-  background: #f1f5f9;
-  color: #64748b;
-  padding: 2px 8px;
-  border-radius: 20px;
+  background: var(--surface-sunken);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  padding: 2px 9px;
+  border-radius: 999px;
 }
 
 .confidence-badge {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 20px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
 
-  &.conf-high { background: #d1fae5; color: #065f46; }
-  &.conf-medium { background: #fef3c7; color: #92400e; }
-  &.conf-low { background: #f1f5f9; color: #64748b; }
+  &.conf-high { background: var(--ok-wash); color: var(--ok); }
+  &.conf-medium { background: var(--warn-wash); color: var(--warn); }
+  &.conf-low { background: var(--info-wash); color: var(--info); }
 }
 
 .generated-by {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-faint);
   margin-left: auto;
 }
 
@@ -185,48 +188,51 @@ function formatTime(iso: string): string {
 }
 
 .percentage-big {
-  font-size: 48px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 46px;
   font-weight: 700;
-  color: #1e293b;
+  letter-spacing: -0.02em;
+  color: var(--brand);
   line-height: 1;
 }
 
 .percentage-label {
   font-size: 14px;
-  color: #64748b;
+  color: var(--ink-faint);
 }
 
 .insight-title {
   font-size: 16px;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 700;
+  color: var(--ink);
   display: block;
   margin-bottom: 8px;
 }
 
 .root-cause {
-  background: #f0fdf4;
-  border-radius: 8px;
+  background: var(--brand-wash);
+  border-radius: var(--r-sm);
   padding: 10px 12px;
   margin-bottom: 10px;
 }
 
 .root-cause-label {
   font-size: 11px;
-  color: #16a34a;
+  color: var(--brand);
   display: block;
   margin-bottom: 4px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .root-cause-text {
   font-size: 14px;
-  color: #166534;
+  color: var(--brand-strong);
 }
 
 .insight-summary {
   font-size: 13px;
-  color: #475569;
+  color: var(--ink-soft);
   display: block;
   line-height: 1.6;
   margin-bottom: 12px;
@@ -238,7 +244,7 @@ function formatTime(iso: string): string {
 
 .timeline-label {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-faint);
   display: block;
   margin-bottom: 8px;
 }
@@ -259,55 +265,56 @@ function formatTime(iso: string): string {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #cbd5e1;
+  background: var(--line-strong);
   margin-top: 5px;
   flex-shrink: 0;
 }
 
 .timeline-time {
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-faint);
   flex-shrink: 0;
   width: 36px;
 }
 
 .timeline-text {
   font-size: 12px;
-  color: #64748b;
+  color: var(--ink-soft);
   line-height: 1.4;
 }
 
 .suggestion-box {
-  background: #f8fafc;
-  border-radius: 8px;
+  background: var(--surface-sunken);
+  border-radius: var(--r-sm);
   padding: 12px;
   margin-bottom: 10px;
 }
 
 .suggestion-label {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-faint);
   display: block;
   margin-bottom: 4px;
 }
 
 .suggestion-text {
   font-size: 14px;
-  color: #334155;
+  color: var(--ink);
   font-weight: 500;
   line-height: 1.5;
 }
 
 .low-confidence-notice {
-  background: #f8fafc;
-  border-radius: 6px;
+  background: var(--surface-sunken);
+  border-radius: var(--r-sm);
   padding: 8px 10px;
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--line-strong);
 }
 
 .notice-text {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-faint);
   line-height: 1.5;
 }
 </style>

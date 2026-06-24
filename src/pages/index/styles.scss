@@ -52,6 +52,32 @@
   padding: 22px 16px 48px;
 }
 
+/* 键盘可达:统一可见焦点环(只在键盘聚焦时出现,不打扰鼠标点击) */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.tab:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* 尊重"减少动态"偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 .topbar,
 .composer-header,
 .section-head,
@@ -206,18 +232,23 @@
   box-shadow: var(--shadow-1);
 }
 
+/* 引擎状态条:已"降级隐藏"的旧评估读数,做成安静的深色仪表条 */
 .ops-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  background: var(--ink);
+  gap: 1px;
+  padding: 0;
+  overflow: hidden;
+  background: #2a312b;
+  border-color: transparent;
 }
 
 .ops-item {
   min-width: 0;
-  border: 1px solid #3d453c;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ink);
+  padding: 11px 13px;
 }
 
 .ops-label,
@@ -226,15 +257,18 @@
 }
 
 .ops-label {
-  color: #b8c4b6;
-  font-size: 12px;
+  color: #9aa89a;
+  font-size: 11px;
+  letter-spacing: 0.02em;
 }
 
 .ops-value {
-  margin-top: 5px;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 800;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: #eef2ec;
+  font-size: 13.5px;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -2021,12 +2055,8 @@
     align-items: flex-start;
   }
 
-  .stat-strip {
-    grid-template-columns: 1fr;
-  }
-
   .ops-board {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .primary-button {
