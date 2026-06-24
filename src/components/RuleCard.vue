@@ -3,11 +3,11 @@ import { defineComponent, h, ref } from 'vue'
 import { useExperienceStore } from '../stores/experience'
 import { reusabilityLabel } from '../services/aiAnalyzer'
 import {
-  formatTime, reviewLabel, evaluationLabel, evaluationSourceLabel, evaluationCycleLabel,
-  protocolExecutionLabel, protocolComplianceStatusLabel, verdictLabel, confidenceLabel, trendLabel,
+  formatTime, evaluationLabel, evaluationSourceLabel, evaluationCycleLabel,
+  protocolExecutionLabel, protocolComplianceStatusLabel,
   adoptionLabel, gateStatusLabel, gateCheckStatusLabel, repeatabilityLevelLabel, sampleIndependenceLevelLabel,
   versionCoverageStatusLabel, consistencyStatusLabel, replicationMatrixStatusLabel, replicationSlotStatusLabel,
-  maintenanceHealthLabel, boundarySeverityLabel, percentLabel, planPriorityLabel, planFocusLabel, scoreClass,
+  maintenanceHealthLabel, boundarySeverityLabel, percentLabel, planPriorityLabel, planFocusLabel,
   latestAdoptionEvents, evaluationSummary, trustSignal,
 } from '../services/ruleLabels'
 import type { ExperienceRule, Observation, Feedback, EvaluationOutcome } from '../types/experience'
@@ -59,21 +59,24 @@ export default defineComponent({
 
     return () => {
       const trust = trustSignal(props.rule)
+      const evalCount = props.rule.evaluations?.length ?? 0
       return h('view', { class: ['rule-card', props.compact ? 'compact' : ''] }, [
+        // 头部:类别标签(左) | 信任芯片(右,主角)。复测细节(判定/稳定分/置信/趋势)
+        // 已由 trustSignal 收敛进芯片,不再平铺成一排彩色 badge。
         h('view', { class: 'rule-head' }, [
           h('text', { class: 'badge' }, props.rule.category),
-          h('view', { class: 'rule-meta' }, [
-            h('text', { class: ['trust-badge', trust.level] }, `${trust.label} · ${trust.note}`),
-            h('text', { class: ['reuse', props.rule.reusability] }, `可复用度 ${reusabilityLabel(props.rule.reusability)}`),
-            h('text', { class: ['review-badge', props.rule.reviewStatus ?? 'unreviewed'] }, reviewLabel(props.rule.reviewStatus)),
-            h('text', { class: ['verdict-badge', props.rule.evaluationVerdict ?? 'insufficient'] }, verdictLabel(props.rule.evaluationVerdict)),
-            h('text', { class: ['score-badge', scoreClass(props.rule.evaluationScore)] }, `稳定分 ${props.rule.evaluationScore ?? 0}`),
-            h('text', { class: ['confidence-badge', props.rule.evaluationConfidence ?? 'low'] }, confidenceLabel(props.rule.evaluationConfidence)),
-            h('text', { class: ['trend-badge', props.rule.evaluationTrend ?? 'unknown'] }, trendLabel(props.rule.evaluationTrend)),
-            h('text', { class: ['adoption-badge', props.rule.adoptionDecision ?? 'retest'] }, adoptionLabel(props.rule.adoptionDecision)),
-            h('text', { class: 'evidence-badge' }, `${props.rule.evidenceIds.length} 条证据`),
-            h('text', { class: 'evidence-badge' }, `${props.rule.evaluations?.length ?? 0} 次评估`),
+          h('view', { class: ['trust-chip', trust.level] }, [
+            h('text', { class: 'trust-chip-label' }, trust.label),
+            h('text', { class: 'trust-chip-note' }, trust.note),
           ]),
+        ]),
+        // 安静的次级数据行:剩下确实有用、又不重复芯片的事实
+        h('view', { class: 'rule-submeta' }, [
+          h('text', null, `可复用度${reusabilityLabel(props.rule.reusability)}`),
+          h('text', { class: 'dot' }, '·'),
+          h('text', null, [h('text', { class: 'num' }, String(props.rule.evidenceIds.length)), ' 条证据']),
+          h('text', { class: 'dot' }, '·'),
+          h('text', null, [h('text', { class: 'num' }, String(evalCount)), ' 次评估']),
         ]),
         h('text', { class: 'rule-title' }, props.rule.title),
         h('text', { class: 'rule-conclusion' }, props.rule.conclusion),
