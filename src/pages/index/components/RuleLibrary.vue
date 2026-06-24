@@ -3,7 +3,9 @@
   <view>
     <view class="section-head">
       <text class="section-title">规则库</text>
-      <text class="section-meta">{{ filteredRules.length }} / {{ store.rules.length }} 条规则</text>
+      <text class="section-meta">
+        {{ filteredRules.length }} / {{ store.rules.length }} 条规则<template v-if="unprovenCount > 0"> · {{ unprovenCount }} 条待验证</template>
+      </text>
     </view>
     <view class="filter-bar">
       <input v-model="ruleQuery" class="search-input" placeholder="搜索规则、地点、行动建议" />
@@ -54,6 +56,7 @@ import { useExperienceStore } from '../../../stores/experience'
 import RuleCard from '../../../components/RuleCard.vue'
 import Pager from '../../../components/Pager.vue'
 import { usePagination } from '../../../composables/usePagination'
+import { verificationRank } from '../../../services/ruleLabels'
 import type { ExperienceCategory, ExperienceRule, Observation } from '../../../types/experience'
 
 const store = useExperienceStore()
@@ -84,7 +87,13 @@ const filteredRules = computed(() => {
   })
 })
 
-const { page, pageSize, pageSizeOptions, totalPages, total, paged: pagedRules, reset } = usePagination(filteredRules)
+// V3:待验证(0)→谨慎(1)→可信(2)稳定排序,把"该验的"排前(Array.sort 在 Node20 稳定)
+const sortedRules = computed(() =>
+  filteredRules.value.slice().sort((a, b) => verificationRank(a) - verificationRank(b)),
+)
+const unprovenCount = computed(() => filteredRules.value.filter((r) => verificationRank(r) === 0).length)
+
+const { page, pageSize, pageSizeOptions, totalPages, total, paged: pagedRules, reset } = usePagination(sortedRules)
 
 // 搜索/分类切换时回到第 1 页
 watch([ruleQuery, selectedCategory], reset)
