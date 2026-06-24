@@ -1,6 +1,6 @@
 # A4 实施方案:端上 embedding + 语义召回
 
-> 日期:2026-06-23 · 状态:实施方案(纯方案,未编码)· ⚠️ **重 + 吃数据,优先级低于必需链**
+> 日期:2026-06-23 · 状态:✅ 可测核心已实现(2026-06-24,`src/services/embeddingRecall.ts`:`Embedder` 接口 + `recallByEmbedding` + `cosineDense`)· ⚠️ 真实 transformers.js/IndexedDB/Worker 适配器**未实现**(重、浏览器专属,留后续)
 > 关联:`docs/algorithm-upgrade-plan.md`(A4)、`services/decisionHints.ts`(现关键词召回)、`docs/algorithm-evaluation-and-data-plan.md`(冷启动/融合)、`docs/backend-roadmap.md` B3(服务端向量,本文主张优先放端上)
 > 目标:决策召回从"对字"升级到"对意思"——**浏览器里跑 embedding,向量不出设备**。
 

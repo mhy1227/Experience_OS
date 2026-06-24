@@ -83,9 +83,9 @@
 | A8 | 情绪分类(朴素贝叶斯) | ✅ 已实现 | `src/services/sentiment.ts`(否定处理+平滑);inferDirection 集成待后续 |
 | A7 | 趋势检验(Mann-Kendall) | ✅ 已实现 | `src/services/trend.ts`;Law.trend 集成待后续 |
 | A2+A3 | TF-IDF + DBSCAN 聚类 | ✅ 已实现 | `tfidf.ts` + `dbscan.ts`;lawDiscovery 集成待数据量/后续 |
-| A9 | TextRank 主题词 | 🟡 方案就绪 | 无模型时 Law 起名 |
-| A4 | 端上 embedding 召回 | 🟡 方案就绪(重,靠后) | V4 召回"对意思" |
-| A5 | ANN(LSH/HNSW) | ⬜ 按需 | 召回提速(数据量大再做) |
+| A9 | TextRank 主题词 | ✅ 已实现 | `src/services/textrank.ts`;集成待后续 |
+| A4 | 端上 embedding 召回 | ✅ 核心已实现 | `embeddingRecall.ts`(Embedder 接口可测核心);真实模型适配器留后续 |
+| A5 | ANN(LSH) | ✅ 已实现 | `src/services/ann.ts`(随机超平面 LSH,确定性);独立工具未接入 |
 
 > **优先顺序(性价比,不吃数据量优先)**:A6(已 done)→ A1 → A8 → A7;A2/A3/A4 待数据量起来再做(冷启动分档见 `docs/algorithm-evaluation-and-data-plan.md`)。
 
