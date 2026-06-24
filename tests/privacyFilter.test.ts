@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { redact, shannonEntropy } from '../src/services/privacyFilter'
+import { redact, shannonEntropy, Filter } from '../src/services/privacyFilter'
 
 // ---------------------------------------------------------------------------
 // A6 隐私脱敏(浏览器端,移植自 mhy1227/privacy-filter)。
@@ -90,6 +90,19 @@ function red(t: string) {
 {
   assert.equal(redact('').hit, false)
   assert.equal(redact('。。。!!!').hit, false)
+}
+
+// gitleaks 规则已加载(编译通过的 + 内置兜底),少数 RE2 专属语法被跳过
+{
+  const s = Filter.create().stats()
+  assert.ok(s.rules >= 150, `gitleaks 规则应已加载,实际 ${s.rules}`)
+  assert.ok(s.skipped > 0 && s.skipped < 60, `RE2 专属语法规则应被跳过,实际 ${s.skipped}`)
+}
+
+// gitleaks 专有模式(非内置):npm token / gitlab token
+{
+  assert.ok(redact('token npm_abcdefghijklmnopqrstuvwxyz0123456789').redacted.includes('[密钥]'), 'npm token 应命中')
+  assert.ok(redact('glpat-abcdefghijklmnopqrst').redacted.includes('[密钥]'), 'gitlab token 应命中')
 }
 
 console.log('privacyFilter tests passed')

@@ -4,6 +4,7 @@
 import { compile, compileTest, findAllIndex, findAllSubmatch, test, type RE2 } from './regex'
 import { shannonEntropy } from './entropy'
 import type { Span } from './types'
+import { GITLEAKS_RULES, type RawGitleaksRule } from './gitleaksRules'
 
 const entropyMin = 4.0 // 高熵兜底默认阈值
 const entropyMinStrict = 4.8 // 周围无密钥语义关键词时启用,进一步压低误报
@@ -89,10 +90,29 @@ export class SecretDetector {
   readonly rules: SecretRule[] = []
   skipped = 0 // 因正则语法不兼容被跳过的规则数
 
-  // create:浏览器版只用内置兜底规则(无 gitleaks TOML)。
+  // create:加载 gitleaks 规则(原生 RegExp 编译,失败跳过)+ 追加内置兜底。
   static create(): SecretDetector {
+    return SecretDetector.fromRules(GITLEAKS_RULES)
+  }
+
+  // fromRules:从规则数组构建;RE2 专属语法编译失败的计入 skipped 并跳过;末尾追加内置兜底。
+  static fromRules(raw: RawGitleaksRule[]): SecretDetector {
     const sd = new SecretDetector()
-    sd.loadBuiltin()
+    for (const r of raw) {
+      if (!r.regex) continue
+      try {
+        sd.rules.push({
+          id: r.id,
+          re: compile(r.regex, { indices: true }),
+          keywords: (r.keywords ?? []).map((k) => k.toLowerCase()),
+          entropy: r.entropy ?? 0,
+          secretGroup: r.secretGroup ?? 0,
+        })
+      } catch {
+        sd.skipped++
+      }
+    }
+    sd.loadBuiltin() // 兜底:保证常见 key 命中;与 gitleaks 重叠由 mergeSpans 去重
     return sd
   }
 
