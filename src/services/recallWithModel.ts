@@ -5,6 +5,7 @@
 // 默认关、按需点 —— 成本只在用户显式触发时产生。
 import type { ExperienceRule } from '../types/experience'
 import type { ObservationModelClient } from './modelAnalysisAdapter'
+import { redact } from './privacyFilter'
 
 export interface ModelRecallMatch {
   id: string
@@ -59,9 +60,11 @@ export async function recallRulesWithModel(
   if (!content || rules.length === 0) return []
 
   const candidates = rules.slice(0, maxCandidates)
+  // A6:用户场景文本进云端模型前先脱敏(候选规则为派生数据,保留原样以不损召回匹配)。
+  const safeScene = redact(content).redacted
   const raw = await client.completeJson({
     systemPrompt: RECALL_SYSTEM_PROMPT,
-    userText: buildRecallUserText(content, candidates),
+    userText: buildRecallUserText(safeScene, candidates),
   })
 
   const byId = new Map(candidates.map((rule) => [rule.id, rule]))

@@ -4,6 +4,7 @@
 import type { ObservationModelClient } from './modelAnalysisAdapter'
 import type { DecisionAdvice } from './decisionAdvice'
 import { validateModelField } from './patternDiscovery'
+import { redact } from './privacyFilter'
 
 export const ADVICE_SYSTEM_PROMPT = [
   '你是「决策建议」润色助手。用户会给出当前决策场景、一个已算好的结论档(倾向采用/谨慎/证据不足)、本地理由与历史战绩数字。',
@@ -32,9 +33,11 @@ export async function polishAdvice(
 ): Promise<string> {
   const content = scene.trim()
   if (!content) return advice.reason
+  // A6:场景文本进云端模型前先脱敏。
+  const safeScene = redact(content).redacted
   const raw = await client.completeJson({
     systemPrompt: ADVICE_SYSTEM_PROMPT,
-    userText: buildAdviceUserText(content, advice),
+    userText: buildAdviceUserText(safeScene, advice),
   })
   const value = typeof (raw as { advice?: unknown })?.advice === 'string' ? (raw as { advice: string }).advice : ''
   return validateModelField(value, advice.reason)

@@ -83,6 +83,17 @@ async function asyncTests() {
     assert.deepEqual(await recallRulesWithModel('场景', [], watchClient), [])
     assert.equal(called, false, '空输入不应触发模型调用(省成本)')
   }
+
+  // A6:场景文本进模型前应脱敏
+  {
+    let seen = ''
+    const capture: ObservationModelClient = {
+      completeJson: async (req: { systemPrompt: string; userText: string }) => { seen = req.userText; return { matches: [] } },
+    }
+    await recallRulesWithModel('我邮箱 a@b.com 手机 13800138000,想问排期', [stubRule('r1', '排期')], capture)
+    assert.ok(seen.includes('[邮箱]') && seen.includes('[电话]'), '场景里的 PII 应已打码')
+    assert.ok(!seen.includes('a@b.com') && !seen.includes('13800138000'), '原始 PII 不应进模型')
+  }
 }
 
 asyncTests()

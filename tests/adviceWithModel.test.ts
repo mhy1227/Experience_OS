@@ -45,6 +45,17 @@ async function asyncTests() {
     assert.equal(out, advice.reason)
     assert.equal(called, false, '空场景不应触发模型调用')
   }
+
+  // A6:场景文本进模型前应脱敏
+  {
+    let seen = ''
+    const capture: ObservationModelClient = {
+      completeJson: async (req: { systemPrompt: string; userText: string }) => { seen = req.userText; return { advice: '改写句' } },
+    }
+    await polishAdvice('要不要给 13800138000 回电', advice, capture)
+    assert.ok(seen.includes('[电话]'), '场景里的手机号应已打码')
+    assert.ok(!seen.includes('13800138000'), '原始手机号不应进模型')
+  }
 }
 
 asyncTests()
