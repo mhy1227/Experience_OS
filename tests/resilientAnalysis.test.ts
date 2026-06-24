@@ -41,11 +41,32 @@ async function testDowngradedModelResultDoesNotFallBackToLocal() {
   assert.equal(result.title, '待观察经验')   // 返回降级结果,而非回退本地引擎的 '周末低峰训练策略'
 }
 
+// A6:文本进模型前应已脱敏(PII 不出设备)。捕获 client 收到的 prompt 断言。
+async function testRedactsPIIBeforeModel() {
+  let seen = ''
+  const capturingClient: ObservationModelClient = {
+    completeJson: async (req: { systemPrompt: string; userText: string }) => {
+      seen = req.userText
+      return {
+        category: '其他', tags: [], summary: 's', title: 't',
+        conclusion: 'c', recommendation: 'r', conditions: ['a', 'b'],
+        warnings: ['w'], reusability: 'medium', direction: 'positive', analysisType: 'rule', confidence: 'medium',
+      }
+    },
+  }
+  await analyzeObservationResilient('联系 zhang@example.com 或 13800138000 报名', { client: capturingClient })
+  assert.ok(seen.includes('[邮箱]'), '发给模型的文本应已打码邮箱')
+  assert.ok(seen.includes('[电话]'), '发给模型的文本应已打码手机号')
+  assert.ok(!seen.includes('zhang@example.com'), '原始邮箱不应出现在发给模型的文本里')
+  assert.ok(!seen.includes('13800138000'), '原始手机号不应出现在发给模型的文本里')
+}
+
 async function run() {
   await testFallsBackToLocalOnClientError()
   await testUsesModelWhenClientWorks()
   await testNoClientUsesLocal()
   await testDowngradedModelResultDoesNotFallBackToLocal()
+  await testRedactsPIIBeforeModel()
   console.log('resilientAnalysis tests passed')
 }
 
