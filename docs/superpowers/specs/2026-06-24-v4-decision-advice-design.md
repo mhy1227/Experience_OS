@@ -1,6 +1,6 @@
 # V4 决策辅助 · 决策建议合成 —— 设计文档
 
-> 状态:Draft(brainstorming 产出,待执行)
+> 状态:✅ 已完成(2026-06-24 落地;实现计划见 `docs/superpowers/plans/2026-06-24-v4-decision-advice.md`)
 > 日期:2026-06-24
 > 关联:`docs/version-roadmap.md`(V4)、`docs/superpowers/specs/2026-06-24-decision-support-right-half.md`(右半边:找经验/召回/风险/可信度)、`src/services/ruleLabels.ts`(`trustSignal`)、`src/services/recallWithModel.ts`(opt-in 模型 + 防幻觉范式)、`src/services/patternDiscovery.ts`(`validateModelField` 校验)
 
