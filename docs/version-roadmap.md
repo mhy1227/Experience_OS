@@ -82,7 +82,7 @@
 | A1 | 中文分词(HMM + Viterbi) | ✅ 已实现 | `src/services/segmentation.ts`;下游集成待后续 |
 | A8 | 情绪分类(朴素贝叶斯) | ✅ 已实现 | `src/services/sentiment.ts`(否定处理+平滑);inferDirection 集成待后续 |
 | A7 | 趋势检验(Mann-Kendall) | ✅ 已实现 | `src/services/trend.ts`;Law.trend 集成待后续 |
-| A2+A3 | TF-IDF + DBSCAN 聚类 | 🟡 方案就绪(待数据量) | V2 规律发现离线降级 |
+| A2+A3 | TF-IDF + DBSCAN 聚类 | ✅ 已实现 | `tfidf.ts` + `dbscan.ts`;lawDiscovery 集成待数据量/后续 |
 | A9 | TextRank 主题词 | 🟡 方案就绪 | 无模型时 Law 起名 |
 | A4 | 端上 embedding 召回 | 🟡 方案就绪(重,靠后) | V4 召回"对意思" |
 | A5 | ANN(LSH/HNSW) | ⬜ 按需 | 召回提速(数据量大再做) |

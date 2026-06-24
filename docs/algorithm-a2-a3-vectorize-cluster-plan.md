@@ -1,6 +1,6 @@
 # A2 + A3 实施方案:TF-IDF 向量化 + DBSCAN 聚类
 
-> 日期:2026-06-23 · 状态:实施方案(纯方案,未编码)
+> 日期:2026-06-23 · 状态:✅ 已实现(2026-06-24,`src/services/tfidf.ts` + `src/services/dbscan.ts`;lawDiscovery 集成待数据量/后续)
 > 关联:`docs/algorithm-upgrade-plan.md`(A2/A3)、`algorithm-a1-segmentation-plan.md`(上游分词)、`algorithm-evaluation-and-data-plan.md`(评估/参数/冷启动)
 > 目标:把分词输出 → **TF-IDF 向量** → **DBSCAN 语义聚类**,让"规律发现"在**无大模型时**也能离线产出。
 
