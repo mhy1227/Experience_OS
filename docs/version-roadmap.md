@@ -84,7 +84,7 @@
 | A7 | 趋势检验(Mann-Kendall) | ✅ 已实现 | `src/services/trend.ts`;Law.trend 集成待后续 |
 | A2+A3 | TF-IDF + DBSCAN 聚类 | ✅ 已实现 + 已集成 | `tfidf.ts`+`dbscan.ts`;已接入 lawDiscovery(冷启动门 N≥30 才启用,否则回退 category 分桶,`algoConfig.ts`) |
 | A9 | TextRank 主题词 | ✅ 已实现 + 已集成 | `textrank.ts`;已接入 lawDiscovery 无模型起名(替 category·topTag) |
-| A7 | 趋势检验(Mann-Kendall) | ✅ 已实现(未接入) | `trend.ts`;接入被否决:MK 对小样本(规律才几条成员)几乎恒判 flat,与现有急判语义冲突,是产品判断,见集成分析文档 |
+| A7 | 趋势检验(Mann-Kendall) | ✅ 已实现 + 已集成 | `trend.ts` 接入 `computeTrend`(时间分桶+MK);趋势语义改保守(统计显著才判),computeTrend 断言已据此重写 |
 | A4 | 端上 embedding 召回 | ✅ 核心已实现 | `embeddingRecall.ts`(Embedder 接口可测核心);真实模型适配器留后续 |
 | A5 | ANN(LSH) | ✅ 已实现 | `src/services/ann.ts`(随机超平面 LSH,确定性);独立工具未接入 |
 

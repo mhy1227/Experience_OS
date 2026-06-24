@@ -52,10 +52,22 @@ async function testLawConfidence() {
 }
 
 async function testComputeTrend() {
-  // 5 条全在近 30 天 → rising
-  assert.equal(computeTrend([daysAgo(1), daysAgo(2), daysAgo(3), daysAgo(4), daysAgo(5)], NOW), 'rising')
-  // 5 条全在 30 天前 → falling
-  assert.equal(computeTrend([daysAgo(40), daysAgo(50), daysAgo(60), daysAgo(70), daysAgo(80)], NOW), 'falling')
+  // A7 接入 Mann-Kendall:按时间跨度分桶成复发计数序列(旧→新),统计显著才判趋势。
+  // 注:语义比原"近期占比"更严谨/保守 —— 复发计数随时间「单调上升」才 rising。
+  const ramp = (counts: number[]): string[] => {
+    const out: string[] = []
+    counts.forEach((c, seg) => {
+      const base = 78 - seg * 13 // 6 段,每段约 13 天,旧→新
+      for (let k = 0; k < c; k++) out.push(daysAgo(base - k))
+    })
+    return out
+  }
+  // 复发计数单调上升 → rising
+  assert.equal(computeTrend(ramp([1, 2, 3, 4, 5, 6]), NOW), 'rising')
+  // 复发计数单调下降 → falling
+  assert.equal(computeTrend(ramp([6, 5, 4, 3, 2, 1]), NOW), 'falling')
+  // 无单调趋势(噪声)→ flat
+  assert.equal(computeTrend(ramp([2, 3, 2, 3, 2, 3]), NOW), 'flat', '无显著趋势 → flat')
   // 样本不足(<4)→ flat
   assert.equal(computeTrend([daysAgo(1), daysAgo(2), daysAgo(3)], NOW), 'flat', '样本不足 → flat')
 }

@@ -11,6 +11,7 @@ import { segment } from './segmentation'
 import { buildIdf, toVector } from './tfidf'
 import { dbscan } from './dbscan'
 import { extractKeywords } from './textrank'
+import { mannKendall } from './trend'
 import { algoConfig } from './algoConfig'
 
 // ─── 常量(集中,避免魔数)──────────────────────────────────────────────────
@@ -18,10 +19,7 @@ export const MIN_LAW_MEMBERS = 2 // 少于此不成规律
 const HIGH_CONF_SIZE = 6
 const MEDIUM_CONF_SIZE = 3
 const TREND_MIN_RECURRENCE = 4 // 低于此样本不足,trend 一律 flat
-const RECENT_WINDOW_MS = 30 * 24 * 60 * 60 * 1000 // 近 30 天
 const SCAN_WINDOW_MS = 90 * 24 * 60 * 60 * 1000 // 扫描窗口 90 天
-const RISING_RECENT_RATIO = 0.6
-const FALLING_RECENT_RATIO = 0.25
 const MAX_MEMBERS_TO_MODEL = 8
 
 // ─── 纯逻辑:kind / 置信度 / 趋势 ─────────────────────────────────────────────
@@ -47,16 +45,27 @@ export function lawConfidence(recurrence: number): InsightConfidence {
 }
 
 /** 趋势:近 30 天成员占比。样本不足(< TREND_MIN_RECURRENCE)一律 flat。 */
+// A7 接入:Mann-Kendall 趋势检验。把成员日期按"时间跨度分桶"成复发计数序列(旧→新),
+// 喂 mannKendall。比原"近期占比阈值"更严谨,但需统计显著(成员太少 → flat,保守是有意的)。
+const TREND_BUCKETS = 6
 export function computeTrend(memberDates: string[], nowMs: number): LawTrend {
   if (memberDates.length < TREND_MIN_RECURRENCE) return 'flat'
-  const recent = memberDates.filter((d) => {
-    const t = Date.parse(d)
-    return !Number.isNaN(t) && nowMs - t <= RECENT_WINDOW_MS
-  }).length
-  const ratio = recent / memberDates.length
-  if (ratio >= RISING_RECENT_RATIO) return 'rising'
-  if (ratio <= FALLING_RECENT_RATIO) return 'falling'
-  return 'flat'
+  const ts = memberDates
+    .map((d) => Date.parse(d))
+    .filter((t) => !Number.isNaN(t) && nowMs - t >= 0 && nowMs - t <= SCAN_WINDOW_MS)
+    .sort((a, b) => a - b)
+  if (ts.length < TREND_MIN_RECURRENCE) return 'flat'
+  const min = ts[0]!
+  const max = ts[ts.length - 1]!
+  const span = max - min
+  if (span <= 0) return 'flat'
+  // 按时间跨度均分 TREND_BUCKETS 桶,统计每桶复发数(序列旧→新)
+  const counts = new Array<number>(TREND_BUCKETS).fill(0)
+  for (const t of ts) {
+    const idx = Math.min(TREND_BUCKETS - 1, Math.floor(((t - min) / span) * TREND_BUCKETS))
+    counts[idx]++
+  }
+  return mannKendall(counts)
 }
 
 function normalizeTheme(theme: string): string {

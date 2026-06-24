@@ -58,11 +58,11 @@ const buckets = useSemantic ? clusterBySemantic(scoped, cfg) : clusterByCategory
 - `theme` 兜底从 `${category}·${topTag}` 换成 `extractKeywords(members 的合并 tokens, 3).join('·')`,无结果再回退 topTag。
 - 仅影响**无模型**路径的 theme 串;现有测试未断言该串 → 安全。模型路径(attributeTheme)不变。
 
-### A7 → computeTrend 用 Mann-Kendall(❌ 本轮不接,分析后否决)
-分析推演结论:**不接**。原因:
-- MK 要统计显著性(|Z|>1.96)。一条规律典型才 4–6 个成员、分到几个时间桶 → 数据点太少,MK **几乎永远判 flat**(如 5 个近期日期集中在最新桶 `[0…0,5]`,Z≈0.67 < 1.96 → flat,而现有断言要 rising)。
-- 即:MK 把趋势变得**保守**(没足够样本不下结论),与现有"近期占比→急判 rising/falling"语义**直接冲突**;接入会逼着重写断言,且"趋势要不要这么保守"是**产品判断**,不是纯 refactor。
-- 决策:`mannKendall` standalone 模块保留;computeTrend **维持现状**。若将来规律成员数普遍变大(数据量上来)再评估。
+### A7 → computeTrend 用 Mann-Kendall(✅ 已接入,语义改保守)
+- 实现:`memberDates` 按**时间跨度均分 6 桶**成复发计数序列(旧→新)→ `mannKendall`;保留小样本守卫(<4 → flat)。
+- **语义变更(有意,经用户授权)**:从原"近期占比急判"改为"**复发计数随时间统计显著上升/下降才判 rising/falling**",否则 flat。更严谨但更保守(规律成员少时多判 flat)。
+- 测试:`computeTrend` 的 3 条断言据 MK 重写(单调升→rising、单调降→falling、噪声/小样本→flat),全绿。
+- 注:分析阶段曾因"小样本恒 flat"建议缓接;用户确认接受保守语义后接入。
 
 ## 4. 测试策略
 
