@@ -366,8 +366,8 @@ async function handleLoadDemoWork() {
 </script>
 
 <style scoped>
-.more-panel { margin-top: 12px; border: 1px dashed #d6ddd6; border-radius: 8px; padding: 8px 12px; }
-.more-summary { cursor: pointer; font-size: 13px; color: #6b7a73; font-weight: 600; }
+.more-panel { margin-top: 12px; border: 1px dashed var(--line-strong); border-radius: var(--r-sm); padding: 8px 12px; }
+.more-summary { cursor: pointer; font-size: 13px; color: var(--ink-faint); font-weight: 600; }
 .more-panel[open] .more-summary { margin-bottom: 8px; }
 
 .composer-buttons { display: flex; gap: 8px; align-items: center; }
@@ -377,35 +377,35 @@ async function handleLoadDemoWork() {
 .recall-caution {
   margin: 6px 0 4px;
   padding: 8px 12px;
-  background: #fdeede;
-  border: 1px solid #f0d2a6;
-  border-radius: 8px;
-  color: #9a5a12;
+  background: var(--warn-wash);
+  border: 1px solid rgba(168, 103, 31, 0.28);
+  border-radius: var(--r-sm);
+  color: var(--warn);
   font-size: 13px;
 }
 .recall-laws { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 .recall-law {
-  border: 1px solid #dfe5dc;
-  border-left: 4px solid #9bb39e;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--r-sm);
   padding: 10px 12px;
-  background: #fbfcf8;
+  background: var(--surface-sunken);
 }
-.recall-law.caution { border-left-color: #d98b8b; }
-.recall-law-badge { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 4px; }
-.recall-law-theme { display: block; font-size: 14px; font-weight: 600; color: #252923; }
-.recall-law-sug { display: block; font-size: 13px; color: #4d5a4e; margin-top: 4px; }
+.recall-law.caution { border-left-color: var(--warn); }
+.recall-law-badge { display: block; font-size: 12px; color: var(--ink-faint); margin-bottom: 4px; }
+.recall-law-theme { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
+.recall-law-sug { display: block; font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
 .decision-laws { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
-.decision-laws-title { font-size: 13px; font-weight: 600; color: #5a6b62; }
+.decision-laws-title { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
 .recall-rule { margin-top: 8px; }
-.recall-reason { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 2px; }
+.recall-reason { display: block; font-size: 12px; color: var(--ink-faint); margin-bottom: 2px; }
 .recall-outcome {
   margin-top: 6px;
   padding: 8px 10px;
-  background: #f6f8f5;
-  border: 1px solid #e3e9e0;
-  border-radius: 8px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
 }
-.recall-outcome-label { display: block; font-size: 12px; color: #6b7a73; margin-bottom: 6px; }
+.recall-outcome-label { display: block; font-size: 12px; color: var(--ink-faint); margin-bottom: 6px; }
 .recall-outcome-btns { display: flex; gap: 8px; }
 </style>

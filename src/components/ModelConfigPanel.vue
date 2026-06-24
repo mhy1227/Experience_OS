@@ -120,9 +120,9 @@ function clear() {
 <style lang="scss" scoped>
 .model-config-panel {
   padding: 16px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
 }
 .config-section-head {
   display: flex;
@@ -133,11 +133,11 @@ function clear() {
 .config-title {
   font-size: 15px;
   font-weight: 700;
-  color: #111;
+  color: var(--ink);
 }
 .config-sub {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--ink-faint);
 }
 .config-field {
   display: flex;
@@ -147,20 +147,21 @@ function clear() {
 }
 .config-label {
   font-size: 12px;
-  color: #374151;
+  color: var(--ink-soft);
   width: 72px;
   flex-shrink: 0;
 }
 .config-input,
 .config-select {
   flex: 1;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
   padding: 6px 10px;
   font-size: 13px;
-  background: #fff;
+  background: var(--surface);
+  color: var(--ink);
   outline: none;
-  &:focus { border-color: #6366f1; }
+  &:focus { border-color: var(--brand); }
 }
 .config-actions {
   display: flex;
@@ -170,18 +171,18 @@ function clear() {
 .config-saved-msg {
   display: block;
   font-size: 12px;
-  color: #059669;
+  color: var(--ok);
   margin-top: 8px;
 }
 .config-notice {
   margin-top: 12px;
   padding: 8px;
-  background: #eff6ff;
-  border-radius: 6px;
+  background: var(--brand-wash);
+  border-radius: var(--r-sm);
 }
 .config-notice-text {
   font-size: 11px;
-  color: #1d4ed8;
+  color: var(--brand-strong);
   line-height: 1.6;
 }
 .ghost-button.small {

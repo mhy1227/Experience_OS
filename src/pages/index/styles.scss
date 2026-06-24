@@ -280,11 +280,12 @@ textarea:focus-visible,
   width: 100%;
   min-height: 92px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #f9faf6;
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
   padding: 12px;
   font-size: 16px;
   line-height: 1.5;
+  color: var(--ink);
 }
 
 .composer-actions {
