@@ -1,6 +1,6 @@
 # A7 实施方案:趋势检验(Mann-Kendall)
 
-> 日期:2026-06-23 · 状态:实施方案(纯方案,未编码)· 锦上添花,体量小
+> 日期:2026-06-23 · 状态:✅ 已实现(2026-06-24,`src/services/trend.ts` mannKendall;集成 Law.trend 待后续)· 锦上添花,体量小
 > 关联:`docs/algorithm-upgrade-plan.md`(A7)、`services/lawDiscovery.ts`(`Law.trend`)
 > 目标:把 `Law.trend`(上升/平/下降)从"拍脑袋阈值比"换成**统计趋势检验**。
 
