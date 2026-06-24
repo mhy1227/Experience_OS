@@ -130,6 +130,12 @@ export function trustSignal(rule: ExperienceRule): { level: TrustLevel; label: s
   return { level: 'caution', label: '☑️ 一般', note: `复测${count}次·${confidenceLabel(confidence)}` }
 }
 
+// 验证优先级:待验证(0)→ 谨慎(1)→ 可信(2)。规则库按此升序,把"该验的"排前。
+export function verificationRank(rule: ExperienceRule): number {
+  const level = trustSignal(rule).level
+  return level === 'unproven' ? 0 : level === 'caution' ? 1 : 2
+}
+
 export function trendLabel(value: EvaluationTrend | undefined) {
   const map: Record<EvaluationTrend, string> = {
     unknown: '趋势不足',
