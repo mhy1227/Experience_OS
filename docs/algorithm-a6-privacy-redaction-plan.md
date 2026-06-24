@@ -1,6 +1,6 @@
 # A6 实施方案:隐私脱敏(Luhn + 香农熵 + 正则)
 
-> 日期:2026-06-23 · 状态:实施方案(纯方案,未编码)
+> 日期:2026-06-23 · 状态:✅ 已实现(2026-06-24,浏览器移植版;见 `docs/superpowers/specs/2026-06-24-a6-privacy-redaction-design.md`)
 > 关联:`docs/algorithm-upgrade-plan.md`(A6)、`docs/privacy-status.md`(补的就是这个洞)、`docs/backend-roadmap.md` §1.1(方案 A:移植到前端)
 > 目标:**发请求给云端模型前,在浏览器里剥离 PII / 密钥**,标识符根本不出设备。
 

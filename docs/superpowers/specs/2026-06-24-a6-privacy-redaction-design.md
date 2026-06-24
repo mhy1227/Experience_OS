@@ -1,6 +1,6 @@
 # A6 隐私脱敏(浏览器端)· 设计文档
 
-> 状态:Draft(brainstorming 产出 → 实现中)
+> 状态:✅ 已完成(2026-06-24 落地并实机验证;commit 99f1e5f)
 > 日期:2026-06-24
 > 关联:`docs/algorithm-a6-privacy-redaction-plan.md`(A6 方案)、`docs/privacy-status.md`(补的洞:原文裸发)、上游参考实现 `github.com/mhy1227/privacy-filter`(Go,生产于 packyapi)与 `github.com/mhy1227/privacy-filter-ts`(TS 版,Node 服务向)
 
