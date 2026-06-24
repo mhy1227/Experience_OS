@@ -1,9 +1,24 @@
 # V2 经验关联 / 规律发现 —— 设计文档
 
-> 状态:Draft(brainstorming 产出,待执行)
-> 分支:`feat/v2-pattern-discovery`
-> 日期:2026-06-23
-> 关联:`docs/version-roadmap.md`(V2)、`src/services/patternDiscovery.ts`(基础版)、`docs/architecture/target-architecture-blueprint.md`
+> **状态:✅ 已完成**(语义 Law 版落地并上线;2026-06-24 核对)
+> 日期:设计 2026-06-23 · 完成核对 2026-06-24
+> 关联:`docs/version-roadmap.md`(V2)、`src/services/patternDiscovery.ts`(统计基座/降级层)、`docs/architecture/target-architecture-blueprint.md`
+
+## ✅ 完成情况(2026-06-24 核对)
+
+本设计已**全部实现**,非"基础版统计聚类",而是文档主体描述的语义版:
+
+- **服务层** `src/services/lawDiscovery.ts`:两段式聚类(`dominantKind` 统计粗分 → `attributeTheme` 模型语义归因)、`computeTrend`、`lawConfidence`、`mergeLaws`(成员重叠优先的幂等合并)、`markLawStatus`(生命周期)、`discoverLaws`(编排 + 无模型降级,全程不抛异常)。
+- **类型/持久化**:`Law`/`LawKind`/`LawStatus`/`LawTrend` 已入 `types/experience.ts`;`laws` 随 store 持久化到 localStorage。
+- **接通**:store `discoverLaws` wire 到「扫描我的 90 天」;`markLaw` 驱动生命周期。
+- **UI** `src/pages/index/components/LawLibrary.vue`:规律库卡片(kind 徽标 / theme / 复发次数+趋势 / 置信 / 证据)+ 标记已复盘 / 已针对它改进 / 标记已解决 / 重新激活;`resolved` 折叠到"已解决 N 条";统计 `Insight` 卡并存于下方。
+- **测试** `tests/lawDiscovery.test.ts`(244 行,已并入 `test:evaluation`):覆盖置信阈值、趋势 rising/falling、统计降级、幂等合并不翻倍、resolved+新成员→active、窗口准确复发、kind 轴分流、模型字段截断。
+
+下方 §9 的 6 条验收标准均已满足。后续(非本期):冷启动阈值、模型聚类用更深、与 V3 验证闭环衔接 —— 见 `docs/version-roadmap.md`。
+
+---
+
+> 以下为原始设计内容(Draft 时期),保留备查。
 
 ## 1. 背景与定位
 
