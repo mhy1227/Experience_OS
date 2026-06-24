@@ -7,6 +7,11 @@
 import type { Observation, Law, LawKind, LawTrend, LawStatus, InsightConfidence } from '../types/experience'
 import type { ObservationModelClient } from './modelAnalysisAdapter'
 import { validateModelField } from './patternDiscovery'
+import { segment } from './segmentation'
+import { buildIdf, toVector } from './tfidf'
+import { dbscan } from './dbscan'
+import { extractKeywords } from './textrank'
+import { algoConfig } from './algoConfig'
 
 // ─── 常量(集中,避免魔数)──────────────────────────────────────────────────
 export const MIN_LAW_MEMBERS = 2 // 少于此不成规律
@@ -258,6 +263,59 @@ export interface LawDiscoveryOptions {
  * 第一段:按 category 粗分(控 token);第二段:模型语义归因主题(可降级)。
  * 跨 category 同主题归一,再幂等合并进 existingLaws。
  */
+// 观察 → kind(正→strategy / 负→caution / 中性→null)
+function kindOf(o: Observation): LawKind | null {
+  return o.sentiment === 'positive' ? 'strategy' : o.sentiment === 'negative' ? 'caution' : null
+}
+
+// 现有粗分:category × kind 精确分桶(冷启动/关闭语义聚类时的回退,行为与原内联逻辑一致)。
+function clusterByCategory(scoped: Observation[]): { kind: LawKind; members: Observation[] }[] {
+  const buckets = new Map<string, { kind: LawKind; members: Observation[] }>()
+  for (const o of scoped) {
+    const kind = kindOf(o)
+    if (!kind) continue
+    const key = `${o.category}|${kind}`
+    const bucket = buckets.get(key)
+    if (bucket) bucket.members.push(o)
+    else buckets.set(key, { kind, members: [o] })
+  }
+  return [...buckets.values()]
+}
+
+// A2+A3 语义聚类:每个 kind 内,观察文本 → TF-IDF → DBSCAN;每个非噪声簇成一桶。
+// 跨 category 的同根因能聚到一起(V2 语义版的目的);噪声(偶发)丢弃。
+function clusterBySemantic(
+  scoped: Observation[],
+  cfg: { dbscanEps: number; dbscanMinPts: number },
+): { kind: LawKind; members: Observation[] }[] {
+  const out: { kind: LawKind; members: Observation[] }[] = []
+  for (const kind of ['strategy', 'caution'] as LawKind[]) {
+    const members = scoped.filter((o) => kindOf(o) === kind)
+    if (members.length < cfg.dbscanMinPts) continue
+    const docs = members.map((o) => segment(o.text))
+    const idf = buildIdf(docs)
+    const vectors = docs.map((d) => toVector(d, idf))
+    const labels = dbscan(vectors, cfg.dbscanEps, cfg.dbscanMinPts)
+    const byCluster = new Map<number, Observation[]>()
+    labels.forEach((label, i) => {
+      if (label < 0) return // 噪声
+      const arr = byCluster.get(label) ?? []
+      arr.push(members[i]!)
+      byCluster.set(label, arr)
+    })
+    for (const m of byCluster.values()) out.push({ kind, members: m })
+  }
+  return out
+}
+
+// A9 无模型起名:TextRank 主题词;无结果回退 category·topTag。
+function semanticTheme(members: Observation[]): string {
+  const tokens = members.flatMap((o) => segment(o.text))
+  const kws = extractKeywords(tokens, 3)
+  if (kws.length > 0) return kws.join('·')
+  return `${members[0]!.category}·${topTag(members) || '高频'}`
+}
+
 export async function discoverLaws(
   observations: Observation[],
   options: LawDiscoveryOptions = {},
@@ -274,24 +332,19 @@ export async function discoverLaws(
   if (scoped.length === 0) return existingLaws
   const scopedIds = new Set(scoped.map((o) => o.id))
 
-  // 粗分:category × kind(正负分簇),避免混合情绪簇被 dominantKind 一刀切吞掉少数方向
-  const buckets = new Map<string, { kind: LawKind; members: Observation[] }>()
-  for (const o of scoped) {
-    const kind: LawKind | null = o.sentiment === 'positive' ? 'strategy' : o.sentiment === 'negative' ? 'caution' : null
-    if (!kind) continue // 中性观察不构成方向性规律
-    const key = `${o.category}|${kind}`
-    const bucket = buckets.get(key)
-    if (bucket) bucket.members.push(o)
-    else buckets.set(key, { kind, members: [o] })
-  }
+  // 选路:数据量够且开关开 → A2+A3 语义聚类;否则(冷启动/关闭)回退 category 分桶。
+  // 现有测试均为小样本 → 走回退,行为不变;语义路径由 dbscan.test 独立覆盖。
+  const cfg = algoConfig.semanticClustering
+  const useSemantic = cfg.enabled && scoped.length >= cfg.minObservations
+  const buckets = useSemantic ? clusterBySemantic(scoped, cfg) : clusterByCategory(scoped)
 
   const candidates: Law[] = []
-  for (const { kind, members } of buckets.values()) {
+  for (const { kind, members } of buckets) {
     if (members.length < MIN_LAW_MEMBERS) continue
 
     let attribution: ThemeAttribution | null = null
     if (client) attribution = await attributeTheme(members, kind, client)
-    const theme = attribution?.theme || `${members[0]!.category}·${topTag(members) || '高频'}`
+    const theme = attribution?.theme || semanticTheme(members)
 
     candidates.push(buildCandidate(theme, kind, members, nowMs, nowIso, attribution))
   }

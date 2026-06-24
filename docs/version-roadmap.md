@@ -82,8 +82,9 @@
 | A1 | 中文分词(HMM + Viterbi) | ✅ 已实现 + 已集成 | `segmentation.ts`;已 union 接入 decisionHints + 找经验召回的分词 |
 | A8 | 情绪分类(朴素贝叶斯) | ✅ 已实现 + 已集成 | `sentiment.ts`;已接入 `inferDirection`(关键词无定论时兜底,修"多数→中性") |
 | A7 | 趋势检验(Mann-Kendall) | ✅ 已实现 | `src/services/trend.ts`;Law.trend 集成待后续 |
-| A2+A3 | TF-IDF + DBSCAN 聚类 | ✅ 已实现 | `tfidf.ts` + `dbscan.ts`;lawDiscovery 集成待数据量/后续 |
-| A9 | TextRank 主题词 | ✅ 已实现 | `src/services/textrank.ts`;集成待后续 |
+| A2+A3 | TF-IDF + DBSCAN 聚类 | ✅ 已实现 + 已集成 | `tfidf.ts`+`dbscan.ts`;已接入 lawDiscovery(冷启动门 N≥30 才启用,否则回退 category 分桶,`algoConfig.ts`) |
+| A9 | TextRank 主题词 | ✅ 已实现 + 已集成 | `textrank.ts`;已接入 lawDiscovery 无模型起名(替 category·topTag) |
+| A7 | 趋势检验(Mann-Kendall) | ✅ 已实现(未接入) | `trend.ts`;接入被否决:MK 对小样本(规律才几条成员)几乎恒判 flat,与现有急判语义冲突,是产品判断,见集成分析文档 |
 | A4 | 端上 embedding 召回 | ✅ 核心已实现 | `embeddingRecall.ts`(Embedder 接口可测核心);真实模型适配器留后续 |
 | A5 | ANN(LSH) | ✅ 已实现 | `src/services/ann.ts`(随机超平面 LSH,确定性);独立工具未接入 |
 

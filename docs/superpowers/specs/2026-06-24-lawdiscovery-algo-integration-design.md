@@ -58,10 +58,11 @@ const buckets = useSemantic ? clusterBySemantic(scoped, cfg) : clusterByCategory
 - `theme` 兜底从 `${category}·${topTag}` 换成 `extractKeywords(members 的合并 tokens, 3).join('·')`,无结果再回退 topTag。
 - 仅影响**无模型**路径的 theme 串;现有测试未断言该串 → 安全。模型路径(attributeTheme)不变。
 
-### A7 → computeTrend 用 Mann-Kendall
-- 保留**小样本守卫**:`memberDates.length < TREND_MIN_RECURRENCE → flat`(与现状一致)。
-- 否则:把日期按**周桶**计数(90 天窗口,旧→新序列)→ `mannKendall(series)`。
-- 预期与现有 3 条断言一致:5 近日期 → 计数集中在最新桶 → S>0 → rising;5 远日期 → 集中在旧桶、新桶 0 → S<0 → falling;3 日期 → 守卫 flat。**实现后必须实跑验证;若某条不符,再决定调桶宽或更新该断言(并说明为何新结果更合理)。**
+### A7 → computeTrend 用 Mann-Kendall(❌ 本轮不接,分析后否决)
+分析推演结论:**不接**。原因:
+- MK 要统计显著性(|Z|>1.96)。一条规律典型才 4–6 个成员、分到几个时间桶 → 数据点太少,MK **几乎永远判 flat**(如 5 个近期日期集中在最新桶 `[0…0,5]`,Z≈0.67 < 1.96 → flat,而现有断言要 rising)。
+- 即:MK 把趋势变得**保守**(没足够样本不下结论),与现有"近期占比→急判 rising/falling"语义**直接冲突**;接入会逼着重写断言,且"趋势要不要这么保守"是**产品判断**,不是纯 refactor。
+- 决策:`mannKendall` standalone 模块保留;computeTrend **维持现状**。若将来规律成员数普遍变大(数据量上来)再评估。
 
 ## 4. 测试策略
 
@@ -81,7 +82,7 @@ const buckets = useSemantic ? clusterBySemantic(scoped, cfg) : clusterByCategory
 1. `algoConfig.ts`(配置 + 冷启动门常量)。
 2. A9 theme 兜底(最小,先做,验证不破测试)。
 3. A2+A3:抽 `clusterByCategory` + 新增 `clusterBySemantic` + 选路;新增集成测试;跑全量。
-4. A7 computeTrend → MK;实跑现有 3 条断言,绿则止,否则重写。
+4. ~~A7~~ 本轮不接(见 §3 分析否决)。
 5. 全量 + typecheck 绿 → 提交。
 
 ## 7. 不做(YAGNI / 后续)
