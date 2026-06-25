@@ -126,6 +126,15 @@
               <button class="evaluation-button failed" @click="markUsed(item.rule.id, 'failed')">这次无效</button>
               <button class="evaluation-button uncertain" @click="markUsed(item.rule.id, 'uncertain')">不确定</button>
             </view>
+            <!-- 进化指引:回填后引擎给出的"该怎么改"直接浮到决策点,不必展开评估详情 -->
+            <view v-if="item.rule.revisionSuggestion" :class="['recall-evolve', item.rule.evaluationVerdict ?? 'insufficient']">
+              <text class="recall-evolve-text">↻ {{ item.rule.revisionSuggestion }}</text>
+              <button
+                v-if="item.rule.revisionDraft"
+                class="ghost-button small"
+                @click="store.applyRevisionDraft(item.rule.id)"
+              >采用修订</button>
+            </view>
           </view>
         </view>
       </view>
@@ -443,4 +452,18 @@ async function handleLoadDemoWork() {
 }
 .recall-outcome-label { display: block; font-size: 12px; color: var(--ink-faint); margin-bottom: 6px; }
 .recall-outcome-btns { display: flex; gap: 8px; }
+.recall-evolve {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border-left: 3px solid var(--line);
+}
+.recall-evolve.conflicted { border-left-color: var(--danger, #c0392b); }
+.recall-evolve.mixed { border-left-color: var(--warn, #c9871f); }
+.recall-evolve.supported { border-left-color: var(--brand); }
+.recall-evolve-text { flex: 1; font-size: 12px; line-height: 1.5; color: var(--ink-soft); }
 </style>

@@ -274,4 +274,12 @@ export const DEMO_VARIED_DATA: DemoWorkItem[] = [
   // 健康 —— 作息
   { text: '熬夜赶完第二天一整天没精神,得不偿失', date: '2026-04-12', direction: 'negative', rootCauseTag: '作息紊乱' },
   { text: '连续几天不运动,整个人就开始犯懒提不起劲', date: '2026-06-01', direction: 'negative', rootCauseTag: '作息紊乱' },
+  // 学习成长 —— 上班族碎片化自我提升(新分类)
+  { text: '每天通勤地铁上背单词,一个月下来词汇量明显涨了', date: '2026-05-12', direction: 'positive', rootCauseTag: '碎片学习' },
+  { text: '把网课拆成每天二十分钟,这次终于把课程刷完了', date: '2026-05-22', direction: 'positive', rootCauseTag: '小步坚持' },
+  { text: '考证复习全堆到考前一周,结果没复习完只能裸考', date: '2026-06-03', direction: 'negative', rootCauseTag: '临时抱佛脚' },
+  // 理财 —— 收入规划与记账(新分类)
+  { text: '工资到账当天先把房租和定投扣掉,剩下的随便花也不超支', date: '2026-05-09', direction: 'positive', rootCauseTag: '收入规划' },
+  { text: '开始每天记账后,才发现外卖和打车才是花钱大头', date: '2026-05-26', direction: 'positive', rootCauseTag: '记账复盘' },
+  { text: '看同事买基金赚钱跟着冲,没做预算结果一买就套牢', date: '2026-06-06', direction: 'negative', rootCauseTag: '盲目跟风' },
 ]

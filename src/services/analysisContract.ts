@@ -370,6 +370,11 @@ function inferTags(text: string) {
   if (text.includes('周末')) tags.push('周末')
   if (text.includes('工作日')) tags.push('工作日')
   if (text.includes('下雨') || text.includes('雨天')) tags.push('天气')
+  // 上班族常见 facet,作为可筛选标签预填
+  if (text.includes('加班')) tags.push('加班')
+  if (text.includes('通勤') || text.includes('高峰')) tags.push('通勤')
+  if (text.includes('会议') || text.includes('开会')) tags.push('会议')
+  if (text.includes('居家') || text.includes('远程') || text.includes('在家办公')) tags.push('远程')
   return tags
 }
 

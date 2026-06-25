@@ -165,6 +165,21 @@ function normalizePersistedEvaluation(input: RuleEvaluation): RuleEvaluation {
   return evaluation
 }
 
+// 用 AI 推断出的 facet(周末/工作日/通勤/会议…)预填用户标签:去 #、去重、滤噪(过长的多半是结论碎片)、限 5 个。
+function seedTagsFromAnalysis(aiTags: string[] | undefined): string[] {
+  if (!Array.isArray(aiTags)) return []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const raw of aiTags) {
+    const t = normalizeTagInput(raw)
+    if (t.length < 1 || t.length > 6 || seen.has(t)) continue
+    seen.add(t)
+    out.push(t)
+    if (out.length >= 5) break
+  }
+  return out
+}
+
 function normalizeRule(rule: ExperienceRule): ExperienceRule {
   const normalized = {
     ...rule,
@@ -868,6 +883,7 @@ export const useExperienceStore = defineStore('experience', () => {
         evaluations: [],
         evaluationVerdict: 'insufficient',
         revisionSuggestion: '',
+        tags: seedTagsFromAnalysis(analysis.tags), // 用 AI 推断的facet预填用户标签(可编辑/删除)
         updatedAt,
         location: analysis.location,
       }
