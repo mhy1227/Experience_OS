@@ -52,6 +52,22 @@ async function testRootCauseRatioAmongNegative() {
   )
 }
 
+// 跨品类演示集:有效性 + 多样性 + "半途而废"共同根因(便于跨场景规律演示)
+async function testVariedData() {
+  const { DEMO_VARIED_DATA } = await import('../src/services/demoWorkData')
+  assert.ok(DEMO_VARIED_DATA.length >= 15, `跨品类数据应 ≥15 条,实际 ${DEMO_VARIED_DATA.length}`)
+  for (const item of DEMO_VARIED_DATA) {
+    assert.ok(typeof item.text === 'string' && item.text.length > 0, 'text 不能为空')
+    assert.ok(['positive', 'negative', 'neutral'].includes(item.direction), `direction 非法: ${item.direction}`)
+    assert.ok(/^\d{4}-\d{2}-\d{2}$/.test(item.date), `date 格式应为 YYYY-MM-DD: ${item.date}`)
+  }
+  const positive = DEMO_VARIED_DATA.filter((i) => i.direction === 'positive')
+  const negative = DEMO_VARIED_DATA.filter((i) => i.direction === 'negative')
+  assert.ok(positive.length >= 5 && negative.length >= 4, '正负向都应有一定量,体现多样性')
+  const giveUp = DEMO_VARIED_DATA.filter((i) => i.rootCauseTag === '半途而废')
+  assert.ok(giveUp.length >= 3, `应有"半途而废"共同根因簇(≥3),实际 ${giveUp.length}`)
+}
+
 async function run() {
   await testTotalCount()
   await testRootCauseTagCoverage()
@@ -60,6 +76,7 @@ async function run() {
   await testDateFormat()
   await testRequiredFields()
   await testRootCauseRatioAmongNegative()
+  await testVariedData()
   console.log('demoWorkData tests passed')
 }
 

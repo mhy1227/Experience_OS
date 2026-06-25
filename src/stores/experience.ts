@@ -15,7 +15,7 @@ import { recallDecisionHints, type DecisionHint } from '../services/decisionHint
 import { renderExperienceMarkdown } from '../services/markdownExport'
 import { buildPeriodicReview, type ReviewPeriod } from '../services/periodicReview'
 import { getBackendUrl, analyzeBatchViaBackend } from '../services/backendClient'
-import { DEMO_WORK_DATA } from '../services/demoWorkData'
+import { DEMO_WORK_DATA, DEMO_VARIED_DATA } from '../services/demoWorkData'
 import {
   deriveEvaluationState,
   evaluationPlanPriorityValue,
@@ -1639,7 +1639,8 @@ export const useExperienceStore = defineStore('experience', () => {
     isSeedingDemo.value = true
 
     try {
-      for (const item of DEMO_WORK_DATA) {
+      // 工作集 + 跨品类集,演示更丰富多样
+      for (const item of [...DEMO_WORK_DATA, ...DEMO_VARIED_DATA]) {
         await submitObservation(item.text)
       }
     } finally {

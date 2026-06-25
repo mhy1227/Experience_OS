@@ -241,3 +241,37 @@ export const DEMO_WORK_DATA: DemoWorkItem[] = [
     rootCauseTag: '协作协议',
   },
 ]
+
+/**
+ * 跨品类演示数据(生活/运动/购物/出行/学习/健康/财务),为演示提供多样性。
+ * 与 DEMO_WORK_DATA 并列载入(loadDemoWorkData);不参与工作集的"目标不一致"比例约束。
+ * 含一组"半途而废"共同根因(学习/健身/计划)→ 便于演示跨场景规律发现。
+ */
+export const DEMO_VARIED_DATA: DemoWorkItem[] = [
+  // 运动 / 健康 —— 低峰时段、健康习惯(正向策略)
+  { text: '周末早上十点去健身房,人很少不用排队,器械随便用', date: '2026-05-10', direction: 'positive', rootCauseTag: '低峰时段' },
+  { text: '晚上九点去公园跑步,人最少也最凉快', date: '2026-05-17', direction: 'positive', rootCauseTag: '低峰时段' },
+  { text: '饭后散步十五分钟,当晚睡得明显更好', date: '2026-05-24', direction: 'positive', rootCauseTag: '健康习惯' },
+  { text: '周末自己做饭,比天天点外卖省钱也清爽', date: '2026-05-31', direction: 'positive', rootCauseTag: '健康习惯' },
+  // 购物 —— 计划消费 vs 冲动消费
+  { text: '工作日晚上八点去超市,结账几乎不用排队', date: '2026-04-15', direction: 'positive', rootCauseTag: '低峰时段' },
+  { text: '需要的东西先列清单再下单,这次没乱买', date: '2026-05-06', direction: 'positive', rootCauseTag: '计划消费' },
+  { text: '618 一冲动买了一堆,最后大半没用上又后悔', date: '2026-06-02', direction: 'negative', rootCauseTag: '冲动消费' },
+  // 出行 —— 错峰避堵
+  { text: '下雨天走地铁比开车快很多,完全不堵', date: '2026-04-22', direction: 'positive', rootCauseTag: '错峰避堵' },
+  { text: '比平时早出门半小时错开高峰,路上顺很多', date: '2026-05-13', direction: 'positive', rootCauseTag: '错峰避堵' },
+  // 学习 / 自律 —— 共同根因"半途而废"(便于跨场景规律发现)
+  { text: '又买了门高价课,看了三节就没再打开,完成率不到三成', date: '2026-03-20', direction: 'negative', rootCauseTag: '半途而废' },
+  { text: '办了健身年卡,去了三次就再没去过', date: '2026-04-08', direction: 'negative', rootCauseTag: '半途而废' },
+  { text: '立的每天读书计划,坚持一周就放弃了', date: '2026-04-28', direction: 'negative', rootCauseTag: '半途而废' },
+  { text: '报名的线上训练营,前两天很积极后面就掉队了', date: '2026-05-20', direction: 'negative', rootCauseTag: '半途而废' },
+  // 财务 —— 记录 / 计划
+  { text: '一直到月底才记账,钱花哪了完全想不起来', date: '2026-04-30', direction: 'negative', rootCauseTag: '缺乏记录' },
+  { text: '工资到账先转一部分进存款,剩下的才花,月底不慌', date: '2026-05-08', direction: 'positive', rootCauseTag: '计划消费' },
+  // 家庭 / 生活 —— 提前准备
+  { text: '前一晚把第二天要带的东西收拾好,早上出门不慌不忘', date: '2026-05-15', direction: 'positive', rootCauseTag: '提前准备' },
+  { text: '重要的事设个提醒,再也没忘过缴费和约会', date: '2026-05-27', direction: 'positive', rootCauseTag: '提前准备' },
+  // 健康 —— 作息
+  { text: '熬夜赶完第二天一整天没精神,得不偿失', date: '2026-04-12', direction: 'negative', rootCauseTag: '作息紊乱' },
+  { text: '连续几天不运动,整个人就开始犯懒提不起劲', date: '2026-06-01', direction: 'negative', rootCauseTag: '作息紊乱' },
+]

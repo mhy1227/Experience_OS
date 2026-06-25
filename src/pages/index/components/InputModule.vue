@@ -396,7 +396,7 @@ async function handleLoadDemoWork() {
   if (!confirmed) return
   await store.loadDemoWorkData()
   router.push('/rules')
-  showToast('演示工作数据已载入，共 35 条观察')
+  showToast(`演示数据已载入，共 ${store.observations.length} 条观察`)
 }
 </script>
 
