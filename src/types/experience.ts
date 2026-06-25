@@ -4,6 +4,8 @@ export type ExperienceCategory =
   | '出行'
   | '运动'
   | '工作'
+  | '学习成长'
+  | '理财'
   | '生活'
   | '偏好'
   | '其他'

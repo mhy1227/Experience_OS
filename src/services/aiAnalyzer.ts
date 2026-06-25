@@ -345,6 +345,9 @@ function pickTags(text: string, candidates: string[]) {
 }
 
 function inferCategory(text: string): ExperienceCategory {
+  // 上班族常用:理财/学习先判,避免被「买」(购物)、「写」(工作)抢走
+  if (hasAny(text, ['记账', '存钱', '预算', '工资', '理财', '基金', '股票', '账单', '攒钱', '定投'])) return '理财'
+  if (hasAny(text, ['学习', '课程', '读书', '看书', '技能', '复习', '背单词', '笔记', '上课', '考证', '网课', '刷题'])) return '学习成长'
   if (hasAny(text, ['买', '购物', '适合', '超市', '结账'])) return '购物'
   if (hasAny(text, ['路', '车', '地铁', '走', '通勤'])) return '出行'
   if (hasAny(text, ['健身', '跑步', '训练'])) return '运动'

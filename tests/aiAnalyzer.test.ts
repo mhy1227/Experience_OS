@@ -42,6 +42,14 @@ async function testContradictedTemplateObservationsStayWatch() {
       text: '浅口猫碗不适合，猫吃不干净',
       category: '购物',
     },
+    {
+      text: '报了Python网课，每天学习一小时感觉还行',
+      category: '学习成长',
+    },
+    {
+      text: '这个月记账后发现预算又超了，得攒钱',
+      category: '理财',
+    },
   ] as const
 
   for (const item of cases) {

@@ -23,6 +23,8 @@ export const OBSERVATION_ANALYSIS_PROMPT = [
   'conditions、tags、warnings 都是字符串数组。',
   '',
   '分类规则：',
+  '- category 只能取:饮食、购物、出行、运动、工作、学习成长、理财、生活、偏好、其他。选最贴切的一个,不确定填「其他」。',
+  '- 学习成长:课程、读书、技能、考证、复习等自我提升类;理财:记账、存钱、预算、工资、基金等钱财管理类(注意「买基金/工资到账」属理财而非购物/工作)。',
   '- 正向、可复用、条件明确 → analysisType=rule，reusability=high 或 medium，confidence=medium 或 high。',
   '- 负向但结构完整（有明确反面教训、conditions ≥ 2、recommendation 可执行）→ analysisType=counterexample 或 constraint，reusability=medium 或 high，confidence=medium 或 high。负向经验是有价值的“避坑规则”，不要因为是负向就降级为 watch/low。',
   '- 证据不足、只有单次模糊感受、缺少时间/地点/对象/结果 → analysisType=watch，reusability=watch，confidence=low。',
@@ -40,7 +42,7 @@ export const OBSERVATION_ANALYSIS_PROMPT = [
   '只返回 JSON，不要返回解释、Markdown、思考过程或额外字段。',
 ].join('\n')
 
-const categories: ExperienceCategory[] = ['饮食', '购物', '出行', '运动', '工作', '生活', '偏好', '其他']
+const categories: ExperienceCategory[] = ['饮食', '购物', '出行', '运动', '工作', '学习成长', '理财', '生活', '偏好', '其他']
 const reusabilities: Reusability[] = ['high', 'medium', 'low', 'watch']
 const directions: ObservationDirection[] = ['positive', 'negative', 'mixed', 'uncertain']
 const analysisTypes: ObservationAnalysisType[] = ['rule', 'counterexample', 'constraint', 'watch']
@@ -350,6 +352,9 @@ function withMinimumArrayFields(result: ModelAnalysisResult, sourceText: string)
 
 function inferCategory(text: string): ExperienceCategory {
   const normalized = text.toLowerCase()
+  // 上班族常用:理财/学习先判,避免被「买」(购物)、「写」(工作)抢走
+  if (hasAny(normalized, ['记账', '存钱', '预算', '工资', '理财', '基金', '股票', '账单', '攒钱', '定投'])) return '理财'
+  if (hasAny(normalized, ['学习', '课程', '读书', '看书', '技能', '复习', '背单词', '笔记', '上课', '考证', '网课', '刷题'])) return '学习成长'
   if (hasAny(normalized, ['买', '购物', '适合', '超市', '结账', '猫碗'])) return '购物'
   if (hasAny(normalized, ['路', '车', '地铁', '走', '通勤', 'b口'])) return '出行'
   if (hasAny(normalized, ['健身', '跑步', '训练'])) return '运动'
