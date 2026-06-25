@@ -330,6 +330,7 @@ export interface ExperienceRule {
   warnings: string[]
   evidenceIds: string[]
   reusability: Reusability
+  tags?: string[] // 用户手动打的标签(多选、自由),用于筛选/组织;与 observation.tags(AI 自动)区分
   kind?: ExperienceKind
   feedback: Feedback
   reviewStatus?: RuleReviewStatus

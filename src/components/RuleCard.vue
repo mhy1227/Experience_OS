@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, h, ref } from 'vue'
 import { useExperienceStore } from '../stores/experience'
+import TagEditor from './TagEditor.vue'
 import { reusabilityLabel } from '../services/aiAnalyzer'
 import {
   formatTime, evaluationLabel, evaluationSourceLabel, evaluationCycleLabel,
@@ -31,8 +32,17 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    // 用户标签编辑(opt-in):传入即在卡片底部显示标签编辑器
+    editableTags: {
+      type: Boolean,
+      default: false,
+    },
+    tagSuggestions: {
+      type: Array as () => string[],
+      default: () => [],
+    },
   },
-  emits: ['feedback', 'evaluate', 'apply-revision'],
+  emits: ['feedback', 'evaluate', 'apply-revision', 'set-tags'],
   setup(props, { emit }) {
     const store = useExperienceStore()
     const evaluationNote = ref('')
@@ -440,6 +450,12 @@ export default defineComponent({
                 ),
               ]),
           ]),
+        props.editableTags &&
+          h(TagEditor, {
+            modelValue: props.rule.tags ?? [],
+            suggestions: props.tagSuggestions,
+            'onUpdate:modelValue': (tags: string[]) => emit('set-tags', props.rule.id, tags),
+          }),
         h('view', { class: 'feedback-row' }, [
           button('有用', 'useful'),
           button('待观察', 'watch'),

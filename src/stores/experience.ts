@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { demoSamples } from '../services/aiAnalyzer'
 import { segment } from '../services/segmentation'
+import { collectTags, normalizeTagInput } from '../services/tagUtils'
 import { analyzeObservationResilient } from '../services/resilientAnalysis'
 import { getActiveModelClient } from '../services/modelConfig'
 import type { ObservationModelClient } from '../services/modelAnalysisAdapter'
@@ -167,6 +168,7 @@ function normalizePersistedEvaluation(input: RuleEvaluation): RuleEvaluation {
 function normalizeRule(rule: ExperienceRule): ExperienceRule {
   const normalized = {
     ...rule,
+    tags: Array.isArray(rule.tags) ? rule.tags : [], // 用户标签:旧数据默认空
     reviewStatus: rule.reviewStatus ?? reviewStatusFromFeedback(rule.feedback),
     evaluations: Array.isArray(rule.evaluations) ? rule.evaluations.map(normalizePersistedEvaluation) : [],
     evaluationVerdict: rule.evaluationVerdict ?? 'insufficient',
@@ -222,6 +224,9 @@ export const useExperienceStore = defineStore('experience', () => {
       return acc
     }, {})
   })
+
+  // 全库用户标签(按频次),供规则库筛选项 + 编辑自动补全。
+  const allTags = computed(() => collectTags(rules.value))
 
   const locationGroups = computed(() => {
     const groups = new Map<string, { location: string; rules: ExperienceRule[]; observations: Observation[] }>()
@@ -913,6 +918,16 @@ export const useExperienceStore = defineStore('experience', () => {
     rule.feedback = feedback
     rule.reviewStatus = reviewStatusFromFeedback(feedback)
     rule.reusability = reusabilityFromFeedback(rule.reusability, feedback)
+    rule.updatedAt = new Date().toISOString()
+    persist()
+  }
+
+  // 用户标签:设置某规则的标签集(去空/去重/去 #/去空白)。
+  function setRuleTags(ruleId: string, tags: string[]) {
+    const rule = rules.value.find((item) => item.id === ruleId)
+    if (!rule) return
+    const cleaned = Array.from(new Set(tags.map((t) => normalizeTagInput(t)).filter((t) => t.length > 0)))
+    rule.tags = cleaned
     rule.updatedAt = new Date().toISOString()
     persist()
   }
@@ -1912,6 +1927,8 @@ function updateEvaluationSettings(settings: Partial<EvaluationSettings>) {
     timelineItems,
     submitObservation,
     setFeedback,
+    setRuleTags,
+    allTags,
     addEvaluation,
     attachEvaluationEvidence,
     evaluateReplicationSlot,

@@ -7,7 +7,7 @@ import IndexPage from './pages/index/index.vue'
 </script>
 
 <style lang="scss">
-@import './styles/theme.scss';
+@use './styles/theme.scss' as *;
 
 page {
   min-height: 100%;
