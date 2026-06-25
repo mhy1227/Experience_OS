@@ -1,0 +1,38 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam ConditionEndStyle diamond
+skinparam activity {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    FontSize 14
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+
+title 规律趋势「信息图」数据流(零 API,复用已有数据)
+
+start
+
+partition "数据层(已有)" {
+  :读取 Law(复发次数 / 命中记录);
+  :computeTrend 算 MK 趋势(↑ / ↓ / 平);
+}
+
+partition "可视化层(ECharts·零 API)" {
+  :生成复发趋势 sparkline;
+  :标注 近30天占比 / 置信度;
+}
+
+partition "决策辅助(护城河)" {
+  :嵌入规律卡 / 找经验召回;
+  :一眼看出"这个坑在变频繁";
+}
+
+stop
+@enduml
