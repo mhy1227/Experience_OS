@@ -28,7 +28,7 @@ defineEmits<{ dismiss: [ruleId: string] }>()
 <style lang="scss" scoped>
 .decision-hint-area {
   margin: 12px 0;
-  border: 1px solid #f0a500;
+  border: 1px solid var(--warn, #f0a500);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -37,22 +37,22 @@ defineEmits<{ dismiss: [ruleId: string] }>()
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #fffbe6;
-  border-bottom: 1px solid #f0a500;
+  background: var(--warn-wash, #fffbe6);
+  border-bottom: 1px solid var(--warn, #f0a500);
 }
 .decision-hint-title {
   font-size: 13px;
   font-weight: 600;
-  color: #b45309;
+  color: var(--ink-soft, #b45309);
 }
 .decision-hint-meta {
   font-size: 11px;
-  color: #92400e;
+  color: var(--ink-faint, #92400e);
 }
 .decision-hint-card {
   padding: 10px 12px;
-  border-bottom: 1px solid #fde68a;
-  background: #fffdf0;
+  border-bottom: 1px solid var(--line, #fde68a);
+  background: var(--surface, #fffdf0);
   &:last-child { border-bottom: none; }
 }
 .hint-card-head {
@@ -64,28 +64,28 @@ defineEmits<{ dismiss: [ruleId: string] }>()
 .hint-rule-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--ink, #1a1a1a);
   flex: 1;
 }
 .hint-dismiss {
   background: none;
   border: none;
   font-size: 16px;
-  color: #999;
+  color: var(--ink-faint, #999);
   padding: 0 4px;
   cursor: pointer;
   line-height: 1;
-  &:hover { color: #333; }
+  &:hover { color: var(--ink, #333); }
 }
 .hint-conclusion {
   font-size: 12px;
-  color: #444;
+  color: var(--ink-soft, #444);
   margin-bottom: 4px;
   display: block;
 }
 .hint-recommendation {
   font-size: 12px;
-  color: #1d6a3e;
+  color: var(--ok, #1d6a3e);
   display: block;
   margin-bottom: 6px;
 }
@@ -96,8 +96,8 @@ defineEmits<{ dismiss: [ruleId: string] }>()
 }
 .hint-reason-tag {
   font-size: 11px;
-  color: #92400e;
-  background: #fde68a;
+  color: var(--ink-soft, #92400e);
+  background: var(--warn-wash, #fde68a);
   padding: 1px 6px;
   border-radius: 4px;
 }

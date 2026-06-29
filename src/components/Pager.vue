@@ -39,21 +39,21 @@ const emit = defineEmits<{
 }
 .pager-btn {
   padding: 6px 14px;
-  background: #fff;
-  border: 1px solid #c8d2cb;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #c8d2cb);
   border-radius: 8px;
-  color: #3a4a42;
+  color: var(--ink, #3a4a42);
   font-size: 13px;
   cursor: pointer;
 }
 .pager-btn:disabled { opacity: 0.4; cursor: default; }
-.pager-info { font-size: 13px; color: #5a6b62; }
+.pager-info { font-size: 13px; color: var(--ink-soft, #5a6b62); }
 .pager-size {
   padding: 6px 8px;
-  border: 1px solid #c8d2cb;
+  border: 1px solid var(--line, #c8d2cb);
   border-radius: 8px;
-  background: #fff;
-  color: #3a4a42;
+  background: var(--surface, #fff);
+  color: var(--ink, #3a4a42);
   font-size: 13px;
   cursor: pointer;
 }

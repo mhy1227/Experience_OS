@@ -96,7 +96,7 @@ interface AddEvaluationOptions {
   cycle?: EvaluationCycle
 }
 
-const EXPERIENCE_CATEGORIES: readonly ExperienceCategory[] = ['饮食', '购物', '出行', '运动', '工作', '学习成长', '理财', '生活', '偏好', '其他']
+const EXPERIENCE_CATEGORIES: readonly ExperienceCategory[] = ['饮食', '购物', '出行', '运动', '工作', '学习成长', '理财', '生活', '偏好', '客服', '电商', '其他']
 const PROCESS_STATUSES: readonly ProcessStatus[] = ['pending', 'success', 'failed']
 const REUSABILITY_VALUES: readonly Reusability[] = ['high', 'medium', 'low', 'watch']
 const FEEDBACK_VALUES: readonly Feedback[] = ['useful', 'watch', 'inaccurate', 'none']

@@ -42,7 +42,7 @@ export const OBSERVATION_ANALYSIS_PROMPT = [
   '只返回 JSON，不要返回解释、Markdown、思考过程或额外字段。',
 ].join('\n')
 
-const categories: ExperienceCategory[] = ['饮食', '购物', '出行', '运动', '工作', '学习成长', '理财', '生活', '偏好', '其他']
+const categories: ExperienceCategory[] = ['饮食', '购物', '出行', '运动', '工作', '学习成长', '理财', '生活', '偏好', '客服', '电商', '其他']
 const reusabilities: Reusability[] = ['high', 'medium', 'low', 'watch']
 const directions: ObservationDirection[] = ['positive', 'negative', 'mixed', 'uncertain']
 const analysisTypes: ObservationAnalysisType[] = ['rule', 'counterexample', 'constraint', 'watch']
@@ -352,13 +352,14 @@ function withMinimumArrayFields(result: ModelAnalysisResult, sourceText: string)
 
 function inferCategory(text: string): ExperienceCategory {
   const normalized = text.toLowerCase()
-  // 上班族常用:理财/学习先判,避免被「买」(购物)、「写」(工作)抢走
   if (hasAny(normalized, ['记账', '存钱', '预算', '工资', '理财', '基金', '股票', '账单', '攒钱', '定投'])) return '理财'
   if (hasAny(normalized, ['学习', '课程', '读书', '看书', '技能', '复习', '背单词', '笔记', '上课', '考证', '网课', '刷题'])) return '学习成长'
-  if (hasAny(normalized, ['买', '购物', '适合', '超市', '结账', '猫碗'])) return '购物'
+  if (hasAny(normalized, ['买', '购物', '适合', '超市', '结账', '猫碗', '亚马逊', '淘宝', '京东', '网购', '快递'])) return '购物'
   if (hasAny(normalized, ['路', '车', '地铁', '走', '通勤', 'b口'])) return '出行'
   if (hasAny(normalized, ['健身', '跑步', '训练'])) return '运动'
   if (hasAny(normalized, ['工作', '会议', '方案', '写'])) return '工作'
+  if (hasAny(normalized, ['客服', '售后', '投诉', '退换货', '咨询'])) return '客服'
+  if (hasAny(normalized, ['电商', '平台', '卖家', '店铺', 'listing'])) return '电商'
   if (hasAny(normalized, ['午休', '散步', '睡眠', '犯困'])) return '生活'
   if (hasAny(normalized, ['喜欢', '舒服', '偏好'])) return '偏好'
   return '其他'

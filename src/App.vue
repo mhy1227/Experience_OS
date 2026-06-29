@@ -11,8 +11,8 @@ import IndexPage from './pages/index/index.vue'
 
 page {
   min-height: 100%;
-  background: #f5f6f1;
-  color: #252923;
+  background: var(--paper, #f5f6f1);
+  color: var(--ink, #252923);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
     sans-serif;

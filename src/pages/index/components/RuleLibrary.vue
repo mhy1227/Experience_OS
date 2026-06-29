@@ -139,7 +139,7 @@ function ruleEvidence(rule: ExperienceRule) {
 <style scoped>
 .category-fold {
   margin: 8px 0;
-  border: 1px dashed #c8d2cb;
+  border: 1px dashed var(--line, #c8d2cb);
   border-radius: 8px;
   padding: 8px 12px;
 }
@@ -147,7 +147,7 @@ function ruleEvidence(rule: ExperienceRule) {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  color: #5a6b62;
+  color: var(--ink-soft, #5a6b62);
 }
 .category-fold[open] .category-summary { margin-bottom: 8px; }
 .tag-filter-row {

@@ -1,3 +1,4 @@
+// ─── 默认主题：绿调风格 ──────────────────────────────────────────────────────
 $page-bg: #f5f6f1;
 $panel: #ffffff;
 $panel-soft: #eef3ed;
@@ -9,4 +10,35 @@ $accent-strong: #174b3d;
 $amber: #b66b24;
 $blue: #35668a;
 $rose: #a04d5b;
+
+// ─── 暗色黑白主题 ──────────────────────────────────────────────────────
+// 使用 CSS 变量实现主题切换
+:root {
+  --page-bg: #f5f6f1;
+  --panel: #ffffff;
+  --panel-soft: #eef3ed;
+  --ink: #252923;
+  --muted: #677064;
+  --line: #dfe5dc;
+  --accent: #246a53;
+  --accent-strong: #174b3d;
+  --amber: #b66b24;
+  --blue: #35668a;
+  --rose: #a04d5b;
+}
+
+// 暗色黑白主题
+[data-theme="dark"] {
+  --page-bg: #0a0a0a;
+  --panel: #1a1a1a;
+  --panel-soft: #2d2d2d;
+  --ink: #ffffff;
+  --muted: #a0a0a0;
+  --line: #3d3d3d;
+  --accent: #ffffff;
+  --accent-strong: #e0e0e0;
+  --amber: #d4d4d4;
+  --blue: #c0c0c0;
+  --rose: #b0b0b0;
+}
 

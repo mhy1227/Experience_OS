@@ -30,9 +30,14 @@
             <text class="stat-label">冲突规则</text>
           </view>
         </view>
-        <button class="ghost-button small" @click="showSettings = !showSettings">
-          {{ showSettings ? '关闭设置' : '⚙ 设置' }}
-        </button>
+        <view class="topbar-actions">
+          <!-- <button class="ghost-button small" @click="toggleTheme" title="切换主题">
+            {{ currentTheme === 'light' ? '🌙' : '☀️' }}
+          </button> -->
+          <button class="ghost-button small" @click="showSettings = !showSettings">
+            {{ showSettings ? '关闭设置' : '⚙ 设置' }}
+          </button>
+        </view>
       </view>
 
       <!-- 模型设置面板(可折叠) -->
@@ -69,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useExperienceStore } from '../../stores/experience'
 import ModelConfigPanel from '../../components/ModelConfigPanel.vue'
 import { navRoutes } from '../../router'
@@ -78,6 +83,24 @@ import { useToast } from '../../composables/useToast'
 const store = useExperienceStore()
 const showSettings = ref(false)
 const { message: toastMessage } = useToast()
+
+// 主题切换
+const currentTheme = ref<'light' | 'dark'>('light')
+
+onMounted(() => {
+  // 从 localStorage 恢复主题偏好
+  const saved = localStorage.getItem('theme')
+  if (saved === 'dark') {
+    currentTheme.value = 'dark'
+    document.documentElement.setAttribute('data-theme', 'dark')
+  }
+})
+
+function toggleTheme() {
+  currentTheme.value = currentTheme.value === 'light' ? 'dark' : 'light'
+  document.documentElement.setAttribute('data-theme', currentTheme.value)
+  localStorage.setItem('theme', currentTheme.value)
+}
 </script>
 
 <style lang="scss" src="./styles.scss"></style>

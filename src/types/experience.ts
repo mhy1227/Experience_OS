@@ -8,6 +8,8 @@ export type ExperienceCategory =
   | '理财'
   | '生活'
   | '偏好'
+  | '客服'
+  | '电商'
   | '其他'
 
 export type ProcessStatus = 'pending' | 'success' | 'failed'

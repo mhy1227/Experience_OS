@@ -813,16 +813,16 @@ const protocolBlockedRuleCount = computed(() => {
 <style scoped>
 .analytics-fold {
   margin: 8px 0 16px;
-  border: 1px dashed #c8d2cb;
+  border: 1px dashed var(--line, #c8d2cb);
   border-radius: 10px;
   padding: 10px 14px;
-  background: #fafcfa;
+  background: var(--surface-sunken, #fafcfa);
 }
 .analytics-summary {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  color: #5a6b62;
+  color: var(--ink-soft, #5a6b62);
 }
 .analytics-fold[open] .analytics-summary { margin-bottom: 12px; }
 </style>
