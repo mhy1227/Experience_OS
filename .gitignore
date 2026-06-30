@@ -4,29 +4,20 @@ dist-tests/
 *.log
 .idea/
 
-# 数据库连接信息 / 私密文档,禁止提交
-private-doc/
+# 敏感文件 - 绝对禁止提交
+private-doc/deepseek/api-key-local.txt
+private-doc/sql-hub/bank-local.txt
+private-doc/vercel/local.env.txt
 *.local.txt
-# MCP 配置含数据库密码,不提交
 .mcp.json
 .codex/config.toml
-/001_PRD/
-# SDD 执行临时文件(brief/report/review 包/ledger)
-.superpowers/
-# 本地环境变量(含模型 API Key),禁止提交
 .env.local
 .env*.local
 
-# Playwright MCP 测试产物(截图/快照/网络日志),不提交
+# Playwright MCP 测试产物
 .playwright-mcp/
 caution-rule-verified.png
 *.playwright-mcp.png
 
-# 本地战略/思考分析文档(仅本地,不公开到云端)
-docs/positioning-analysis.md
-docs/input-bottleneck-analysis.md
-docs/painkiller-or-vitamin.md
-docs/privacy-status.md
-docs/ai-leverage-reflection.md
-docs/knowledge-base-pivot-analysis.md
-docs/llm-vs-algorithms-analysis.md
+# SDD 执行临时文件
+.superpowers/

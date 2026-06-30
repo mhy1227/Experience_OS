@@ -1,0 +1,38 @@
+@startuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Microsoft YaHei"
+skinparam roundcorner 10
+skinparam ConditionEndStyle diamond
+skinparam activity {
+    BackgroundColor white
+    BorderColor black
+    BorderThickness 1.5
+    FontSize 14
+}
+skinparam arrow {
+    Color black
+    Thickness 1
+}
+
+title 「经验可视化」取舍与排期决策流
+
+start
+:出现"给经验加可视化"的想法;
+if (能揭示文字看不出的跨记录模式?) then (否·仅好看)
+  :判为装饰(场景图);
+  :AI 生图 → 暂缓(parked);
+  :等 PMF 或用户主动提需求再重启;
+  stop
+else (是·信息图)
+  :判为信息(规律 / 趋势 / 时间分布);
+  if (数据量足够撑起模式?) then (足够)
+    :走 ECharts 数据可视化(零 API);
+    :排期在 P2 反例改写 / P3 UX / P4 演示数据 之后;
+    stop
+  else (不足)
+    :先积累记录,暂不出图;
+    stop
+  endif
+endif
+@enduml
