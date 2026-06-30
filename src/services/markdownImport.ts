@@ -17,7 +17,7 @@ export interface MarkdownParseResult {
   totalParsed: number
 }
 
-const DEFAULT_MAX_ITEMS = 50
+const DEFAULT_MAX_ITEMS = 200
 const MIN_LEN = 4
 
 /** 剥除文件开头的 YAML front-matter(marked 不会把它当 front-matter) */
