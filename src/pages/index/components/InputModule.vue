@@ -186,17 +186,17 @@
 
         <section class="feishu-import-section">
           <h3 class="import-title">📧 从飞书多维表格导入</h3>
-          <p class="import-hint">粘贴多维表格分享链接，自动拉取指定列的数据</p>
+          <p class="import-hint">粘贴多维表格链接，或手动输入 app_token</p>
           <input
             v-model="feishuLink"
             type="text"
             class="import-textarea"
-            placeholder="https://xxx.feishu.cn/base/<app_token>?table=<table_id>..."
+            placeholder="https://xxx.feishu.cn/base/bascnxxxxxxxxx 或直接输入 app_token"
             :disabled="isFeishuLoading"
           />
           <div v-if="feishuTables.length" class="feishu-table-select">
             <label class="import-md-label">选择表格:</label>
-            <select v-model="selectedTableId" :disabled="isFeishuLoading">
+            <select v-model="selectedTableId" :disabled="isFeishuLoading" @change="handleFeishuTableChange">
               <option value="">请选择表格</option>
               <option v-for="t in feishuTables" :key="t.table_id" :value="t.table_id">{{ t.name }}</option>
             </select>
@@ -464,11 +464,18 @@ async function handleLoadDemoWork() {
 }
 
 function parseFeishuLink(link: string): { app_token: string; table_id?: string } | null {
-  const match = link.match(/base\/([^/?#]+)/)
-  if (!match) return null
-  const app_token = match[1]
-  const tableMatch = link.match(/[?&]table=([^&]+)/)
-  return { app_token, table_id: tableMatch?.[1] }
+  const baseMatch = link.match(/base\/([^/?#]+)/)
+  if (baseMatch) {
+    const app_token = baseMatch[1]
+    const tableMatch = link.match(/[?&]table=([^&]+)/)
+    return { app_token, table_id: tableMatch?.[1] }
+  }
+
+  if (link.length > 0 && !link.includes('http')) {
+    return { app_token: link.trim() }
+  }
+
+  return null
 }
 
 async function handleFeishuLoadTables() {
@@ -515,6 +522,14 @@ async function handleFeishuLoadFields(app_token: string, table_id: string) {
   const json = await resp.json()
   if (json.error) return
   feishuFields.value = (json.fields || []).map((f: { field_name: string }) => f.field_name)
+}
+
+async function handleFeishuTableChange() {
+  const link = feishuLink.value.trim()
+  if (!link || !selectedTableId.value) return
+  const parsed = parseFeishuLink(link)
+  if (!parsed) return
+  await handleFeishuLoadFields(parsed.app_token, selectedTableId.value)
 }
 
 async function handleFeishuImport() {
