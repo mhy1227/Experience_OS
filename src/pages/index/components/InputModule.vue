@@ -183,6 +183,53 @@
             />
           </label>
         </div>
+
+        <section class="feishu-import-section">
+          <h3 class="import-title">📧 从飞书多维表格导入</h3>
+          <p class="import-hint">粘贴多维表格分享链接，自动拉取指定列的数据</p>
+          <input
+            v-model="feishuLink"
+            type="text"
+            class="import-textarea"
+            placeholder="https://xxx.feishu.cn/base/<app_token>?table=<table_id>..."
+            :disabled="isFeishuLoading"
+          />
+          <div v-if="feishuTables.length" class="feishu-table-select">
+            <label class="import-md-label">选择表格:</label>
+            <select v-model="selectedTableId" :disabled="isFeishuLoading">
+              <option value="">请选择表格</option>
+              <option v-for="t in feishuTables" :key="t.table_id" :value="t.table_id">{{ t.name }}</option>
+            </select>
+          </div>
+          <div v-if="feishuFields.length" class="feishu-field-select">
+            <label class="import-md-label">选择文本列:</label>
+            <select v-model="selectedField" :disabled="isFeishuLoading">
+              <option value="">请选择列</option>
+              <option v-for="f in feishuFields" :key="f" :value="f">{{ f }}</option>
+            </select>
+          </div>
+          <div class="import-actions">
+            <button
+              class="import-btn"
+              :disabled="!feishuLink.trim() || isFeishuLoading"
+              @click="handleFeishuLoadTables"
+            >
+              {{ isFeishuLoading ? '加载中…' : '获取表格列表' }}
+            </button>
+            <button
+              v-if="selectedTableId && selectedField"
+              class="import-btn primary"
+              :disabled="isFeishuLoading"
+              @click="handleFeishuImport"
+            >
+              {{ isFeishuLoading ? '导入中…' : '导入数据' }}
+            </button>
+          </div>
+          <div v-if="feishuResult" class="import-result">
+            <span>共 {{ feishuResult.total }} 条 · 成功 {{ feishuResult.succeeded }} · 失败 {{ feishuResult.failed }}</span>
+            <span v-if="feishuResult.note" class="import-note">{{ feishuResult.note }}</span>
+          </div>
+        </section>
         <!-- 结果反馈 -->
         <div v-if="importResult" class="import-result">
           <span>共 {{ importResult.total }} 条 · 成功 {{ importResult.succeeded }} · 失败 {{ importResult.failed }}</span>
@@ -220,6 +267,14 @@ const draft = ref('')
 const importText = ref('')
 const isImporting = ref(false)
 const importResult = ref<ImportSummary | null>(null)
+
+const feishuLink = ref('')
+const feishuTables = ref<{ table_id: string; name: string }[]>([])
+const feishuFields = ref<string[]>([])
+const selectedTableId = ref('')
+const selectedField = ref('')
+const isFeishuLoading = ref(false)
+const feishuResult = ref<ImportSummary | null>(null)
 
 // 找经验:决策时召回相关经验
 const hasSearched = ref(false)
@@ -407,6 +462,98 @@ async function handleLoadDemoWork() {
   router.push('/rules')
   showToast(`演示数据已载入，共 ${store.observations.length} 条观察`)
 }
+
+function parseFeishuLink(link: string): { app_token: string; table_id?: string } | null {
+  const match = link.match(/base\/([^/?#]+)/)
+  if (!match) return null
+  const app_token = match[1]
+  const tableMatch = link.match(/[?&]table=([^&]+)/)
+  return { app_token, table_id: tableMatch?.[1] }
+}
+
+async function handleFeishuLoadTables() {
+  const link = feishuLink.value.trim()
+  if (!link || isFeishuLoading.value) return
+  const parsed = parseFeishuLink(link)
+  if (!parsed) {
+    showToast('无法解析飞书链接，请粘贴完整的多维表格分享链接')
+    return
+  }
+  isFeishuLoading.value = true
+  try {
+    const backendUrl = getBackendUrl()
+    if (!backendUrl) {
+      showToast('需要配置后端地址才能使用飞书导入')
+      return
+    }
+    const resp = await fetch(`${backendUrl}/api/feishu/tables?app_token=${parsed.app_token}`)
+    const json = await resp.json()
+    if (json.error) {
+      showToast(`获取表格失败: ${json.error}`)
+      return
+    }
+    feishuTables.value = json.tables || []
+    feishuFields.value = []
+    selectedTableId.value = parsed.table_id || ''
+    if (selectedTableId.value) {
+      await handleFeishuLoadFields(parsed.app_token, selectedTableId.value)
+    }
+    if (feishuTables.value.length === 0) {
+      showToast('未找到表格，请确保应用已被授权访问该多维表格')
+    }
+  } catch (e) {
+    showToast(`获取表格失败: ${(e as Error).message}`)
+  } finally {
+    isFeishuLoading.value = false
+  }
+}
+
+async function handleFeishuLoadFields(app_token: string, table_id: string) {
+  const backendUrl = getBackendUrl()
+  if (!backendUrl) return
+  const resp = await fetch(`${backendUrl}/api/feishu/fields?app_token=${app_token}&table_id=${table_id}`)
+  const json = await resp.json()
+  if (json.error) return
+  feishuFields.value = (json.fields || []).map((f: { field_name: string }) => f.field_name)
+}
+
+async function handleFeishuImport() {
+  const link = feishuLink.value.trim()
+  if (!link || !selectedTableId.value || !selectedField.value || isFeishuLoading.value) return
+  const parsed = parseFeishuLink(link)
+  if (!parsed) {
+    showToast('无法解析飞书链接')
+    return
+  }
+  isFeishuLoading.value = true
+  try {
+    const backendUrl = getBackendUrl()
+    if (!backendUrl) {
+      showToast('需要配置后端地址才能使用飞书导入')
+      return
+    }
+    const resp = await fetch(`${backendUrl}/api/feishu/records?app_token=${parsed.app_token}&table_id=${selectedTableId.value}&field_name=${encodeURIComponent(selectedField.value)}`)
+    const json = await resp.json()
+    if (json.error) {
+      showToast(`导入失败: ${json.error}`)
+      return
+    }
+    const rows = json.rows || []
+    if (rows.length === 0) {
+      showToast('未找到数据')
+      return
+    }
+    const texts = rows.map((r: { text: string }) => r.text)
+    const ok = window.confirm(`将从飞书导入 ${rows.length} 条经验，约需 ${rows.length} 次模型调用。继续？`)
+    if (!ok) return
+    feishuResult.value = await store.importObservationsViaBackend(texts)
+    showToast(`已导入 ${feishuResult.value.succeeded} 条经验`)
+  } catch (e) {
+    showToast(`导入失败: ${(e as Error).message}`)
+  } finally {
+    isFeishuLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -466,4 +613,30 @@ async function handleLoadDemoWork() {
 .recall-evolve.mixed { border-left-color: var(--warn, #c9871f); }
 .recall-evolve.supported { border-left-color: var(--brand); }
 .recall-evolve-text { flex: 1; font-size: 12px; line-height: 1.5; color: var(--ink-soft); }
+
+.feishu-import-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.feishu-table-select,
+.feishu-field-select {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feishu-table-select select,
+.feishu-field-select select {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: 13px;
+}
+.import-btn.primary {
+  background: var(--brand);
+  color: white;
+}
 </style>
