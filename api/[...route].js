@@ -3924,7 +3924,8 @@ app.get("/api/feishu/records", async (c) => {
 var app_default = app;
 
 // server/vercel.ts
-var vercel_default = getRequestListener(app_default.fetch);
+var apiRouter = app_default.route("/api");
+var vercel_default = getRequestListener(apiRouter.fetch);
 export {
   vercel_default as default
 };
