@@ -6978,18 +6978,32 @@ app.get("/api/feishu/records", async (c) => {
 var app_default = app;
 
 // server/vercel.ts
-function createRequest(c) {
-  const url = new URL(c.req.url);
-  const newUrl = new URL(`http://localhost/api${url.pathname}${url.search}`);
-  return new Request(newUrl.toString(), {
-    method: c.req.method,
-    headers: c.req.headers,
-    body: c.req.body
-  });
-}
 var vercelApp = new (require_cjs()).Hono();
-vercelApp.all("/*", async (c) => {
-  return app_default.fetch(createRequest(c));
+vercelApp.all("/health", async (c) => {
+  return app_default.fetch(new Request("http://localhost/api/health", { method: "GET", headers: c.req.headers }));
+});
+vercelApp.all("/feishu/tables", async (c) => {
+  const url = c.req.url;
+  const query = url.includes("?") ? url.split("?")[1] : "";
+  return app_default.fetch(new Request(`http://localhost/api/feishu/tables?${query}`, { method: "GET", headers: c.req.headers }));
+});
+vercelApp.all("/feishu/fields", async (c) => {
+  const url = c.req.url;
+  const query = url.includes("?") ? url.split("?")[1] : "";
+  return app_default.fetch(new Request(`http://localhost/api/feishu/fields?${query}`, { method: "GET", headers: c.req.headers }));
+});
+vercelApp.all("/feishu/records", async (c) => {
+  const url = c.req.url;
+  const query = url.includes("?") ? url.split("?")[1] : "";
+  return app_default.fetch(new Request(`http://localhost/api/feishu/records?${query}`, { method: "GET", headers: c.req.headers }));
+});
+vercelApp.all("/analyze", async (c) => {
+  const body = await c.req.text();
+  return app_default.fetch(new Request("http://localhost/api/analyze", { method: "POST", headers: c.req.headers, body }));
+});
+vercelApp.all("/analyze-batch", async (c) => {
+  const body = await c.req.text();
+  return app_default.fetch(new Request("http://localhost/api/analyze-batch", { method: "POST", headers: c.req.headers, body }));
 });
 var vercel_default = getRequestListener(vercelApp.fetch);
 export {
