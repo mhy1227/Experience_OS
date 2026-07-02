@@ -13,6 +13,9 @@ export function getBackendUrl(): string {
   } catch {
     // ignore
   }
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return window.location.origin
+  }
   return ''
 }
 
