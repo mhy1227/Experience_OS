@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["hkg1"],
+  "buildCommand": "npm run build",
   "functions": {
     "api/*.js": { "maxDuration": 60 }
   }
