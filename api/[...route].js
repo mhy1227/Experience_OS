@@ -1,4 +1,8 @@
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
   try {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -6,32 +10,45 @@ var __commonJS = (cb, mod) => function __require() {
     throw mod = 0, e;
   }
 };
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // node_modules/hono/dist/cjs/compose.js
 var require_compose = __commonJS({
-  "node_modules/hono/dist/cjs/compose.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/compose.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var compose_exports = {};
-    __export(compose_exports, {
+    __export2(compose_exports, {
       compose: () => compose2
     });
-    module.exports = __toCommonJS(compose_exports);
+    module2.exports = __toCommonJS2(compose_exports);
     var compose2 = (middleware, onError, onNotFound) => {
       return (context, next) => {
         let index = -1;
@@ -79,29 +96,29 @@ var require_compose = __commonJS({
 
 // node_modules/hono/dist/cjs/http-exception.js
 var require_http_exception = __commonJS({
-  "node_modules/hono/dist/cjs/http-exception.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/http-exception.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var http_exception_exports = {};
-    __export(http_exception_exports, {
+    __export2(http_exception_exports, {
       HTTPException: () => HTTPException2
     });
-    module.exports = __toCommonJS(http_exception_exports);
+    module2.exports = __toCommonJS2(http_exception_exports);
     var HTTPException2 = class extends Error {
       res;
       status;
@@ -138,58 +155,58 @@ var require_http_exception = __commonJS({
 
 // node_modules/hono/dist/cjs/request/constants.js
 var require_constants = __commonJS({
-  "node_modules/hono/dist/cjs/request/constants.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/request/constants.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var constants_exports = {};
-    __export(constants_exports, {
+    __export2(constants_exports, {
       GET_MATCH_RESULT: () => GET_MATCH_RESULT2
     });
-    module.exports = __toCommonJS(constants_exports);
+    module2.exports = __toCommonJS2(constants_exports);
     var GET_MATCH_RESULT2 = /* @__PURE__ */ Symbol();
   }
 });
 
 // node_modules/hono/dist/cjs/utils/body.js
 var require_body = __commonJS({
-  "node_modules/hono/dist/cjs/utils/body.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/utils/body.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var body_exports = {};
-    __export(body_exports, {
+    __export2(body_exports, {
       parseBody: () => parseBody2
     });
-    module.exports = __toCommonJS(body_exports);
+    module2.exports = __toCommonJS2(body_exports);
     var import_request3 = require_request();
     var parseBody2 = async (request, options = /* @__PURE__ */ Object.create(null)) => {
       const { all = false, dot = false } = options;
@@ -266,26 +283,26 @@ var require_body = __commonJS({
 
 // node_modules/hono/dist/cjs/utils/url.js
 var require_url = __commonJS({
-  "node_modules/hono/dist/cjs/utils/url.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/utils/url.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var url_exports = {};
-    __export(url_exports, {
+    __export2(url_exports, {
       checkOptionalParameter: () => checkOptionalParameter2,
       decodeURIComponent_: () => decodeURIComponent_2,
       getPath: () => getPath2,
@@ -300,7 +317,7 @@ var require_url = __commonJS({
       tryDecode: () => tryDecode2,
       tryDecodeURI: () => tryDecodeURI2
     });
-    module.exports = __toCommonJS(url_exports);
+    module2.exports = __toCommonJS2(url_exports);
     var splitPath2 = (path) => {
       const paths = path.split("/");
       if (paths[0] === "") {
@@ -512,30 +529,30 @@ var require_url = __commonJS({
 
 // node_modules/hono/dist/cjs/request.js
 var require_request = __commonJS({
-  "node_modules/hono/dist/cjs/request.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/request.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var request_exports = {};
-    __export(request_exports, {
+    __export2(request_exports, {
       HonoRequest: () => HonoRequest2,
       cloneRawRequest: () => cloneRawRequest
     });
-    module.exports = __toCommonJS(request_exports);
+    module2.exports = __toCommonJS2(request_exports);
     var import_http_exception2 = require_http_exception();
     var import_constants3 = require_constants();
     var import_body2 = require_body();
@@ -852,26 +869,26 @@ var require_request = __commonJS({
 
 // node_modules/hono/dist/cjs/utils/html.js
 var require_html = __commonJS({
-  "node_modules/hono/dist/cjs/utils/html.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/utils/html.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var html_exports = {};
-    __export(html_exports, {
+    __export2(html_exports, {
       HtmlEscapedCallbackPhase: () => HtmlEscapedCallbackPhase2,
       escapeToBuffer: () => escapeToBuffer,
       raw: () => raw2,
@@ -879,7 +896,7 @@ var require_html = __commonJS({
       resolveCallbackSync: () => resolveCallbackSync,
       stringBufferToString: () => stringBufferToString
     });
-    module.exports = __toCommonJS(html_exports);
+    module2.exports = __toCommonJS2(html_exports);
     var HtmlEscapedCallbackPhase2 = {
       Stringify: 1,
       BeforeStream: 2,
@@ -999,30 +1016,30 @@ var require_html = __commonJS({
 
 // node_modules/hono/dist/cjs/context.js
 var require_context = __commonJS({
-  "node_modules/hono/dist/cjs/context.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/context.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var context_exports = {};
-    __export(context_exports, {
+    __export2(context_exports, {
       Context: () => Context3,
       TEXT_PLAIN: () => TEXT_PLAIN2
     });
-    module.exports = __toCommonJS(context_exports);
+    module2.exports = __toCommonJS2(context_exports);
     var import_request3 = require_request();
     var import_html2 = require_html();
     var TEXT_PLAIN2 = "text/plain; charset=UTF-8";
@@ -1435,33 +1452,33 @@ var require_context = __commonJS({
 
 // node_modules/hono/dist/cjs/router.js
 var require_router = __commonJS({
-  "node_modules/hono/dist/cjs/router.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var router_exports = {};
-    __export(router_exports, {
+    __export2(router_exports, {
       MESSAGE_MATCHER_IS_ALREADY_BUILT: () => MESSAGE_MATCHER_IS_ALREADY_BUILT2,
       METHODS: () => METHODS2,
       METHOD_NAME_ALL: () => METHOD_NAME_ALL2,
       METHOD_NAME_ALL_LOWERCASE: () => METHOD_NAME_ALL_LOWERCASE2,
       UnsupportedPathError: () => UnsupportedPathError2
     });
-    module.exports = __toCommonJS(router_exports);
+    module2.exports = __toCommonJS2(router_exports);
     var METHOD_NAME_ALL2 = "ALL";
     var METHOD_NAME_ALL_LOWERCASE2 = "all";
     var METHODS2 = ["get", "post", "put", "delete", "options", "patch"];
@@ -1473,58 +1490,58 @@ var require_router = __commonJS({
 
 // node_modules/hono/dist/cjs/utils/constants.js
 var require_constants2 = __commonJS({
-  "node_modules/hono/dist/cjs/utils/constants.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/utils/constants.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var constants_exports = {};
-    __export(constants_exports, {
+    __export2(constants_exports, {
       COMPOSED_HANDLER: () => COMPOSED_HANDLER2
     });
-    module.exports = __toCommonJS(constants_exports);
+    module2.exports = __toCommonJS2(constants_exports);
     var COMPOSED_HANDLER2 = "__COMPOSED_HANDLER";
   }
 });
 
 // node_modules/hono/dist/cjs/hono-base.js
 var require_hono_base = __commonJS({
-  "node_modules/hono/dist/cjs/hono-base.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/hono-base.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var hono_base_exports = {};
-    __export(hono_base_exports, {
+    __export2(hono_base_exports, {
       HonoBase: () => Hono4
     });
-    module.exports = __toCommonJS(hono_base_exports);
+    module2.exports = __toCommonJS2(hono_base_exports);
     var import_compose2 = require_compose();
     var import_context3 = require_context();
     var import_router11 = require_router();
@@ -1909,30 +1926,30 @@ var require_hono_base = __commonJS({
 
 // node_modules/hono/dist/cjs/router/reg-exp-router/matcher.js
 var require_matcher = __commonJS({
-  "node_modules/hono/dist/cjs/router/reg-exp-router/matcher.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/reg-exp-router/matcher.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var matcher_exports = {};
-    __export(matcher_exports, {
+    __export2(matcher_exports, {
       emptyParam: () => emptyParam2,
       match: () => match2
     });
-    module.exports = __toCommonJS(matcher_exports);
+    module2.exports = __toCommonJS2(matcher_exports);
     var import_router11 = require_router();
     var emptyParam2 = [];
     function match2(method, path) {
@@ -1958,30 +1975,30 @@ var require_matcher = __commonJS({
 
 // node_modules/hono/dist/cjs/router/reg-exp-router/node.js
 var require_node = __commonJS({
-  "node_modules/hono/dist/cjs/router/reg-exp-router/node.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/reg-exp-router/node.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var node_exports = {};
-    __export(node_exports, {
+    __export2(node_exports, {
       Node: () => Node3,
       PATH_ERROR: () => PATH_ERROR2
     });
-    module.exports = __toCommonJS(node_exports);
+    module2.exports = __toCommonJS2(node_exports);
     var LABEL_REG_EXP_STR2 = "[^/]+";
     var ONLY_WILDCARD_REG_EXP_STR2 = ".*";
     var TAIL_WILDCARD_REG_EXP_STR2 = "(?:|/.*)";
@@ -2093,29 +2110,29 @@ var require_node = __commonJS({
 
 // node_modules/hono/dist/cjs/router/reg-exp-router/trie.js
 var require_trie = __commonJS({
-  "node_modules/hono/dist/cjs/router/reg-exp-router/trie.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/reg-exp-router/trie.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var trie_exports = {};
-    __export(trie_exports, {
+    __export2(trie_exports, {
       Trie: () => Trie2
     });
-    module.exports = __toCommonJS(trie_exports);
+    module2.exports = __toCommonJS2(trie_exports);
     var import_node4 = require_node();
     var Trie2 = class {
       #context = { varIndex: 0 };
@@ -2176,29 +2193,29 @@ var require_trie = __commonJS({
 
 // node_modules/hono/dist/cjs/router/reg-exp-router/router.js
 var require_router2 = __commonJS({
-  "node_modules/hono/dist/cjs/router/reg-exp-router/router.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/reg-exp-router/router.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var router_exports = {};
-    __export(router_exports, {
+    __export2(router_exports, {
       RegExpRouter: () => RegExpRouter3
     });
-    module.exports = __toCommonJS(router_exports);
+    module2.exports = __toCommonJS2(router_exports);
     var import_router11 = require_router();
     var import_url6 = require_url();
     var import_matcher3 = require_matcher();
@@ -2386,31 +2403,31 @@ var require_router2 = __commonJS({
 
 // node_modules/hono/dist/cjs/router/reg-exp-router/prepared-router.js
 var require_prepared_router = __commonJS({
-  "node_modules/hono/dist/cjs/router/reg-exp-router/prepared-router.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/reg-exp-router/prepared-router.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var prepared_router_exports = {};
-    __export(prepared_router_exports, {
+    __export2(prepared_router_exports, {
       PreparedRegExpRouter: () => PreparedRegExpRouter3,
       buildInitParams: () => buildInitParams3,
       serializeInitParams: () => serializeInitParams3
     });
-    module.exports = __toCommonJS(prepared_router_exports);
+    module2.exports = __toCommonJS2(prepared_router_exports);
     var import_router11 = require_router();
     var import_matcher3 = require_matcher();
     var import_router22 = require_router2();
@@ -2552,32 +2569,32 @@ var require_prepared_router = __commonJS({
 
 // node_modules/hono/dist/cjs/router/reg-exp-router/index.js
 var require_reg_exp_router = __commonJS({
-  "node_modules/hono/dist/cjs/router/reg-exp-router/index.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/reg-exp-router/index.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var reg_exp_router_exports = {};
-    __export(reg_exp_router_exports, {
+    __export2(reg_exp_router_exports, {
       PreparedRegExpRouter: () => import_prepared_router2.PreparedRegExpRouter,
       RegExpRouter: () => import_router11.RegExpRouter,
       buildInitParams: () => import_prepared_router2.buildInitParams,
       serializeInitParams: () => import_prepared_router2.serializeInitParams
     });
-    module.exports = __toCommonJS(reg_exp_router_exports);
+    module2.exports = __toCommonJS2(reg_exp_router_exports);
     var import_router11 = require_router2();
     var import_prepared_router2 = require_prepared_router();
   }
@@ -2585,29 +2602,29 @@ var require_reg_exp_router = __commonJS({
 
 // node_modules/hono/dist/cjs/router/smart-router/router.js
 var require_router3 = __commonJS({
-  "node_modules/hono/dist/cjs/router/smart-router/router.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/smart-router/router.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var router_exports = {};
-    __export(router_exports, {
+    __export2(router_exports, {
       SmartRouter: () => SmartRouter3
     });
-    module.exports = __toCommonJS(router_exports);
+    module2.exports = __toCommonJS2(router_exports);
     var import_router11 = require_router();
     var SmartRouter3 = class {
       name = "SmartRouter";
@@ -2667,58 +2684,58 @@ var require_router3 = __commonJS({
 
 // node_modules/hono/dist/cjs/router/smart-router/index.js
 var require_smart_router = __commonJS({
-  "node_modules/hono/dist/cjs/router/smart-router/index.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/smart-router/index.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var smart_router_exports = {};
-    __export(smart_router_exports, {
+    __export2(smart_router_exports, {
       SmartRouter: () => import_router11.SmartRouter
     });
-    module.exports = __toCommonJS(smart_router_exports);
+    module2.exports = __toCommonJS2(smart_router_exports);
     var import_router11 = require_router3();
   }
 });
 
 // node_modules/hono/dist/cjs/router/trie-router/node.js
 var require_node2 = __commonJS({
-  "node_modules/hono/dist/cjs/router/trie-router/node.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/trie-router/node.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var node_exports = {};
-    __export(node_exports, {
+    __export2(node_exports, {
       Node: () => Node3
     });
-    module.exports = __toCommonJS(node_exports);
+    module2.exports = __toCommonJS2(node_exports);
     var import_router11 = require_router();
     var import_url6 = require_url();
     var emptyParams2 = /* @__PURE__ */ Object.create(null);
@@ -2899,29 +2916,29 @@ var require_node2 = __commonJS({
 
 // node_modules/hono/dist/cjs/router/trie-router/router.js
 var require_router4 = __commonJS({
-  "node_modules/hono/dist/cjs/router/trie-router/router.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/trie-router/router.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var router_exports = {};
-    __export(router_exports, {
+    __export2(router_exports, {
       TrieRouter: () => TrieRouter3
     });
-    module.exports = __toCommonJS(router_exports);
+    module2.exports = __toCommonJS2(router_exports);
     var import_url6 = require_url();
     var import_node4 = require_node2();
     var TrieRouter3 = class {
@@ -2949,58 +2966,58 @@ var require_router4 = __commonJS({
 
 // node_modules/hono/dist/cjs/router/trie-router/index.js
 var require_trie_router = __commonJS({
-  "node_modules/hono/dist/cjs/router/trie-router/index.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/router/trie-router/index.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var trie_router_exports = {};
-    __export(trie_router_exports, {
+    __export2(trie_router_exports, {
       TrieRouter: () => import_router11.TrieRouter
     });
-    module.exports = __toCommonJS(trie_router_exports);
+    module2.exports = __toCommonJS2(trie_router_exports);
     var import_router11 = require_router4();
   }
 });
 
 // node_modules/hono/dist/cjs/hono.js
 var require_hono = __commonJS({
-  "node_modules/hono/dist/cjs/hono.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/hono.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var hono_exports = {};
-    __export(hono_exports, {
+    __export2(hono_exports, {
       Hono: () => Hono4
     });
-    module.exports = __toCommonJS(hono_exports);
+    module2.exports = __toCommonJS2(hono_exports);
     var import_hono_base2 = require_hono_base();
     var import_reg_exp_router2 = require_reg_exp_router();
     var import_smart_router2 = require_smart_router();
@@ -3023,41 +3040,48 @@ var require_hono = __commonJS({
 
 // node_modules/hono/dist/cjs/index.js
 var require_cjs = __commonJS({
-  "node_modules/hono/dist/cjs/index.js"(exports, module) {
-    var __defProp = Object.defineProperty;
-    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  "node_modules/hono/dist/cjs/index.js"(exports2, module2) {
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
     var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp = Object.prototype.hasOwnProperty;
-    var __export = (target, all) => {
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
       for (var name in all)
-        __defProp(target, name, { get: all[name], enumerable: true });
+        __defProp2(target, name, { get: all[name], enumerable: true });
     };
-    var __copyProps = (to, from, except, desc) => {
+    var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
         for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp.call(to, key) && key !== except)
-            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
       }
       return to;
     };
-    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var index_exports = {};
-    __export(index_exports, {
+    __export2(index_exports, {
       Context: () => import_context3.Context,
       Hono: () => import_hono3.Hono
     });
-    module.exports = __toCommonJS(index_exports);
+    module2.exports = __toCommonJS2(index_exports);
     var import_hono3 = require_hono();
     var import_context3 = require_context();
   }
 });
 
+// server/vercel.ts
+var vercel_exports = {};
+__export(vercel_exports, {
+  default: () => vercel_default
+});
+module.exports = __toCommonJS(vercel_exports);
+
 // node_modules/@hono/node-server/dist/constants-BLSFu_RU.mjs
 var X_ALREADY_SENT = "x-hono-already-sent";
 
 // node_modules/@hono/node-server/dist/index.mjs
-import { Http2ServerRequest, constants } from "node:http2";
-import { Readable } from "node:stream";
+var import_node_http2 = require("node:http2");
+var import_node_stream = require("node:stream");
 
 // node_modules/hono/dist/helper/websocket/index.js
 var defineWebSocketHelper = (handler) => {
@@ -3156,7 +3180,7 @@ var newRequestFromIncoming = (method, url, headers, incoming, abortController) =
     let reader;
     init.body = new ReadableStream({ async pull(controller) {
       try {
-        reader ||= Readable.toWeb(incoming).getReader();
+        reader ||= import_node_stream.Readable.toWeb(incoming).getReader();
         const { done, value } = await reader.read();
         if (done) controller.close();
         else controller.enqueue(value);
@@ -3164,7 +3188,7 @@ var newRequestFromIncoming = (method, url, headers, incoming, abortController) =
         controller.error(error);
       }
     } });
-  } else init.body = Readable.toWeb(incoming);
+  } else init.body = import_node_stream.Readable.toWeb(incoming);
   return new Request$1(url, init);
 };
 var getRequestCache = /* @__PURE__ */ Symbol("getRequestCache");
@@ -3259,7 +3283,7 @@ var readBodyDirect = (request) => {
   if (request[bodyBufferKey]) return Promise.resolve(request[bodyBufferKey]);
   if (request[bodyReadPromiseKey]) return request[bodyReadPromiseKey];
   const incoming = request[incomingKey];
-  if (Readable.isDisturbed(incoming)) return rejectBodyUnusable();
+  if (import_node_stream.Readable.isDisturbed(incoming)) return rejectBodyUnusable();
   const promise = new Promise((resolve, reject) => {
     const chunks = [];
     let settled = false;
@@ -3442,7 +3466,7 @@ var newRequest = (incoming, defaultHostname) => {
   req[methodKey] = normalizeIncomingMethod(incoming.method);
   const incomingUrl = incoming.url || "";
   if (incomingUrl[0] !== "/" && (incomingUrl.startsWith("http://") || incomingUrl.startsWith("https://"))) {
-    if (incoming instanceof Http2ServerRequest) throw new RequestError("Absolute URL for :path is not allowed in HTTP/2");
+    if (incoming instanceof import_node_http2.Http2ServerRequest) throw new RequestError("Absolute URL for :path is not allowed in HTTP/2");
     try {
       req[urlKey] = new URL(incomingUrl).href;
     } catch (e) {
@@ -3450,10 +3474,10 @@ var newRequest = (incoming, defaultHostname) => {
     }
     return req;
   }
-  const host = (incoming instanceof Http2ServerRequest ? incoming.authority : incoming.headers.host) || defaultHostname;
+  const host = (incoming instanceof import_node_http2.Http2ServerRequest ? incoming.authority : incoming.headers.host) || defaultHostname;
   if (!host) throw new RequestError("Missing host header");
   let scheme;
-  if (incoming instanceof Http2ServerRequest) {
+  if (incoming instanceof import_node_http2.Http2ServerRequest) {
     scheme = incoming.scheme;
     if (!(scheme === "http" || scheme === "https")) throw new RequestError("Unsupported scheme");
   } else scheme = incoming.socket && incoming.socket.encrypted ? "https" : "http";
@@ -3655,9 +3679,9 @@ var drainIncoming = (incoming) => {
   const incomingWithDrainState = incoming;
   if (incoming.destroyed || incomingWithDrainState[incomingDraining]) return;
   incomingWithDrainState[incomingDraining] = true;
-  if (incoming instanceof Http2ServerRequest) {
+  if (incoming instanceof import_node_http2.Http2ServerRequest) {
     try {
-      incoming.stream?.close?.(constants.NGHTTP2_NO_ERROR);
+      incoming.stream?.close?.(import_node_http2.constants.NGHTTP2_NO_ERROR);
     } catch {
     }
     return;
@@ -3851,7 +3875,7 @@ var getRequestListener = (fetchCallback, options = {}) => {
       needsBodyCleanup = autoCleanupIncoming && !(incoming.method === "GET" || incoming.method === "HEAD");
       if (needsBodyCleanup) {
         incoming[wrapBodyStream] = true;
-        if (incoming instanceof Http2ServerRequest) outgoing[outgoingEnded] = () => {
+        if (incoming instanceof import_node_http2.Http2ServerRequest) outgoing[outgoingEnded] = () => {
           if (!incoming.readableEnded) setTimeout(() => {
             if (!incoming.readableEnded) setTimeout(() => {
               incoming.destroy();
@@ -6994,6 +7018,3 @@ vercelApp.all("/*", async (c) => {
   }));
 });
 var vercel_default = getRequestListener(vercelApp.fetch);
-export {
-  vercel_default as default
-};
