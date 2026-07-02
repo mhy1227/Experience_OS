@@ -6978,46 +6978,20 @@ app.get("/api/feishu/records", async (c) => {
 var app_default = app;
 
 // server/vercel.ts
-function buildQuery(query) {
-  const parts = [];
-  for (const [key, value] of Object.entries(query)) {
-    if (value === void 0) continue;
-    if (Array.isArray(value)) {
-      for (const v of value) {
-        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
-      }
-    } else {
-      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
-    }
-  }
-  return parts.join("&");
-}
 var vercelApp = new (require_cjs()).Hono();
-vercelApp.all("/health", async (c) => {
-  return app_default.fetch(new Request("http://localhost/api/health", { method: "GET", headers: c.req.headers }));
-});
-vercelApp.all("/feishu/tables", async (c) => {
-  const query = buildQuery(c.req.query());
-  const url = query ? `http://localhost/api/feishu/tables?${query}` : "http://localhost/api/feishu/tables";
-  return app_default.fetch(new Request(url, { method: "GET", headers: c.req.headers }));
-});
-vercelApp.all("/feishu/fields", async (c) => {
-  const query = buildQuery(c.req.query());
-  const url = query ? `http://localhost/api/feishu/fields?${query}` : "http://localhost/api/feishu/fields";
-  return app_default.fetch(new Request(url, { method: "GET", headers: c.req.headers }));
-});
-vercelApp.all("/feishu/records", async (c) => {
-  const query = buildQuery(c.req.query());
-  const url = query ? `http://localhost/api/feishu/records?${query}` : "http://localhost/api/feishu/records";
-  return app_default.fetch(new Request(url, { method: "GET", headers: c.req.headers }));
-});
-vercelApp.all("/analyze", async (c) => {
-  const body = await c.req.text();
-  return app_default.fetch(new Request("http://localhost/api/analyze", { method: "POST", headers: c.req.headers, body }));
-});
-vercelApp.all("/analyze-batch", async (c) => {
-  const body = await c.req.text();
-  return app_default.fetch(new Request("http://localhost/api/analyze-batch", { method: "POST", headers: c.req.headers, body }));
+vercelApp.all("/*", async (c) => {
+  const pathname = c.req.path;
+  const query = c.req.query();
+  const queryString = Object.keys(query).filter((k) => query[k] !== void 0).map((k) => {
+    const v = query[k];
+    return Array.isArray(v) ? v.map((x) => `${k}=${encodeURIComponent(x)}`).join("&") : `${k}=${encodeURIComponent(v)}`;
+  }).join("&");
+  const url = queryString ? `http://localhost/api${pathname}?${queryString}` : `http://localhost/api${pathname}`;
+  return app_default.fetch(new Request(url, {
+    method: c.req.method,
+    headers: c.req.headers,
+    body: c.req.body
+  }));
 });
 var vercel_default = getRequestListener(vercelApp.fetch);
 export {
