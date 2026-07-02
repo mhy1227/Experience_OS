@@ -7,6 +7,20 @@
 import { getRequestListener } from '@hono/node-server'
 import app from './app'
 
-const apiRouter = app.route('/api')
+function createRequest(c: any): Request {
+  const url = new URL(c.req.url)
+  const newUrl = new URL(`http://localhost/api${url.pathname}${url.search}`)
+  return new Request(newUrl.toString(), {
+    method: c.req.method,
+    headers: c.req.headers,
+    body: c.req.body,
+  })
+}
 
-export default getRequestListener(apiRouter.fetch)
+const vercelApp = new (require('hono').Hono)()
+
+vercelApp.all('/*', async (c) => {
+  return app.fetch(createRequest(c))
+})
+
+export default getRequestListener(vercelApp.fetch)

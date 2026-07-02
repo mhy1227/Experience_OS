@@ -1,3 +1,3057 @@
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __commonJS = (cb, mod) => function __require() {
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
+};
+
+// node_modules/hono/dist/cjs/compose.js
+var require_compose = __commonJS({
+  "node_modules/hono/dist/cjs/compose.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var compose_exports = {};
+    __export(compose_exports, {
+      compose: () => compose2
+    });
+    module.exports = __toCommonJS(compose_exports);
+    var compose2 = (middleware, onError, onNotFound) => {
+      return (context, next) => {
+        let index = -1;
+        return dispatch(0);
+        async function dispatch(i) {
+          if (i <= index) {
+            throw new Error("next() called multiple times");
+          }
+          index = i;
+          let res;
+          let isError = false;
+          let handler;
+          if (middleware[i]) {
+            handler = middleware[i][0][0];
+            context.req.routeIndex = i;
+          } else {
+            handler = i === middleware.length && next || void 0;
+          }
+          if (handler) {
+            try {
+              res = await handler(context, () => dispatch(i + 1));
+            } catch (err) {
+              if (err instanceof Error && onError) {
+                context.error = err;
+                res = await onError(err, context);
+                isError = true;
+              } else {
+                throw err;
+              }
+            }
+          } else {
+            if (context.finalized === false && onNotFound) {
+              res = await onNotFound(context);
+            }
+          }
+          if (res && (context.finalized === false || isError)) {
+            context.res = res;
+          }
+          return context;
+        }
+      };
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/http-exception.js
+var require_http_exception = __commonJS({
+  "node_modules/hono/dist/cjs/http-exception.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var http_exception_exports = {};
+    __export(http_exception_exports, {
+      HTTPException: () => HTTPException2
+    });
+    module.exports = __toCommonJS(http_exception_exports);
+    var HTTPException2 = class extends Error {
+      res;
+      status;
+      /**
+       * Creates an instance of `HTTPException`.
+       * @param status - HTTP status code for the exception. Defaults to 500.
+       * @param options - Additional options for the exception.
+       */
+      constructor(status = 500, options) {
+        super(options?.message, { cause: options?.cause });
+        this.res = options?.res;
+        this.status = status;
+      }
+      /**
+       * Returns the response object associated with the exception.
+       * If a response object is not provided, a new response is created with the error message and status code.
+       * @returns The response object.
+       */
+      getResponse() {
+        if (this.res) {
+          const newResponse = new Response(this.res.body, {
+            status: this.status,
+            headers: this.res.headers
+          });
+          return newResponse;
+        }
+        return new Response(this.message, {
+          status: this.status
+        });
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/request/constants.js
+var require_constants = __commonJS({
+  "node_modules/hono/dist/cjs/request/constants.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var constants_exports = {};
+    __export(constants_exports, {
+      GET_MATCH_RESULT: () => GET_MATCH_RESULT2
+    });
+    module.exports = __toCommonJS(constants_exports);
+    var GET_MATCH_RESULT2 = /* @__PURE__ */ Symbol();
+  }
+});
+
+// node_modules/hono/dist/cjs/utils/body.js
+var require_body = __commonJS({
+  "node_modules/hono/dist/cjs/utils/body.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var body_exports = {};
+    __export(body_exports, {
+      parseBody: () => parseBody2
+    });
+    module.exports = __toCommonJS(body_exports);
+    var import_request3 = require_request();
+    var parseBody2 = async (request, options = /* @__PURE__ */ Object.create(null)) => {
+      const { all = false, dot = false } = options;
+      const headers = request instanceof import_request3.HonoRequest ? request.raw.headers : request.headers;
+      const contentType2 = headers.get("Content-Type");
+      if (contentType2?.startsWith("multipart/form-data") || contentType2?.startsWith("application/x-www-form-urlencoded")) {
+        return parseFormData2(request, { all, dot });
+      }
+      return {};
+    };
+    async function parseFormData2(request, options) {
+      const formData = await request.formData();
+      if (formData) {
+        return convertFormDataToBodyData2(formData, options);
+      }
+      return {};
+    }
+    function convertFormDataToBodyData2(formData, options) {
+      const form = /* @__PURE__ */ Object.create(null);
+      formData.forEach((value, key) => {
+        const shouldParseAllValues = options.all || key.endsWith("[]");
+        if (!shouldParseAllValues) {
+          form[key] = value;
+        } else {
+          handleParsingAllValues2(form, key, value);
+        }
+      });
+      if (options.dot) {
+        Object.entries(form).forEach(([key, value]) => {
+          const shouldParseDotValues = key.includes(".");
+          if (shouldParseDotValues) {
+            handleParsingNestedValues2(form, key, value);
+            delete form[key];
+          }
+        });
+      }
+      return form;
+    }
+    var handleParsingAllValues2 = (form, key, value) => {
+      if (form[key] !== void 0) {
+        if (Array.isArray(form[key])) {
+          ;
+          form[key].push(value);
+        } else {
+          form[key] = [form[key], value];
+        }
+      } else {
+        if (!key.endsWith("[]")) {
+          form[key] = value;
+        } else {
+          form[key] = [value];
+        }
+      }
+    };
+    var handleParsingNestedValues2 = (form, key, value) => {
+      if (/(?:^|\.)__proto__\./.test(key)) {
+        return;
+      }
+      let nestedForm = form;
+      const keys = key.split(".");
+      keys.forEach((key2, index) => {
+        if (index === keys.length - 1) {
+          nestedForm[key2] = value;
+        } else {
+          if (!nestedForm[key2] || typeof nestedForm[key2] !== "object" || Array.isArray(nestedForm[key2]) || nestedForm[key2] instanceof File) {
+            nestedForm[key2] = /* @__PURE__ */ Object.create(null);
+          }
+          nestedForm = nestedForm[key2];
+        }
+      });
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/utils/url.js
+var require_url = __commonJS({
+  "node_modules/hono/dist/cjs/utils/url.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var url_exports = {};
+    __export(url_exports, {
+      checkOptionalParameter: () => checkOptionalParameter2,
+      decodeURIComponent_: () => decodeURIComponent_2,
+      getPath: () => getPath2,
+      getPathNoStrict: () => getPathNoStrict2,
+      getPattern: () => getPattern2,
+      getQueryParam: () => getQueryParam2,
+      getQueryParams: () => getQueryParams2,
+      getQueryStrings: () => getQueryStrings,
+      mergePath: () => mergePath2,
+      splitPath: () => splitPath2,
+      splitRoutingPath: () => splitRoutingPath2,
+      tryDecode: () => tryDecode2,
+      tryDecodeURI: () => tryDecodeURI2
+    });
+    module.exports = __toCommonJS(url_exports);
+    var splitPath2 = (path) => {
+      const paths = path.split("/");
+      if (paths[0] === "") {
+        paths.shift();
+      }
+      return paths;
+    };
+    var splitRoutingPath2 = (routePath) => {
+      const { groups, path } = extractGroupsFromPath2(routePath);
+      const paths = splitPath2(path);
+      return replaceGroupMarks2(paths, groups);
+    };
+    var extractGroupsFromPath2 = (path) => {
+      const groups = [];
+      path = path.replace(/\{[^}]+\}/g, (match2, index) => {
+        const mark = `@${index}`;
+        groups.push([mark, match2]);
+        return mark;
+      });
+      return { groups, path };
+    };
+    var replaceGroupMarks2 = (paths, groups) => {
+      for (let i = groups.length - 1; i >= 0; i--) {
+        const [mark] = groups[i];
+        for (let j = paths.length - 1; j >= 0; j--) {
+          if (paths[j].includes(mark)) {
+            paths[j] = paths[j].replace(mark, groups[i][1]);
+            break;
+          }
+        }
+      }
+      return paths;
+    };
+    var patternCache2 = {};
+    var getPattern2 = (label, next) => {
+      if (label === "*") {
+        return "*";
+      }
+      const match2 = label.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/);
+      if (match2) {
+        const cacheKey2 = `${label}#${next}`;
+        if (!patternCache2[cacheKey2]) {
+          if (match2[2]) {
+            patternCache2[cacheKey2] = next && next[0] !== ":" && next[0] !== "*" ? [cacheKey2, match2[1], new RegExp(`^${match2[2]}(?=/${next})`)] : [label, match2[1], new RegExp(`^${match2[2]}$`)];
+          } else {
+            patternCache2[cacheKey2] = [label, match2[1], true];
+          }
+        }
+        return patternCache2[cacheKey2];
+      }
+      return null;
+    };
+    var tryDecode2 = (str, decoder) => {
+      try {
+        return decoder(str);
+      } catch {
+        return str.replace(/(?:%[0-9A-Fa-f]{2})+/g, (match2) => {
+          try {
+            return decoder(match2);
+          } catch {
+            return match2;
+          }
+        });
+      }
+    };
+    var tryDecodeURI2 = (str) => tryDecode2(str, decodeURI);
+    var getPath2 = (request) => {
+      const url = request.url;
+      const start = url.indexOf("/", url.indexOf(":") + 4);
+      let i = start;
+      for (; i < url.length; i++) {
+        const charCode = url.charCodeAt(i);
+        if (charCode === 37) {
+          const queryIndex = url.indexOf("?", i);
+          const hashIndex = url.indexOf("#", i);
+          const end = queryIndex === -1 ? hashIndex === -1 ? void 0 : hashIndex : hashIndex === -1 ? queryIndex : Math.min(queryIndex, hashIndex);
+          const path = url.slice(start, end);
+          return tryDecodeURI2(path.includes("%25") ? path.replace(/%25/g, "%2525") : path);
+        } else if (charCode === 63 || charCode === 35) {
+          break;
+        }
+      }
+      return url.slice(start, i);
+    };
+    var getQueryStrings = (url) => {
+      const queryIndex = url.indexOf("?", 8);
+      return queryIndex === -1 ? "" : "?" + url.slice(queryIndex + 1);
+    };
+    var getPathNoStrict2 = (request) => {
+      const result = getPath2(request);
+      return result.length > 1 && result.at(-1) === "/" ? result.slice(0, -1) : result;
+    };
+    var mergePath2 = (base, sub, ...rest) => {
+      if (rest.length) {
+        sub = mergePath2(sub, ...rest);
+      }
+      return `${base?.[0] === "/" ? "" : "/"}${base}${sub === "/" ? "" : `${base?.at(-1) === "/" ? "" : "/"}${sub?.[0] === "/" ? sub.slice(1) : sub}`}`;
+    };
+    var checkOptionalParameter2 = (path) => {
+      if (path.charCodeAt(path.length - 1) !== 63 || !path.includes(":")) {
+        return null;
+      }
+      const segments = path.split("/");
+      const results = [];
+      let basePath = "";
+      segments.forEach((segment2) => {
+        if (segment2 !== "" && !/\:/.test(segment2)) {
+          basePath += "/" + segment2;
+        } else if (/\:/.test(segment2)) {
+          if (/\?/.test(segment2)) {
+            if (results.length === 0 && basePath === "") {
+              results.push("/");
+            } else {
+              results.push(basePath);
+            }
+            const optionalSegment = segment2.replace("?", "");
+            basePath += "/" + optionalSegment;
+            results.push(basePath);
+          } else {
+            basePath += "/" + segment2;
+          }
+        }
+      });
+      return results.filter((v, i, a) => a.indexOf(v) === i);
+    };
+    var _decodeURI2 = (value) => {
+      if (!/[%+]/.test(value)) {
+        return value;
+      }
+      if (value.indexOf("+") !== -1) {
+        value = value.replace(/\+/g, " ");
+      }
+      return value.indexOf("%") !== -1 ? tryDecode2(value, decodeURIComponent_2) : value;
+    };
+    var _getQueryParam2 = (url, key, multiple) => {
+      let encoded;
+      if (!multiple && key && !/[%+]/.test(key)) {
+        let keyIndex2 = url.indexOf("?", 8);
+        if (keyIndex2 === -1) {
+          return void 0;
+        }
+        if (!url.startsWith(key, keyIndex2 + 1)) {
+          keyIndex2 = url.indexOf(`&${key}`, keyIndex2 + 1);
+        }
+        while (keyIndex2 !== -1) {
+          const trailingKeyCode = url.charCodeAt(keyIndex2 + key.length + 1);
+          if (trailingKeyCode === 61) {
+            const valueIndex = keyIndex2 + key.length + 2;
+            const endIndex = url.indexOf("&", valueIndex);
+            return _decodeURI2(url.slice(valueIndex, endIndex === -1 ? void 0 : endIndex));
+          } else if (trailingKeyCode == 38 || isNaN(trailingKeyCode)) {
+            return "";
+          }
+          keyIndex2 = url.indexOf(`&${key}`, keyIndex2 + 1);
+        }
+        encoded = /[%+]/.test(url);
+        if (!encoded) {
+          return void 0;
+        }
+      }
+      const results = {};
+      encoded ??= /[%+]/.test(url);
+      let keyIndex = url.indexOf("?", 8);
+      while (keyIndex !== -1) {
+        const nextKeyIndex = url.indexOf("&", keyIndex + 1);
+        let valueIndex = url.indexOf("=", keyIndex);
+        if (valueIndex > nextKeyIndex && nextKeyIndex !== -1) {
+          valueIndex = -1;
+        }
+        let name = url.slice(
+          keyIndex + 1,
+          valueIndex === -1 ? nextKeyIndex === -1 ? void 0 : nextKeyIndex : valueIndex
+        );
+        if (encoded) {
+          name = _decodeURI2(name);
+        }
+        keyIndex = nextKeyIndex;
+        if (name === "") {
+          continue;
+        }
+        let value;
+        if (valueIndex === -1) {
+          value = "";
+        } else {
+          value = url.slice(valueIndex + 1, nextKeyIndex === -1 ? void 0 : nextKeyIndex);
+          if (encoded) {
+            value = _decodeURI2(value);
+          }
+        }
+        if (multiple) {
+          if (!(results[name] && Array.isArray(results[name]))) {
+            results[name] = [];
+          }
+          ;
+          results[name].push(value);
+        } else {
+          results[name] ??= value;
+        }
+      }
+      return key ? results[key] : results;
+    };
+    var getQueryParam2 = _getQueryParam2;
+    var getQueryParams2 = (url, key) => {
+      return _getQueryParam2(url, key, true);
+    };
+    var decodeURIComponent_2 = decodeURIComponent;
+  }
+});
+
+// node_modules/hono/dist/cjs/request.js
+var require_request = __commonJS({
+  "node_modules/hono/dist/cjs/request.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var request_exports = {};
+    __export(request_exports, {
+      HonoRequest: () => HonoRequest2,
+      cloneRawRequest: () => cloneRawRequest
+    });
+    module.exports = __toCommonJS(request_exports);
+    var import_http_exception2 = require_http_exception();
+    var import_constants3 = require_constants();
+    var import_body2 = require_body();
+    var import_url6 = require_url();
+    var tryDecodeURIComponent2 = (str) => (0, import_url6.tryDecode)(str, import_url6.decodeURIComponent_);
+    var HonoRequest2 = class {
+      /**
+       * `.raw` can get the raw Request object.
+       *
+       * @see {@link https://hono.dev/docs/api/request#raw}
+       *
+       * @example
+       * ```ts
+       * // For Cloudflare Workers
+       * app.post('/', async (c) => {
+       *   const metadata = c.req.raw.cf?.hostMetadata?
+       *   ...
+       * })
+       * ```
+       */
+      raw;
+      #validatedData;
+      // Short name of validatedData
+      #matchResult;
+      routeIndex = 0;
+      /**
+       * `.path` can get the pathname of the request.
+       *
+       * @see {@link https://hono.dev/docs/api/request#path}
+       *
+       * @example
+       * ```ts
+       * app.get('/about/me', (c) => {
+       *   const pathname = c.req.path // `/about/me`
+       * })
+       * ```
+       */
+      path;
+      bodyCache = {};
+      constructor(request, path = "/", matchResult = [[]]) {
+        this.raw = request;
+        this.path = path;
+        this.#matchResult = matchResult;
+        this.#validatedData = {};
+      }
+      param(key) {
+        return key ? this.#getDecodedParam(key) : this.#getAllDecodedParams();
+      }
+      #getDecodedParam(key) {
+        const paramKey = this.#matchResult[0][this.routeIndex][1][key];
+        const param = this.#getParamValue(paramKey);
+        return param && /\%/.test(param) ? tryDecodeURIComponent2(param) : param;
+      }
+      #getAllDecodedParams() {
+        const decoded = {};
+        const keys = Object.keys(this.#matchResult[0][this.routeIndex][1]);
+        for (const key of keys) {
+          const value = this.#getParamValue(this.#matchResult[0][this.routeIndex][1][key]);
+          if (value !== void 0) {
+            decoded[key] = /\%/.test(value) ? tryDecodeURIComponent2(value) : value;
+          }
+        }
+        return decoded;
+      }
+      #getParamValue(paramKey) {
+        return this.#matchResult[1] ? this.#matchResult[1][paramKey] : paramKey;
+      }
+      query(key) {
+        return (0, import_url6.getQueryParam)(this.url, key);
+      }
+      queries(key) {
+        return (0, import_url6.getQueryParams)(this.url, key);
+      }
+      header(name) {
+        if (name) {
+          return this.raw.headers.get(name) ?? void 0;
+        }
+        const headerData = {};
+        this.raw.headers.forEach((value, key) => {
+          headerData[key] = value;
+        });
+        return headerData;
+      }
+      async parseBody(options) {
+        return (0, import_body2.parseBody)(this, options);
+      }
+      #cachedBody = (key) => {
+        const { bodyCache, raw: raw2 } = this;
+        const cachedBody = bodyCache[key];
+        if (cachedBody) {
+          return cachedBody;
+        }
+        const anyCachedKey = Object.keys(bodyCache)[0];
+        if (anyCachedKey) {
+          return bodyCache[anyCachedKey].then((body) => {
+            if (anyCachedKey === "json") {
+              body = JSON.stringify(body);
+            }
+            return new Response(body)[key]();
+          });
+        }
+        return bodyCache[key] = raw2[key]();
+      };
+      /**
+       * `.json()` can parse Request body of type `application/json`
+       *
+       * @see {@link https://hono.dev/docs/api/request#json}
+       *
+       * @example
+       * ```ts
+       * app.post('/entry', async (c) => {
+       *   const body = await c.req.json()
+       * })
+       * ```
+       */
+      json() {
+        return this.#cachedBody("text").then((text) => JSON.parse(text));
+      }
+      /**
+       * `.text()` can parse Request body of type `text/plain`
+       *
+       * @see {@link https://hono.dev/docs/api/request#text}
+       *
+       * @example
+       * ```ts
+       * app.post('/entry', async (c) => {
+       *   const body = await c.req.text()
+       * })
+       * ```
+       */
+      text() {
+        return this.#cachedBody("text");
+      }
+      /**
+       * `.arrayBuffer()` parse Request body as an `ArrayBuffer`
+       *
+       * @see {@link https://hono.dev/docs/api/request#arraybuffer}
+       *
+       * @example
+       * ```ts
+       * app.post('/entry', async (c) => {
+       *   const body = await c.req.arrayBuffer()
+       * })
+       * ```
+       */
+      arrayBuffer() {
+        return this.#cachedBody("arrayBuffer");
+      }
+      /**
+       * `.bytes()` parses the request body as a `Uint8Array`.
+       *
+       * @see {@link https://hono.dev/docs/api/request#bytes}
+       *
+       * @example
+       * ```ts
+       * app.post('/entry', async (c) => {
+       *   const body = await c.req.bytes()
+       * })
+       * ```
+       */
+      bytes() {
+        return this.#cachedBody("arrayBuffer").then((buffer) => new Uint8Array(buffer));
+      }
+      /**
+       * Parses the request body as a `Blob`.
+       * @example
+       * ```ts
+       * app.post('/entry', async (c) => {
+       *   const body = await c.req.blob();
+       * });
+       * ```
+       * @see https://hono.dev/docs/api/request#blob
+       */
+      blob() {
+        return this.#cachedBody("blob");
+      }
+      /**
+       * Parses the request body as `FormData`.
+       * @example
+       * ```ts
+       * app.post('/entry', async (c) => {
+       *   const body = await c.req.formData();
+       * });
+       * ```
+       * @see https://hono.dev/docs/api/request#formdata
+       */
+      formData() {
+        return this.#cachedBody("formData");
+      }
+      /**
+       * Adds validated data to the request.
+       *
+       * @param target - The target of the validation.
+       * @param data - The validated data to add.
+       */
+      addValidatedData(target, data) {
+        this.#validatedData[target] = data;
+      }
+      valid(target) {
+        return this.#validatedData[target];
+      }
+      /**
+       * `.url()` can get the request url strings.
+       *
+       * @see {@link https://hono.dev/docs/api/request#url}
+       *
+       * @example
+       * ```ts
+       * app.get('/about/me', (c) => {
+       *   const url = c.req.url // `http://localhost:8787/about/me`
+       *   ...
+       * })
+       * ```
+       */
+      get url() {
+        return this.raw.url;
+      }
+      /**
+       * `.method()` can get the method name of the request.
+       *
+       * @see {@link https://hono.dev/docs/api/request#method}
+       *
+       * @example
+       * ```ts
+       * app.get('/about/me', (c) => {
+       *   const method = c.req.method // `GET`
+       * })
+       * ```
+       */
+      get method() {
+        return this.raw.method;
+      }
+      get [import_constants3.GET_MATCH_RESULT]() {
+        return this.#matchResult;
+      }
+      /**
+       * `.matchedRoutes()` can return a matched route in the handler
+       *
+       * @deprecated
+       *
+       * Use matchedRoutes helper defined in "hono/route" instead.
+       *
+       * @see {@link https://hono.dev/docs/api/request#matchedroutes}
+       *
+       * @example
+       * ```ts
+       * app.use('*', async function logger(c, next) {
+       *   await next()
+       *   c.req.matchedRoutes.forEach(({ handler, method, path }, i) => {
+       *     const name = handler.name || (handler.length < 2 ? '[handler]' : '[middleware]')
+       *     console.log(
+       *       method,
+       *       ' ',
+       *       path,
+       *       ' '.repeat(Math.max(10 - path.length, 0)),
+       *       name,
+       *       i === c.req.routeIndex ? '<- respond from here' : ''
+       *     )
+       *   })
+       * })
+       * ```
+       */
+      get matchedRoutes() {
+        return this.#matchResult[0].map(([[, route]]) => route);
+      }
+      /**
+       * `routePath()` can retrieve the path registered within the handler
+       *
+       * @deprecated
+       *
+       * Use routePath helper defined in "hono/route" instead.
+       *
+       * @see {@link https://hono.dev/docs/api/request#routepath}
+       *
+       * @example
+       * ```ts
+       * app.get('/posts/:id', (c) => {
+       *   return c.json({ path: c.req.routePath })
+       * })
+       * ```
+       */
+      get routePath() {
+        return this.#matchResult[0].map(([[, route]]) => route)[this.routeIndex].path;
+      }
+    };
+    var cloneRawRequest = async (req) => {
+      if (!req.raw.bodyUsed) {
+        return req.raw.clone();
+      }
+      const cacheKey2 = Object.keys(req.bodyCache)[0];
+      if (!cacheKey2) {
+        throw new import_http_exception2.HTTPException(500, {
+          message: "Cannot clone request: body was already consumed and not cached. Please use HonoRequest methods (e.g., req.json(), req.text()) instead of consuming req.raw directly."
+        });
+      }
+      const requestInit = {
+        body: await req[cacheKey2](),
+        cache: req.raw.cache,
+        credentials: req.raw.credentials,
+        headers: req.header(),
+        integrity: req.raw.integrity,
+        keepalive: req.raw.keepalive,
+        method: req.method,
+        mode: req.raw.mode,
+        redirect: req.raw.redirect,
+        referrer: req.raw.referrer,
+        referrerPolicy: req.raw.referrerPolicy,
+        signal: req.raw.signal
+      };
+      return new Request(req.url, requestInit);
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/utils/html.js
+var require_html = __commonJS({
+  "node_modules/hono/dist/cjs/utils/html.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var html_exports = {};
+    __export(html_exports, {
+      HtmlEscapedCallbackPhase: () => HtmlEscapedCallbackPhase2,
+      escapeToBuffer: () => escapeToBuffer,
+      raw: () => raw2,
+      resolveCallback: () => resolveCallback2,
+      resolveCallbackSync: () => resolveCallbackSync,
+      stringBufferToString: () => stringBufferToString
+    });
+    module.exports = __toCommonJS(html_exports);
+    var HtmlEscapedCallbackPhase2 = {
+      Stringify: 1,
+      BeforeStream: 2,
+      Stream: 3
+    };
+    var raw2 = (value, callbacks) => {
+      const escapedString = new String(value);
+      escapedString.isEscaped = true;
+      escapedString.callbacks = callbacks;
+      return escapedString;
+    };
+    var escapeRe = /[&<>'"]/;
+    var stringBufferToString = async (buffer, callbacks) => {
+      let str = "";
+      callbacks ||= [];
+      const resolvedBuffer = await Promise.all(buffer);
+      for (let i = resolvedBuffer.length - 1; ; i--) {
+        str += resolvedBuffer[i];
+        i--;
+        if (i < 0) {
+          break;
+        }
+        let r = resolvedBuffer[i];
+        if (typeof r === "object") {
+          callbacks.push(...r.callbacks || []);
+        }
+        const isEscaped = r.isEscaped;
+        r = await (typeof r === "object" ? r.toString() : r);
+        if (typeof r === "object") {
+          callbacks.push(...r.callbacks || []);
+        }
+        if (r.isEscaped ?? isEscaped) {
+          str += r;
+        } else {
+          const buf = [str];
+          escapeToBuffer(r, buf);
+          str = buf[0];
+        }
+      }
+      return raw2(str, callbacks);
+    };
+    var escapeToBuffer = (str, buffer) => {
+      const match2 = str.search(escapeRe);
+      if (match2 === -1) {
+        buffer[0] += str;
+        return;
+      }
+      let escape;
+      let index;
+      let lastIndex = 0;
+      for (index = match2; index < str.length; index++) {
+        switch (str.charCodeAt(index)) {
+          case 34:
+            escape = "&quot;";
+            break;
+          case 39:
+            escape = "&#39;";
+            break;
+          case 38:
+            escape = "&amp;";
+            break;
+          case 60:
+            escape = "&lt;";
+            break;
+          case 62:
+            escape = "&gt;";
+            break;
+          default:
+            continue;
+        }
+        buffer[0] += str.substring(lastIndex, index) + escape;
+        lastIndex = index + 1;
+      }
+      buffer[0] += str.substring(lastIndex, index);
+    };
+    var resolveCallbackSync = (str) => {
+      const callbacks = str.callbacks;
+      if (!callbacks?.length) {
+        return str;
+      }
+      const buffer = [str];
+      const context = {};
+      callbacks.forEach((c) => c({ phase: HtmlEscapedCallbackPhase2.Stringify, buffer, context }));
+      return buffer[0];
+    };
+    var resolveCallback2 = async (str, phase, preserveCallbacks, context, buffer) => {
+      if (typeof str === "object" && !(str instanceof String)) {
+        if (!(str instanceof Promise)) {
+          str = str.toString();
+        }
+        if (str instanceof Promise) {
+          str = await str;
+        }
+      }
+      const callbacks = str.callbacks;
+      if (!callbacks?.length) {
+        return Promise.resolve(str);
+      }
+      if (buffer) {
+        buffer[0] += str;
+      } else {
+        buffer = [str];
+      }
+      const resStr = Promise.all(callbacks.map((c) => c({ phase, buffer, context }))).then(
+        (res) => Promise.all(
+          res.filter(Boolean).map((str2) => resolveCallback2(str2, phase, false, context, buffer))
+        ).then(() => buffer[0])
+      );
+      if (preserveCallbacks) {
+        return raw2(await resStr, callbacks);
+      } else {
+        return resStr;
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/context.js
+var require_context = __commonJS({
+  "node_modules/hono/dist/cjs/context.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var context_exports = {};
+    __export(context_exports, {
+      Context: () => Context3,
+      TEXT_PLAIN: () => TEXT_PLAIN2
+    });
+    module.exports = __toCommonJS(context_exports);
+    var import_request3 = require_request();
+    var import_html2 = require_html();
+    var TEXT_PLAIN2 = "text/plain; charset=UTF-8";
+    var setDefaultContentType2 = (contentType2, headers) => {
+      return {
+        "Content-Type": contentType2,
+        ...headers
+      };
+    };
+    var createResponseInstance2 = (body, init) => new Response(body, init);
+    var Context3 = class {
+      #rawRequest;
+      #req;
+      /**
+       * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
+       *
+       * @see {@link https://hono.dev/docs/api/context#env}
+       *
+       * @example
+       * ```ts
+       * // Environment object for Cloudflare Workers
+       * app.get('*', async c => {
+       *   const counter = c.env.COUNTER
+       * })
+       * ```
+       */
+      env = {};
+      #var;
+      finalized = false;
+      /**
+       * `.error` can get the error object from the middleware if the Handler throws an error.
+       *
+       * @see {@link https://hono.dev/docs/api/context#error}
+       *
+       * @example
+       * ```ts
+       * app.use('*', async (c, next) => {
+       *   await next()
+       *   if (c.error) {
+       *     // do something...
+       *   }
+       * })
+       * ```
+       */
+      error;
+      #status;
+      #executionCtx;
+      #res;
+      #layout;
+      #renderer;
+      #notFoundHandler;
+      #preparedHeaders;
+      #matchResult;
+      #path;
+      /**
+       * Creates an instance of the Context class.
+       *
+       * @param req - The Request object.
+       * @param options - Optional configuration options for the context.
+       */
+      constructor(req, options) {
+        this.#rawRequest = req;
+        if (options) {
+          this.#executionCtx = options.executionCtx;
+          this.env = options.env;
+          this.#notFoundHandler = options.notFoundHandler;
+          this.#path = options.path;
+          this.#matchResult = options.matchResult;
+        }
+      }
+      /**
+       * `.req` is the instance of {@link HonoRequest}.
+       */
+      get req() {
+        this.#req ??= new import_request3.HonoRequest(this.#rawRequest, this.#path, this.#matchResult);
+        return this.#req;
+      }
+      /**
+       * @see {@link https://hono.dev/docs/api/context#event}
+       * The FetchEvent associated with the current request.
+       *
+       * @throws Will throw an error if the context does not have a FetchEvent.
+       */
+      get event() {
+        if (this.#executionCtx && "respondWith" in this.#executionCtx) {
+          return this.#executionCtx;
+        } else {
+          throw Error("This context has no FetchEvent");
+        }
+      }
+      /**
+       * @see {@link https://hono.dev/docs/api/context#executionctx}
+       * The ExecutionContext associated with the current request.
+       *
+       * @throws Will throw an error if the context does not have an ExecutionContext.
+       */
+      get executionCtx() {
+        if (this.#executionCtx) {
+          return this.#executionCtx;
+        } else {
+          throw Error("This context has no ExecutionContext");
+        }
+      }
+      /**
+       * @see {@link https://hono.dev/docs/api/context#res}
+       * The Response object for the current request.
+       */
+      get res() {
+        return this.#res ||= createResponseInstance2(null, {
+          headers: this.#preparedHeaders ??= new Headers()
+        });
+      }
+      /**
+       * Sets the Response object for the current request.
+       *
+       * @param _res - The Response object to set.
+       */
+      set res(_res) {
+        if (this.#res && _res) {
+          _res = createResponseInstance2(_res.body, _res);
+          for (const [k, v] of this.#res.headers.entries()) {
+            if (k === "content-type") {
+              continue;
+            }
+            if (k === "set-cookie") {
+              const cookies = this.#res.headers.getSetCookie();
+              _res.headers.delete("set-cookie");
+              for (const cookie of cookies) {
+                _res.headers.append("set-cookie", cookie);
+              }
+            } else {
+              _res.headers.set(k, v);
+            }
+          }
+        }
+        this.#res = _res;
+        this.finalized = true;
+      }
+      /**
+       * `.render()` can create a response within a layout.
+       *
+       * @see {@link https://hono.dev/docs/api/context#render-setrenderer}
+       *
+       * @example
+       * ```ts
+       * app.get('/', (c) => {
+       *   return c.render('Hello!')
+       * })
+       * ```
+       */
+      render = (...args) => {
+        this.#renderer ??= (content) => this.html(content);
+        return this.#renderer(...args);
+      };
+      /**
+       * Sets the layout for the response.
+       *
+       * @param layout - The layout to set.
+       * @returns The layout function.
+       */
+      setLayout = (layout) => this.#layout = layout;
+      /**
+       * Gets the current layout for the response.
+       *
+       * @returns The current layout function.
+       */
+      getLayout = () => this.#layout;
+      /**
+       * `.setRenderer()` can set the layout in the custom middleware.
+       *
+       * @see {@link https://hono.dev/docs/api/context#render-setrenderer}
+       *
+       * @example
+       * ```tsx
+       * app.use('*', async (c, next) => {
+       *   c.setRenderer((content) => {
+       *     return c.html(
+       *       <html>
+       *         <body>
+       *           <p>{content}</p>
+       *         </body>
+       *       </html>
+       *     )
+       *   })
+       *   await next()
+       * })
+       * ```
+       */
+      setRenderer = (renderer) => {
+        this.#renderer = renderer;
+      };
+      /**
+       * `.header()` can set headers.
+       *
+       * @see {@link https://hono.dev/docs/api/context#header}
+       *
+       * @example
+       * ```ts
+       * app.get('/welcome', (c) => {
+       *   // Set headers
+       *   c.header('X-Message', 'Hello!')
+       *   c.header('Content-Type', 'text/plain')
+       *
+       *   return c.body('Thank you for coming')
+       * })
+       * ```
+       */
+      header = (name, value, options) => {
+        if (this.finalized) {
+          this.#res = createResponseInstance2(this.#res.body, this.#res);
+        }
+        const headers = this.#res ? this.#res.headers : this.#preparedHeaders ??= new Headers();
+        if (value === void 0) {
+          headers.delete(name);
+        } else if (options?.append) {
+          headers.append(name, value);
+        } else {
+          headers.set(name, value);
+        }
+      };
+      status = (status) => {
+        this.#status = status;
+      };
+      /**
+       * `.set()` can set the value specified by the key.
+       *
+       * @see {@link https://hono.dev/docs/api/context#set-get}
+       *
+       * @example
+       * ```ts
+       * app.use('*', async (c, next) => {
+       *   c.set('message', 'Hono is hot!!')
+       *   await next()
+       * })
+       * ```
+       */
+      set = (key, value) => {
+        this.#var ??= /* @__PURE__ */ new Map();
+        this.#var.set(key, value);
+      };
+      /**
+       * `.get()` can use the value specified by the key.
+       *
+       * @see {@link https://hono.dev/docs/api/context#set-get}
+       *
+       * @example
+       * ```ts
+       * app.get('/', (c) => {
+       *   const message = c.get('message')
+       *   return c.text(`The message is "${message}"`)
+       * })
+       * ```
+       */
+      get = (key) => {
+        return this.#var ? this.#var.get(key) : void 0;
+      };
+      /**
+       * `.var` can access the value of a variable.
+       *
+       * @see {@link https://hono.dev/docs/api/context#var}
+       *
+       * @example
+       * ```ts
+       * const result = c.var.client.oneMethod()
+       * ```
+       */
+      // c.var.propName is a read-only
+      get var() {
+        if (!this.#var) {
+          return {};
+        }
+        return Object.fromEntries(this.#var);
+      }
+      #newResponse(data, arg, headers) {
+        const responseHeaders = this.#res ? new Headers(this.#res.headers) : this.#preparedHeaders ?? new Headers();
+        if (typeof arg === "object" && "headers" in arg) {
+          const argHeaders = arg.headers instanceof Headers ? arg.headers : new Headers(arg.headers);
+          for (const [key, value] of argHeaders) {
+            if (key.toLowerCase() === "set-cookie") {
+              responseHeaders.append(key, value);
+            } else {
+              responseHeaders.set(key, value);
+            }
+          }
+        }
+        if (headers) {
+          for (const [k, v] of Object.entries(headers)) {
+            if (typeof v === "string") {
+              responseHeaders.set(k, v);
+            } else {
+              responseHeaders.delete(k);
+              for (const v2 of v) {
+                responseHeaders.append(k, v2);
+              }
+            }
+          }
+        }
+        const status = typeof arg === "number" ? arg : arg?.status ?? this.#status;
+        return createResponseInstance2(data, { status, headers: responseHeaders });
+      }
+      newResponse = (...args) => this.#newResponse(...args);
+      /**
+       * `.body()` can return the HTTP response.
+       * You can set headers with `.header()` and set HTTP status code with `.status`.
+       * This can also be set in `.text()`, `.json()` and so on.
+       *
+       * @see {@link https://hono.dev/docs/api/context#body}
+       *
+       * @example
+       * ```ts
+       * app.get('/welcome', (c) => {
+       *   // Set headers
+       *   c.header('X-Message', 'Hello!')
+       *   c.header('Content-Type', 'text/plain')
+       *   // Set HTTP status code
+       *   c.status(201)
+       *
+       *   // Return the response body
+       *   return c.body('Thank you for coming')
+       * })
+       * ```
+       */
+      body = (data, arg, headers) => this.#newResponse(data, arg, headers);
+      /**
+       * `.text()` can render text as `Content-Type:text/plain`.
+       *
+       * @see {@link https://hono.dev/docs/api/context#text}
+       *
+       * @example
+       * ```ts
+       * app.get('/say', (c) => {
+       *   return c.text('Hello!')
+       * })
+       * ```
+       */
+      text = (text, arg, headers) => {
+        return !this.#preparedHeaders && !this.#status && !arg && !headers && !this.finalized ? new Response(text) : this.#newResponse(
+          text,
+          arg,
+          setDefaultContentType2(TEXT_PLAIN2, headers)
+        );
+      };
+      /**
+       * `.json()` can render JSON as `Content-Type:application/json`.
+       *
+       * @see {@link https://hono.dev/docs/api/context#json}
+       *
+       * @example
+       * ```ts
+       * app.get('/api', (c) => {
+       *   return c.json({ message: 'Hello!' })
+       * })
+       * ```
+       */
+      json = (object, arg, headers) => {
+        return this.#newResponse(
+          JSON.stringify(object),
+          arg,
+          setDefaultContentType2("application/json", headers)
+        );
+      };
+      html = (html, arg, headers) => {
+        const res = (html2) => this.#newResponse(html2, arg, setDefaultContentType2("text/html; charset=UTF-8", headers));
+        return typeof html === "object" ? (0, import_html2.resolveCallback)(html, import_html2.HtmlEscapedCallbackPhase.Stringify, false, {}).then(res) : res(html);
+      };
+      /**
+       * `.redirect()` can Redirect, default status code is 302.
+       *
+       * @see {@link https://hono.dev/docs/api/context#redirect}
+       *
+       * @example
+       * ```ts
+       * app.get('/redirect', (c) => {
+       *   return c.redirect('/')
+       * })
+       * app.get('/redirect-permanently', (c) => {
+       *   return c.redirect('/', 301)
+       * })
+       * ```
+       */
+      redirect = (location, status) => {
+        const locationString = String(location);
+        this.header(
+          "Location",
+          // Multibyes should be encoded
+          // eslint-disable-next-line no-control-regex
+          !/[^\x00-\xFF]/.test(locationString) ? locationString : encodeURI(locationString)
+        );
+        return this.newResponse(null, status ?? 302);
+      };
+      /**
+       * `.notFound()` can return the Not Found Response.
+       *
+       * @see {@link https://hono.dev/docs/api/context#notfound}
+       *
+       * @example
+       * ```ts
+       * app.get('/notfound', (c) => {
+       *   return c.notFound()
+       * })
+       * ```
+       */
+      notFound = () => {
+        this.#notFoundHandler ??= () => createResponseInstance2();
+        return this.#notFoundHandler(this);
+      };
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router.js
+var require_router = __commonJS({
+  "node_modules/hono/dist/cjs/router.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var router_exports = {};
+    __export(router_exports, {
+      MESSAGE_MATCHER_IS_ALREADY_BUILT: () => MESSAGE_MATCHER_IS_ALREADY_BUILT2,
+      METHODS: () => METHODS2,
+      METHOD_NAME_ALL: () => METHOD_NAME_ALL2,
+      METHOD_NAME_ALL_LOWERCASE: () => METHOD_NAME_ALL_LOWERCASE2,
+      UnsupportedPathError: () => UnsupportedPathError2
+    });
+    module.exports = __toCommonJS(router_exports);
+    var METHOD_NAME_ALL2 = "ALL";
+    var METHOD_NAME_ALL_LOWERCASE2 = "all";
+    var METHODS2 = ["get", "post", "put", "delete", "options", "patch"];
+    var MESSAGE_MATCHER_IS_ALREADY_BUILT2 = "Can not add a route since the matcher is already built.";
+    var UnsupportedPathError2 = class extends Error {
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/utils/constants.js
+var require_constants2 = __commonJS({
+  "node_modules/hono/dist/cjs/utils/constants.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var constants_exports = {};
+    __export(constants_exports, {
+      COMPOSED_HANDLER: () => COMPOSED_HANDLER2
+    });
+    module.exports = __toCommonJS(constants_exports);
+    var COMPOSED_HANDLER2 = "__COMPOSED_HANDLER";
+  }
+});
+
+// node_modules/hono/dist/cjs/hono-base.js
+var require_hono_base = __commonJS({
+  "node_modules/hono/dist/cjs/hono-base.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var hono_base_exports = {};
+    __export(hono_base_exports, {
+      HonoBase: () => Hono4
+    });
+    module.exports = __toCommonJS(hono_base_exports);
+    var import_compose2 = require_compose();
+    var import_context3 = require_context();
+    var import_router11 = require_router();
+    var import_constants3 = require_constants2();
+    var import_url6 = require_url();
+    var notFoundHandler2 = (c) => {
+      return c.text("404 Not Found", 404);
+    };
+    var errorHandler2 = (err, c) => {
+      if ("getResponse" in err) {
+        const res = err.getResponse();
+        return c.newResponse(res.body, res);
+      }
+      console.error(err);
+      return c.text("Internal Server Error", 500);
+    };
+    var Hono4 = class _Hono2 {
+      get;
+      post;
+      put;
+      delete;
+      options;
+      patch;
+      all;
+      on;
+      use;
+      /*
+        This class is like an abstract class and does not have a router.
+        To use it, inherit the class and implement router in the constructor.
+      */
+      router;
+      getPath;
+      // Cannot use `#` because it requires visibility at JavaScript runtime.
+      _basePath = "/";
+      #path = "/";
+      routes = [];
+      constructor(options = {}) {
+        const allMethods = [...import_router11.METHODS, import_router11.METHOD_NAME_ALL_LOWERCASE];
+        allMethods.forEach((method) => {
+          this[method] = (args1, ...args) => {
+            if (typeof args1 === "string") {
+              this.#path = args1;
+            } else {
+              this.#addRoute(method, this.#path, args1);
+            }
+            args.forEach((handler) => {
+              this.#addRoute(method, this.#path, handler);
+            });
+            return this;
+          };
+        });
+        this.on = (method, path, ...handlers) => {
+          for (const p of [path].flat()) {
+            this.#path = p;
+            for (const m of [method].flat()) {
+              handlers.map((handler) => {
+                this.#addRoute(m.toUpperCase(), this.#path, handler);
+              });
+            }
+          }
+          return this;
+        };
+        this.use = (arg1, ...handlers) => {
+          if (typeof arg1 === "string") {
+            this.#path = arg1;
+          } else {
+            this.#path = "*";
+            handlers.unshift(arg1);
+          }
+          handlers.forEach((handler) => {
+            this.#addRoute(import_router11.METHOD_NAME_ALL, this.#path, handler);
+          });
+          return this;
+        };
+        const { strict, ...optionsWithoutStrict } = options;
+        Object.assign(this, optionsWithoutStrict);
+        this.getPath = strict ?? true ? options.getPath ?? import_url6.getPath : import_url6.getPathNoStrict;
+      }
+      #clone() {
+        const clone = new _Hono2({
+          router: this.router,
+          getPath: this.getPath
+        });
+        clone.errorHandler = this.errorHandler;
+        clone.#notFoundHandler = this.#notFoundHandler;
+        clone.routes = this.routes;
+        return clone;
+      }
+      #notFoundHandler = notFoundHandler2;
+      // Cannot use `#` because it requires visibility at JavaScript runtime.
+      errorHandler = errorHandler2;
+      /**
+       * `.route()` allows grouping other Hono instance in routes.
+       *
+       * @see {@link https://hono.dev/docs/api/routing#grouping}
+       *
+       * @param {string} path - base Path
+       * @param {Hono} app - other Hono instance
+       * @returns {Hono} routed Hono instance
+       *
+       * @example
+       * ```ts
+       * const app = new Hono()
+       * const app2 = new Hono()
+       *
+       * app2.get("/user", (c) => c.text("user"))
+       * app.route("/api", app2) // GET /api/user
+       * ```
+       */
+      route(path, app2) {
+        const subApp = this.basePath(path);
+        app2.routes.map((r) => {
+          let handler;
+          if (app2.errorHandler === errorHandler2) {
+            handler = r.handler;
+          } else {
+            handler = async (c, next) => (await (0, import_compose2.compose)([], app2.errorHandler)(c, () => r.handler(c, next))).res;
+            handler[import_constants3.COMPOSED_HANDLER] = r.handler;
+          }
+          subApp.#addRoute(r.method, r.path, handler, r.basePath);
+        });
+        return this;
+      }
+      /**
+       * `.basePath()` allows base paths to be specified.
+       *
+       * @see {@link https://hono.dev/docs/api/routing#base-path}
+       *
+       * @param {string} path - base Path
+       * @returns {Hono} changed Hono instance
+       *
+       * @example
+       * ```ts
+       * const api = new Hono().basePath('/api')
+       * ```
+       */
+      basePath(path) {
+        const subApp = this.#clone();
+        subApp._basePath = (0, import_url6.mergePath)(this._basePath, path);
+        return subApp;
+      }
+      /**
+       * `.onError()` handles an error and returns a customized Response.
+       *
+       * @see {@link https://hono.dev/docs/api/hono#error-handling}
+       *
+       * @param {ErrorHandler} handler - request Handler for error
+       * @returns {Hono} changed Hono instance
+       *
+       * @example
+       * ```ts
+       * app.onError((err, c) => {
+       *   console.error(`${err}`)
+       *   return c.text('Custom Error Message', 500)
+       * })
+       * ```
+       */
+      onError = (handler) => {
+        this.errorHandler = handler;
+        return this;
+      };
+      /**
+       * `.notFound()` allows you to customize a Not Found Response.
+       *
+       * @see {@link https://hono.dev/docs/api/hono#not-found}
+       *
+       * @param {NotFoundHandler} handler - request handler for not-found
+       * @returns {Hono} changed Hono instance
+       *
+       * @example
+       * ```ts
+       * app.notFound((c) => {
+       *   return c.text('Custom 404 Message', 404)
+       * })
+       * ```
+       */
+      notFound = (handler) => {
+        this.#notFoundHandler = handler;
+        return this;
+      };
+      /**
+       * `.mount()` allows you to mount applications built with other frameworks into your Hono application.
+       *
+       * @see {@link https://hono.dev/docs/api/hono#mount}
+       *
+       * @param {string} path - base Path
+       * @param {Function} applicationHandler - other Request Handler
+       * @param {MountOptions} [options] - options of `.mount()`
+       * @returns {Hono} mounted Hono instance
+       *
+       * @example
+       * ```ts
+       * import { Router as IttyRouter } from 'itty-router'
+       * import { Hono } from 'hono'
+       * // Create itty-router application
+       * const ittyRouter = IttyRouter()
+       * // GET /itty-router/hello
+       * ittyRouter.get('/hello', () => new Response('Hello from itty-router'))
+       *
+       * const app = new Hono()
+       * app.mount('/itty-router', ittyRouter.handle)
+       * ```
+       *
+       * @example
+       * ```ts
+       * const app = new Hono()
+       * // Send the request to another application without modification.
+       * app.mount('/app', anotherApp, {
+       *   replaceRequest: (req) => req,
+       * })
+       * ```
+       */
+      mount(path, applicationHandler, options) {
+        let replaceRequest;
+        let optionHandler;
+        if (options) {
+          if (typeof options === "function") {
+            optionHandler = options;
+          } else {
+            optionHandler = options.optionHandler;
+            if (options.replaceRequest === false) {
+              replaceRequest = (request) => request;
+            } else {
+              replaceRequest = options.replaceRequest;
+            }
+          }
+        }
+        const getOptions = optionHandler ? (c) => {
+          const options2 = optionHandler(c);
+          return Array.isArray(options2) ? options2 : [options2];
+        } : (c) => {
+          let executionContext = void 0;
+          try {
+            executionContext = c.executionCtx;
+          } catch {
+          }
+          return [c.env, executionContext];
+        };
+        replaceRequest ||= (() => {
+          const mergedPath = (0, import_url6.mergePath)(this._basePath, path);
+          const pathPrefixLength = mergedPath === "/" ? 0 : mergedPath.length;
+          return (request) => {
+            const url = new URL(request.url);
+            url.pathname = this.getPath(request).slice(pathPrefixLength) || "/";
+            return new Request(url, request);
+          };
+        })();
+        const handler = async (c, next) => {
+          const res = await applicationHandler(replaceRequest(c.req.raw), ...getOptions(c));
+          if (res) {
+            return res;
+          }
+          await next();
+        };
+        this.#addRoute(import_router11.METHOD_NAME_ALL, (0, import_url6.mergePath)(path, "*"), handler);
+        return this;
+      }
+      #addRoute(method, path, handler, baseRoutePath) {
+        method = method.toUpperCase();
+        path = (0, import_url6.mergePath)(this._basePath, path);
+        const r = {
+          basePath: baseRoutePath !== void 0 ? (0, import_url6.mergePath)(this._basePath, baseRoutePath) : this._basePath,
+          path,
+          method,
+          handler
+        };
+        this.router.add(method, path, [handler, r]);
+        this.routes.push(r);
+      }
+      #handleError(err, c) {
+        if (err instanceof Error) {
+          return this.errorHandler(err, c);
+        }
+        throw err;
+      }
+      #dispatch(request, executionCtx, env2, method) {
+        if (method === "HEAD") {
+          return (async () => new Response(null, await this.#dispatch(request, executionCtx, env2, "GET")))();
+        }
+        const path = this.getPath(request, { env: env2 });
+        const matchResult = this.router.match(method, path);
+        const c = new import_context3.Context(request, {
+          path,
+          matchResult,
+          env: env2,
+          executionCtx,
+          notFoundHandler: this.#notFoundHandler
+        });
+        if (matchResult[0].length === 1) {
+          let res;
+          try {
+            res = matchResult[0][0][0][0](c, async () => {
+              c.res = await this.#notFoundHandler(c);
+            });
+          } catch (err) {
+            return this.#handleError(err, c);
+          }
+          return res instanceof Promise ? res.then(
+            (resolved) => resolved || (c.finalized ? c.res : this.#notFoundHandler(c))
+          ).catch((err) => this.#handleError(err, c)) : res ?? this.#notFoundHandler(c);
+        }
+        const composed = (0, import_compose2.compose)(matchResult[0], this.errorHandler, this.#notFoundHandler);
+        return (async () => {
+          try {
+            const context = await composed(c);
+            if (!context.finalized) {
+              throw new Error(
+                "Context is not finalized. Did you forget to return a Response object or `await next()`?"
+              );
+            }
+            return context.res;
+          } catch (err) {
+            return this.#handleError(err, c);
+          }
+        })();
+      }
+      /**
+       * `.fetch()` will be entry point of your app.
+       *
+       * @see {@link https://hono.dev/docs/api/hono#fetch}
+       *
+       * @param {Request} request - request Object of request
+       * @param {Env} Env - env Object
+       * @param {ExecutionContext} - context of execution
+       * @returns {Response | Promise<Response>} response of request
+       *
+       */
+      fetch = (request, ...rest) => {
+        return this.#dispatch(request, rest[1], rest[0], request.method);
+      };
+      /**
+       * `.request()` is a useful method for testing.
+       * You can pass a URL or pathname to send a GET request.
+       * app will return a Response object.
+       * ```ts
+       * test('GET /hello is ok', async () => {
+       *   const res = await app.request('/hello')
+       *   expect(res.status).toBe(200)
+       * })
+       * ```
+       * @see https://hono.dev/docs/api/hono#request
+       */
+      request = (input, requestInit, Env, executionCtx) => {
+        if (input instanceof Request) {
+          return this.fetch(requestInit ? new Request(input, requestInit) : input, Env, executionCtx);
+        }
+        input = input.toString();
+        return this.fetch(
+          new Request(
+            /^https?:\/\//.test(input) ? input : `http://localhost${(0, import_url6.mergePath)("/", input)}`,
+            requestInit
+          ),
+          Env,
+          executionCtx
+        );
+      };
+      /**
+       * `.fire()` automatically adds a global fetch event listener.
+       * This can be useful for environments that adhere to the Service Worker API, such as non-ES module Cloudflare Workers.
+       * @deprecated
+       * Use `fire` from `hono/service-worker` instead.
+       * ```ts
+       * import { Hono } from 'hono'
+       * import { fire } from 'hono/service-worker'
+       *
+       * const app = new Hono()
+       * // ...
+       * fire(app)
+       * ```
+       * @see https://hono.dev/docs/api/hono#fire
+       * @see https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
+       * @see https://developers.cloudflare.com/workers/reference/migrate-to-module-workers/
+       */
+      fire = () => {
+        addEventListener("fetch", (event) => {
+          event.respondWith(this.#dispatch(event.request, event, void 0, event.request.method));
+        });
+      };
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/reg-exp-router/matcher.js
+var require_matcher = __commonJS({
+  "node_modules/hono/dist/cjs/router/reg-exp-router/matcher.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var matcher_exports = {};
+    __export(matcher_exports, {
+      emptyParam: () => emptyParam2,
+      match: () => match2
+    });
+    module.exports = __toCommonJS(matcher_exports);
+    var import_router11 = require_router();
+    var emptyParam2 = [];
+    function match2(method, path) {
+      const matchers = this.buildAllMatchers();
+      const match22 = ((method2, path2) => {
+        const matcher = matchers[method2] || matchers[import_router11.METHOD_NAME_ALL];
+        const staticMatch = matcher[2][path2];
+        if (staticMatch) {
+          return staticMatch;
+        }
+        const match3 = path2.match(matcher[0]);
+        if (!match3) {
+          return [[], emptyParam2];
+        }
+        const index = match3.indexOf("", 1);
+        return [matcher[1][index], match3];
+      });
+      this.match = match22;
+      return match22(method, path);
+    }
+  }
+});
+
+// node_modules/hono/dist/cjs/router/reg-exp-router/node.js
+var require_node = __commonJS({
+  "node_modules/hono/dist/cjs/router/reg-exp-router/node.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var node_exports = {};
+    __export(node_exports, {
+      Node: () => Node3,
+      PATH_ERROR: () => PATH_ERROR2
+    });
+    module.exports = __toCommonJS(node_exports);
+    var LABEL_REG_EXP_STR2 = "[^/]+";
+    var ONLY_WILDCARD_REG_EXP_STR2 = ".*";
+    var TAIL_WILDCARD_REG_EXP_STR2 = "(?:|/.*)";
+    var PATH_ERROR2 = /* @__PURE__ */ Symbol();
+    var regExpMetaChars2 = new Set(".\\+*[^]$()");
+    function compareKey2(a, b) {
+      if (a.length === 1) {
+        return b.length === 1 ? a < b ? -1 : 1 : -1;
+      }
+      if (b.length === 1) {
+        return 1;
+      }
+      if (a === ONLY_WILDCARD_REG_EXP_STR2 || a === TAIL_WILDCARD_REG_EXP_STR2) {
+        return 1;
+      } else if (b === ONLY_WILDCARD_REG_EXP_STR2 || b === TAIL_WILDCARD_REG_EXP_STR2) {
+        return -1;
+      }
+      if (a === LABEL_REG_EXP_STR2) {
+        return 1;
+      } else if (b === LABEL_REG_EXP_STR2) {
+        return -1;
+      }
+      return a.length === b.length ? a < b ? -1 : 1 : b.length - a.length;
+    }
+    var Node3 = class _Node3 {
+      #index;
+      #varIndex;
+      #children = /* @__PURE__ */ Object.create(null);
+      insert(tokens, index, paramMap, context, pathErrorCheckOnly) {
+        if (tokens.length === 0) {
+          if (this.#index !== void 0) {
+            throw PATH_ERROR2;
+          }
+          if (pathErrorCheckOnly) {
+            return;
+          }
+          this.#index = index;
+          return;
+        }
+        const [token, ...restTokens] = tokens;
+        const pattern = token === "*" ? restTokens.length === 0 ? ["", "", ONLY_WILDCARD_REG_EXP_STR2] : ["", "", LABEL_REG_EXP_STR2] : token === "/*" ? ["", "", TAIL_WILDCARD_REG_EXP_STR2] : token.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/);
+        let node;
+        if (pattern) {
+          const name = pattern[1];
+          let regexpStr = pattern[2] || LABEL_REG_EXP_STR2;
+          if (name && pattern[2]) {
+            if (regexpStr === ".*") {
+              throw PATH_ERROR2;
+            }
+            regexpStr = regexpStr.replace(/^\((?!\?:)(?=[^)]+\)$)/, "(?:");
+            if (/\((?!\?:)/.test(regexpStr)) {
+              throw PATH_ERROR2;
+            }
+          }
+          node = this.#children[regexpStr];
+          if (!node) {
+            if (Object.keys(this.#children).some(
+              (k) => k !== ONLY_WILDCARD_REG_EXP_STR2 && k !== TAIL_WILDCARD_REG_EXP_STR2
+            )) {
+              throw PATH_ERROR2;
+            }
+            if (pathErrorCheckOnly) {
+              return;
+            }
+            node = this.#children[regexpStr] = new _Node3();
+            if (name !== "") {
+              node.#varIndex = context.varIndex++;
+            }
+          }
+          if (!pathErrorCheckOnly && name !== "") {
+            paramMap.push([name, node.#varIndex]);
+          }
+        } else {
+          node = this.#children[token];
+          if (!node) {
+            if (Object.keys(this.#children).some(
+              (k) => k.length > 1 && k !== ONLY_WILDCARD_REG_EXP_STR2 && k !== TAIL_WILDCARD_REG_EXP_STR2
+            )) {
+              throw PATH_ERROR2;
+            }
+            if (pathErrorCheckOnly) {
+              return;
+            }
+            node = this.#children[token] = new _Node3();
+          }
+        }
+        node.insert(restTokens, index, paramMap, context, pathErrorCheckOnly);
+      }
+      buildRegExpStr() {
+        const childKeys = Object.keys(this.#children).sort(compareKey2);
+        const strList = childKeys.map((k) => {
+          const c = this.#children[k];
+          return (typeof c.#varIndex === "number" ? `(${k})@${c.#varIndex}` : regExpMetaChars2.has(k) ? `\\${k}` : k) + c.buildRegExpStr();
+        });
+        if (typeof this.#index === "number") {
+          strList.unshift(`#${this.#index}`);
+        }
+        if (strList.length === 0) {
+          return "";
+        }
+        if (strList.length === 1) {
+          return strList[0];
+        }
+        return "(?:" + strList.join("|") + ")";
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/reg-exp-router/trie.js
+var require_trie = __commonJS({
+  "node_modules/hono/dist/cjs/router/reg-exp-router/trie.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var trie_exports = {};
+    __export(trie_exports, {
+      Trie: () => Trie2
+    });
+    module.exports = __toCommonJS(trie_exports);
+    var import_node4 = require_node();
+    var Trie2 = class {
+      #context = { varIndex: 0 };
+      #root = new import_node4.Node();
+      insert(path, index, pathErrorCheckOnly) {
+        const paramAssoc = [];
+        const groups = [];
+        for (let i = 0; ; ) {
+          let replaced = false;
+          path = path.replace(/\{[^}]+\}/g, (m) => {
+            const mark = `@\\${i}`;
+            groups[i] = [mark, m];
+            i++;
+            replaced = true;
+            return mark;
+          });
+          if (!replaced) {
+            break;
+          }
+        }
+        const tokens = path.match(/(?::[^\/]+)|(?:\/\*$)|./g) || [];
+        for (let i = groups.length - 1; i >= 0; i--) {
+          const [mark] = groups[i];
+          for (let j = tokens.length - 1; j >= 0; j--) {
+            if (tokens[j].indexOf(mark) !== -1) {
+              tokens[j] = tokens[j].replace(mark, groups[i][1]);
+              break;
+            }
+          }
+        }
+        this.#root.insert(tokens, index, paramAssoc, this.#context, pathErrorCheckOnly);
+        return paramAssoc;
+      }
+      buildRegExp() {
+        let regexp = this.#root.buildRegExpStr();
+        if (regexp === "") {
+          return [/^$/, [], []];
+        }
+        let captureIndex = 0;
+        const indexReplacementMap = [];
+        const paramReplacementMap = [];
+        regexp = regexp.replace(/#(\d+)|@(\d+)|\.\*\$/g, (_, handlerIndex, paramIndex) => {
+          if (handlerIndex !== void 0) {
+            indexReplacementMap[++captureIndex] = Number(handlerIndex);
+            return "$()";
+          }
+          if (paramIndex !== void 0) {
+            paramReplacementMap[Number(paramIndex)] = ++captureIndex;
+            return "";
+          }
+          return "";
+        });
+        return [new RegExp(`^${regexp}`), indexReplacementMap, paramReplacementMap];
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/reg-exp-router/router.js
+var require_router2 = __commonJS({
+  "node_modules/hono/dist/cjs/router/reg-exp-router/router.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var router_exports = {};
+    __export(router_exports, {
+      RegExpRouter: () => RegExpRouter3
+    });
+    module.exports = __toCommonJS(router_exports);
+    var import_router11 = require_router();
+    var import_url6 = require_url();
+    var import_matcher3 = require_matcher();
+    var import_node4 = require_node();
+    var import_trie2 = require_trie();
+    var nullMatcher2 = [/^$/, [], /* @__PURE__ */ Object.create(null)];
+    var wildcardRegExpCache2 = /* @__PURE__ */ Object.create(null);
+    function buildWildcardRegExp2(path) {
+      return wildcardRegExpCache2[path] ??= new RegExp(
+        path === "*" ? "" : `^${path.replace(
+          /\/\*$|([.\\+*[^\]$()])/g,
+          (_, metaChar) => metaChar ? `\\${metaChar}` : "(?:|/.*)"
+        )}$`
+      );
+    }
+    function clearWildcardRegExpCache2() {
+      wildcardRegExpCache2 = /* @__PURE__ */ Object.create(null);
+    }
+    function buildMatcherFromPreprocessedRoutes2(routes) {
+      const trie = new import_trie2.Trie();
+      const handlerData = [];
+      if (routes.length === 0) {
+        return nullMatcher2;
+      }
+      const routesWithStaticPathFlag = routes.map(
+        (route) => [!/\*|\/:/.test(route[0]), ...route]
+      ).sort(
+        ([isStaticA, pathA], [isStaticB, pathB]) => isStaticA ? 1 : isStaticB ? -1 : pathA.length - pathB.length
+      );
+      const staticMap = /* @__PURE__ */ Object.create(null);
+      for (let i = 0, j = -1, len = routesWithStaticPathFlag.length; i < len; i++) {
+        const [pathErrorCheckOnly, path, handlers] = routesWithStaticPathFlag[i];
+        if (pathErrorCheckOnly) {
+          staticMap[path] = [handlers.map(([h]) => [h, /* @__PURE__ */ Object.create(null)]), import_matcher3.emptyParam];
+        } else {
+          j++;
+        }
+        let paramAssoc;
+        try {
+          paramAssoc = trie.insert(path, j, pathErrorCheckOnly);
+        } catch (e) {
+          throw e === import_node4.PATH_ERROR ? new import_router11.UnsupportedPathError(path) : e;
+        }
+        if (pathErrorCheckOnly) {
+          continue;
+        }
+        handlerData[j] = handlers.map(([h, paramCount]) => {
+          const paramIndexMap = /* @__PURE__ */ Object.create(null);
+          paramCount -= 1;
+          for (; paramCount >= 0; paramCount--) {
+            const [key, value] = paramAssoc[paramCount];
+            paramIndexMap[key] = value;
+          }
+          return [h, paramIndexMap];
+        });
+      }
+      const [regexp, indexReplacementMap, paramReplacementMap] = trie.buildRegExp();
+      for (let i = 0, len = handlerData.length; i < len; i++) {
+        for (let j = 0, len2 = handlerData[i].length; j < len2; j++) {
+          const map = handlerData[i][j]?.[1];
+          if (!map) {
+            continue;
+          }
+          const keys = Object.keys(map);
+          for (let k = 0, len3 = keys.length; k < len3; k++) {
+            map[keys[k]] = paramReplacementMap[map[keys[k]]];
+          }
+        }
+      }
+      const handlerMap = [];
+      for (const i in indexReplacementMap) {
+        handlerMap[i] = handlerData[indexReplacementMap[i]];
+      }
+      return [regexp, handlerMap, staticMap];
+    }
+    function findMiddleware2(middleware, path) {
+      if (!middleware) {
+        return void 0;
+      }
+      for (const k of Object.keys(middleware).sort((a, b) => b.length - a.length)) {
+        if (buildWildcardRegExp2(k).test(path)) {
+          return [...middleware[k]];
+        }
+      }
+      return void 0;
+    }
+    var RegExpRouter3 = class {
+      name = "RegExpRouter";
+      #middleware;
+      #routes;
+      constructor() {
+        this.#middleware = { [import_router11.METHOD_NAME_ALL]: /* @__PURE__ */ Object.create(null) };
+        this.#routes = { [import_router11.METHOD_NAME_ALL]: /* @__PURE__ */ Object.create(null) };
+      }
+      add(method, path, handler) {
+        const middleware = this.#middleware;
+        const routes = this.#routes;
+        if (!middleware || !routes) {
+          throw new Error(import_router11.MESSAGE_MATCHER_IS_ALREADY_BUILT);
+        }
+        if (!middleware[method]) {
+          ;
+          [middleware, routes].forEach((handlerMap) => {
+            handlerMap[method] = /* @__PURE__ */ Object.create(null);
+            Object.keys(handlerMap[import_router11.METHOD_NAME_ALL]).forEach((p) => {
+              handlerMap[method][p] = [...handlerMap[import_router11.METHOD_NAME_ALL][p]];
+            });
+          });
+        }
+        if (path === "/*") {
+          path = "*";
+        }
+        const paramCount = (path.match(/\/:/g) || []).length;
+        if (/\*$/.test(path)) {
+          const re = buildWildcardRegExp2(path);
+          if (method === import_router11.METHOD_NAME_ALL) {
+            Object.keys(middleware).forEach((m) => {
+              middleware[m][path] ||= findMiddleware2(middleware[m], path) || findMiddleware2(middleware[import_router11.METHOD_NAME_ALL], path) || [];
+            });
+          } else {
+            middleware[method][path] ||= findMiddleware2(middleware[method], path) || findMiddleware2(middleware[import_router11.METHOD_NAME_ALL], path) || [];
+          }
+          Object.keys(middleware).forEach((m) => {
+            if (method === import_router11.METHOD_NAME_ALL || method === m) {
+              Object.keys(middleware[m]).forEach((p) => {
+                re.test(p) && middleware[m][p].push([handler, paramCount]);
+              });
+            }
+          });
+          Object.keys(routes).forEach((m) => {
+            if (method === import_router11.METHOD_NAME_ALL || method === m) {
+              Object.keys(routes[m]).forEach(
+                (p) => re.test(p) && routes[m][p].push([handler, paramCount])
+              );
+            }
+          });
+          return;
+        }
+        const paths = (0, import_url6.checkOptionalParameter)(path) || [path];
+        for (let i = 0, len = paths.length; i < len; i++) {
+          const path2 = paths[i];
+          Object.keys(routes).forEach((m) => {
+            if (method === import_router11.METHOD_NAME_ALL || method === m) {
+              routes[m][path2] ||= [
+                ...findMiddleware2(middleware[m], path2) || findMiddleware2(middleware[import_router11.METHOD_NAME_ALL], path2) || []
+              ];
+              routes[m][path2].push([handler, paramCount - len + i + 1]);
+            }
+          });
+        }
+      }
+      match = import_matcher3.match;
+      buildAllMatchers() {
+        const matchers = /* @__PURE__ */ Object.create(null);
+        Object.keys(this.#routes).concat(Object.keys(this.#middleware)).forEach((method) => {
+          matchers[method] ||= this.#buildMatcher(method);
+        });
+        this.#middleware = this.#routes = void 0;
+        clearWildcardRegExpCache2();
+        return matchers;
+      }
+      #buildMatcher(method) {
+        const routes = [];
+        let hasOwnRoute = method === import_router11.METHOD_NAME_ALL;
+        [this.#middleware, this.#routes].forEach((r) => {
+          const ownRoute = r[method] ? Object.keys(r[method]).map((path) => [path, r[method][path]]) : [];
+          if (ownRoute.length !== 0) {
+            hasOwnRoute ||= true;
+            routes.push(...ownRoute);
+          } else if (method !== import_router11.METHOD_NAME_ALL) {
+            routes.push(
+              ...Object.keys(r[import_router11.METHOD_NAME_ALL]).map((path) => [path, r[import_router11.METHOD_NAME_ALL][path]])
+            );
+          }
+        });
+        if (!hasOwnRoute) {
+          return null;
+        } else {
+          return buildMatcherFromPreprocessedRoutes2(routes);
+        }
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/reg-exp-router/prepared-router.js
+var require_prepared_router = __commonJS({
+  "node_modules/hono/dist/cjs/router/reg-exp-router/prepared-router.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var prepared_router_exports = {};
+    __export(prepared_router_exports, {
+      PreparedRegExpRouter: () => PreparedRegExpRouter3,
+      buildInitParams: () => buildInitParams3,
+      serializeInitParams: () => serializeInitParams3
+    });
+    module.exports = __toCommonJS(prepared_router_exports);
+    var import_router11 = require_router();
+    var import_matcher3 = require_matcher();
+    var import_router22 = require_router2();
+    var PreparedRegExpRouter3 = class {
+      name = "PreparedRegExpRouter";
+      #matchers;
+      #relocateMap;
+      constructor(matchers, relocateMap) {
+        this.#matchers = matchers;
+        this.#relocateMap = relocateMap;
+      }
+      #addWildcard(method, handlerData) {
+        const matcher = this.#matchers[method];
+        matcher[1].forEach((list) => list && list.push(handlerData));
+        Object.values(matcher[2]).forEach((list) => list[0].push(handlerData));
+      }
+      #addPath(method, path, handler, indexes, map) {
+        const matcher = this.#matchers[method];
+        if (!map) {
+          matcher[2][path][0].push([handler, {}]);
+        } else {
+          indexes.forEach((index) => {
+            if (typeof index === "number") {
+              matcher[1][index].push([handler, map]);
+            } else {
+              ;
+              matcher[2][index || path][0].push([handler, map]);
+            }
+          });
+        }
+      }
+      add(method, path, handler) {
+        if (!this.#matchers[method]) {
+          const all = this.#matchers[import_router11.METHOD_NAME_ALL];
+          const staticMap = {};
+          for (const key in all[2]) {
+            staticMap[key] = [all[2][key][0].slice(), import_matcher3.emptyParam];
+          }
+          this.#matchers[method] = [
+            all[0],
+            all[1].map((list) => Array.isArray(list) ? list.slice() : 0),
+            staticMap
+          ];
+        }
+        if (path === "/*" || path === "*") {
+          const handlerData = [handler, {}];
+          if (method === import_router11.METHOD_NAME_ALL) {
+            for (const m in this.#matchers) {
+              this.#addWildcard(m, handlerData);
+            }
+          } else {
+            this.#addWildcard(method, handlerData);
+          }
+          return;
+        }
+        const data = this.#relocateMap[path];
+        if (!data) {
+          throw new Error(`Path ${path} is not registered`);
+        }
+        for (const [indexes, map] of data) {
+          if (method === import_router11.METHOD_NAME_ALL) {
+            for (const m in this.#matchers) {
+              this.#addPath(m, path, handler, indexes, map);
+            }
+          } else {
+            this.#addPath(method, path, handler, indexes, map);
+          }
+        }
+      }
+      buildAllMatchers() {
+        return this.#matchers;
+      }
+      match = import_matcher3.match;
+    };
+    var buildInitParams3 = ({ paths }) => {
+      const RegExpRouterWithMatcherExport = class extends import_router22.RegExpRouter {
+        buildAndExportAllMatchers() {
+          return this.buildAllMatchers();
+        }
+      };
+      const router = new RegExpRouterWithMatcherExport();
+      for (const path of paths) {
+        router.add(import_router11.METHOD_NAME_ALL, path, path);
+      }
+      const matchers = router.buildAndExportAllMatchers();
+      const all = matchers[import_router11.METHOD_NAME_ALL];
+      const relocateMap = {};
+      for (const path of paths) {
+        if (path === "/*" || path === "*") {
+          continue;
+        }
+        all[1].forEach((list, i) => {
+          list.forEach(([p, map]) => {
+            if (p === path) {
+              if (relocateMap[path]) {
+                relocateMap[path][0][1] = {
+                  ...relocateMap[path][0][1],
+                  ...map
+                };
+              } else {
+                relocateMap[path] = [[[], map]];
+              }
+              if (relocateMap[path][0][0].findIndex((j) => j === i) === -1) {
+                relocateMap[path][0][0].push(i);
+              }
+            }
+          });
+        });
+        for (const path2 in all[2]) {
+          all[2][path2][0].forEach(([p]) => {
+            if (p === path) {
+              relocateMap[path] ||= [[[]]];
+              const value = path2 === path ? "" : path2;
+              if (relocateMap[path][0][0].findIndex((v) => v === value) === -1) {
+                relocateMap[path][0][0].push(value);
+              }
+            }
+          });
+        }
+      }
+      for (let i = 0, len = all[1].length; i < len; i++) {
+        all[1][i] = all[1][i] ? [] : 0;
+      }
+      for (const path in all[2]) {
+        all[2][path][0] = [];
+      }
+      return [matchers, relocateMap];
+    };
+    var serializeInitParams3 = ([matchers, relocateMap]) => {
+      const matchersStr = JSON.stringify(
+        matchers,
+        (_, value) => value instanceof RegExp ? `##${value.toString()}##` : value
+      ).replace(/"##(.+?)##"/g, (_, str) => str.replace(/\\\\/g, "\\"));
+      const relocateMapStr = JSON.stringify(relocateMap);
+      return `[${matchersStr},${relocateMapStr}]`;
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/reg-exp-router/index.js
+var require_reg_exp_router = __commonJS({
+  "node_modules/hono/dist/cjs/router/reg-exp-router/index.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var reg_exp_router_exports = {};
+    __export(reg_exp_router_exports, {
+      PreparedRegExpRouter: () => import_prepared_router2.PreparedRegExpRouter,
+      RegExpRouter: () => import_router11.RegExpRouter,
+      buildInitParams: () => import_prepared_router2.buildInitParams,
+      serializeInitParams: () => import_prepared_router2.serializeInitParams
+    });
+    module.exports = __toCommonJS(reg_exp_router_exports);
+    var import_router11 = require_router2();
+    var import_prepared_router2 = require_prepared_router();
+  }
+});
+
+// node_modules/hono/dist/cjs/router/smart-router/router.js
+var require_router3 = __commonJS({
+  "node_modules/hono/dist/cjs/router/smart-router/router.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var router_exports = {};
+    __export(router_exports, {
+      SmartRouter: () => SmartRouter3
+    });
+    module.exports = __toCommonJS(router_exports);
+    var import_router11 = require_router();
+    var SmartRouter3 = class {
+      name = "SmartRouter";
+      #routers = [];
+      #routes = [];
+      constructor(init) {
+        this.#routers = init.routers;
+      }
+      add(method, path, handler) {
+        if (!this.#routes) {
+          throw new Error(import_router11.MESSAGE_MATCHER_IS_ALREADY_BUILT);
+        }
+        this.#routes.push([method, path, handler]);
+      }
+      match(method, path) {
+        if (!this.#routes) {
+          throw new Error("Fatal error");
+        }
+        const routers = this.#routers;
+        const routes = this.#routes;
+        const len = routers.length;
+        let i = 0;
+        let res;
+        for (; i < len; i++) {
+          const router = routers[i];
+          try {
+            for (let i2 = 0, len2 = routes.length; i2 < len2; i2++) {
+              router.add(...routes[i2]);
+            }
+            res = router.match(method, path);
+          } catch (e) {
+            if (e instanceof import_router11.UnsupportedPathError) {
+              continue;
+            }
+            throw e;
+          }
+          this.match = router.match.bind(router);
+          this.#routers = [router];
+          this.#routes = void 0;
+          break;
+        }
+        if (i === len) {
+          throw new Error("Fatal error");
+        }
+        this.name = `SmartRouter + ${this.activeRouter.name}`;
+        return res;
+      }
+      get activeRouter() {
+        if (this.#routes || this.#routers.length !== 1) {
+          throw new Error("No active router has been determined yet.");
+        }
+        return this.#routers[0];
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/smart-router/index.js
+var require_smart_router = __commonJS({
+  "node_modules/hono/dist/cjs/router/smart-router/index.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var smart_router_exports = {};
+    __export(smart_router_exports, {
+      SmartRouter: () => import_router11.SmartRouter
+    });
+    module.exports = __toCommonJS(smart_router_exports);
+    var import_router11 = require_router3();
+  }
+});
+
+// node_modules/hono/dist/cjs/router/trie-router/node.js
+var require_node2 = __commonJS({
+  "node_modules/hono/dist/cjs/router/trie-router/node.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var node_exports = {};
+    __export(node_exports, {
+      Node: () => Node3
+    });
+    module.exports = __toCommonJS(node_exports);
+    var import_router11 = require_router();
+    var import_url6 = require_url();
+    var emptyParams2 = /* @__PURE__ */ Object.create(null);
+    var hasChildren2 = (children) => {
+      for (const _ in children) {
+        return true;
+      }
+      return false;
+    };
+    var Node3 = class _Node3 {
+      #methods;
+      #children;
+      #patterns;
+      #order = 0;
+      #params = emptyParams2;
+      constructor(method, handler, children) {
+        this.#children = children || /* @__PURE__ */ Object.create(null);
+        this.#methods = [];
+        if (method && handler) {
+          const m = /* @__PURE__ */ Object.create(null);
+          m[method] = { handler, possibleKeys: [], score: 0 };
+          this.#methods = [m];
+        }
+        this.#patterns = [];
+      }
+      insert(method, path, handler) {
+        this.#order = ++this.#order;
+        let curNode = this;
+        const parts = (0, import_url6.splitRoutingPath)(path);
+        const possibleKeys = [];
+        for (let i = 0, len = parts.length; i < len; i++) {
+          const p = parts[i];
+          const nextP = parts[i + 1];
+          const pattern = (0, import_url6.getPattern)(p, nextP);
+          const key = Array.isArray(pattern) ? pattern[0] : p;
+          if (key in curNode.#children) {
+            curNode = curNode.#children[key];
+            if (pattern) {
+              possibleKeys.push(pattern[1]);
+            }
+            continue;
+          }
+          curNode.#children[key] = new _Node3();
+          if (pattern) {
+            curNode.#patterns.push(pattern);
+            possibleKeys.push(pattern[1]);
+          }
+          curNode = curNode.#children[key];
+        }
+        curNode.#methods.push({
+          [method]: {
+            handler,
+            possibleKeys: possibleKeys.filter((v, i, a) => a.indexOf(v) === i),
+            score: this.#order
+          }
+        });
+        return curNode;
+      }
+      #pushHandlerSets(handlerSets, node, method, nodeParams, params) {
+        for (let i = 0, len = node.#methods.length; i < len; i++) {
+          const m = node.#methods[i];
+          const handlerSet = m[method] || m[import_router11.METHOD_NAME_ALL];
+          const processedSet = {};
+          if (handlerSet !== void 0) {
+            handlerSet.params = /* @__PURE__ */ Object.create(null);
+            handlerSets.push(handlerSet);
+            if (nodeParams !== emptyParams2 || params && params !== emptyParams2) {
+              for (let i2 = 0, len2 = handlerSet.possibleKeys.length; i2 < len2; i2++) {
+                const key = handlerSet.possibleKeys[i2];
+                const processed = processedSet[handlerSet.score];
+                handlerSet.params[key] = params?.[key] && !processed ? params[key] : nodeParams[key] ?? params?.[key];
+                processedSet[handlerSet.score] = true;
+              }
+            }
+          }
+        }
+      }
+      search(method, path) {
+        const handlerSets = [];
+        this.#params = emptyParams2;
+        const curNode = this;
+        let curNodes = [curNode];
+        const parts = (0, import_url6.splitPath)(path);
+        const curNodesQueue = [];
+        const len = parts.length;
+        let partOffsets = null;
+        for (let i = 0; i < len; i++) {
+          const part = parts[i];
+          const isLast = i === len - 1;
+          const tempNodes = [];
+          for (let j = 0, len2 = curNodes.length; j < len2; j++) {
+            const node = curNodes[j];
+            const nextNode = node.#children[part];
+            if (nextNode) {
+              nextNode.#params = node.#params;
+              if (isLast) {
+                if (nextNode.#children["*"]) {
+                  this.#pushHandlerSets(handlerSets, nextNode.#children["*"], method, node.#params);
+                }
+                this.#pushHandlerSets(handlerSets, nextNode, method, node.#params);
+              } else {
+                tempNodes.push(nextNode);
+              }
+            }
+            for (let k = 0, len3 = node.#patterns.length; k < len3; k++) {
+              const pattern = node.#patterns[k];
+              const params = node.#params === emptyParams2 ? {} : { ...node.#params };
+              if (pattern === "*") {
+                const astNode = node.#children["*"];
+                if (astNode) {
+                  this.#pushHandlerSets(handlerSets, astNode, method, node.#params);
+                  astNode.#params = params;
+                  tempNodes.push(astNode);
+                }
+                continue;
+              }
+              const [key, name, matcher] = pattern;
+              if (!part && !(matcher instanceof RegExp)) {
+                continue;
+              }
+              const child = node.#children[key];
+              if (matcher instanceof RegExp) {
+                if (partOffsets === null) {
+                  partOffsets = new Array(len);
+                  let offset = path[0] === "/" ? 1 : 0;
+                  for (let p = 0; p < len; p++) {
+                    partOffsets[p] = offset;
+                    offset += parts[p].length + 1;
+                  }
+                }
+                const restPathString = path.substring(partOffsets[i]);
+                const m = matcher.exec(restPathString);
+                if (m) {
+                  params[name] = m[0];
+                  this.#pushHandlerSets(handlerSets, child, method, node.#params, params);
+                  if (hasChildren2(child.#children)) {
+                    child.#params = params;
+                    const componentCount = m[0].match(/\//)?.length ?? 0;
+                    const targetCurNodes = curNodesQueue[componentCount] ||= [];
+                    targetCurNodes.push(child);
+                  }
+                  continue;
+                }
+              }
+              if (matcher === true || matcher.test(part)) {
+                params[name] = part;
+                if (isLast) {
+                  this.#pushHandlerSets(handlerSets, child, method, params, node.#params);
+                  if (child.#children["*"]) {
+                    this.#pushHandlerSets(
+                      handlerSets,
+                      child.#children["*"],
+                      method,
+                      params,
+                      node.#params
+                    );
+                  }
+                } else {
+                  child.#params = params;
+                  tempNodes.push(child);
+                }
+              }
+            }
+          }
+          const shifted = curNodesQueue.shift();
+          curNodes = shifted ? tempNodes.concat(shifted) : tempNodes;
+        }
+        if (handlerSets.length > 1) {
+          handlerSets.sort((a, b) => {
+            return a.score - b.score;
+          });
+        }
+        return [handlerSets.map(({ handler, params }) => [handler, params])];
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/trie-router/router.js
+var require_router4 = __commonJS({
+  "node_modules/hono/dist/cjs/router/trie-router/router.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var router_exports = {};
+    __export(router_exports, {
+      TrieRouter: () => TrieRouter3
+    });
+    module.exports = __toCommonJS(router_exports);
+    var import_url6 = require_url();
+    var import_node4 = require_node2();
+    var TrieRouter3 = class {
+      name = "TrieRouter";
+      #node;
+      constructor() {
+        this.#node = new import_node4.Node();
+      }
+      add(method, path, handler) {
+        const results = (0, import_url6.checkOptionalParameter)(path);
+        if (results) {
+          for (let i = 0, len = results.length; i < len; i++) {
+            this.#node.insert(method, results[i], handler);
+          }
+          return;
+        }
+        this.#node.insert(method, path, handler);
+      }
+      match(method, path) {
+        return this.#node.search(method, path);
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/router/trie-router/index.js
+var require_trie_router = __commonJS({
+  "node_modules/hono/dist/cjs/router/trie-router/index.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var trie_router_exports = {};
+    __export(trie_router_exports, {
+      TrieRouter: () => import_router11.TrieRouter
+    });
+    module.exports = __toCommonJS(trie_router_exports);
+    var import_router11 = require_router4();
+  }
+});
+
+// node_modules/hono/dist/cjs/hono.js
+var require_hono = __commonJS({
+  "node_modules/hono/dist/cjs/hono.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var hono_exports = {};
+    __export(hono_exports, {
+      Hono: () => Hono4
+    });
+    module.exports = __toCommonJS(hono_exports);
+    var import_hono_base2 = require_hono_base();
+    var import_reg_exp_router2 = require_reg_exp_router();
+    var import_smart_router2 = require_smart_router();
+    var import_trie_router2 = require_trie_router();
+    var Hono4 = class extends import_hono_base2.HonoBase {
+      /**
+       * Creates an instance of the Hono class.
+       *
+       * @param options - Optional configuration options for the Hono instance.
+       */
+      constructor(options = {}) {
+        super(options);
+        this.router = options.router ?? new import_smart_router2.SmartRouter({
+          routers: [new import_reg_exp_router2.RegExpRouter(), new import_trie_router2.TrieRouter()]
+        });
+      }
+    };
+  }
+});
+
+// node_modules/hono/dist/cjs/index.js
+var require_cjs = __commonJS({
+  "node_modules/hono/dist/cjs/index.js"(exports, module) {
+    var __defProp = Object.defineProperty;
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+    var index_exports = {};
+    __export(index_exports, {
+      Context: () => import_context3.Context,
+      Hono: () => import_hono3.Hono
+    });
+    module.exports = __toCommonJS(index_exports);
+    var import_hono3 = require_hono();
+    var import_context3 = require_context();
+  }
+});
+
 // node_modules/@hono/node-server/dist/constants-BLSFu_RU.mjs
 var X_ALREADY_SENT = "x-hono-already-sent";
 
@@ -1577,7 +4631,7 @@ var setDefaultContentType = (contentType2, headers) => {
   };
 };
 var createResponseInstance = (body, init) => new Response(body, init);
-var Context = class {
+var Context2 = class {
   #rawRequest;
   #req;
   /**
@@ -1998,7 +5052,7 @@ var errorHandler = (err, c) => {
   console.error(err);
   return c.text("Internal Server Error", 500);
 };
-var Hono = class _Hono {
+var Hono2 = class _Hono {
   get;
   post;
   put;
@@ -2263,7 +5317,7 @@ var Hono = class _Hono {
     }
     const path = this.getPath(request, { env: env2 });
     const matchResult = this.router.match(method, path);
-    const c = new Context(request, {
+    const c = new Context2(request, {
       path,
       matchResult,
       env: env2,
@@ -2629,7 +5683,7 @@ function findMiddleware(middleware, path) {
   }
   return void 0;
 }
-var RegExpRouter = class {
+var RegExpRouter2 = class {
   name = "RegExpRouter";
   #middleware;
   #routes;
@@ -2727,7 +5781,7 @@ var RegExpRouter = class {
 };
 
 // node_modules/hono/dist/router/smart-router/router.js
-var SmartRouter = class {
+var SmartRouter2 = class {
   name = "SmartRouter";
   #routers = [];
   #routes = [];
@@ -2957,7 +6011,7 @@ var Node2 = class _Node2 {
 };
 
 // node_modules/hono/dist/router/trie-router/router.js
-var TrieRouter = class {
+var TrieRouter2 = class {
   name = "TrieRouter";
   #node;
   constructor() {
@@ -2979,7 +6033,7 @@ var TrieRouter = class {
 };
 
 // node_modules/hono/dist/hono.js
-var Hono2 = class extends Hono {
+var Hono3 = class extends Hono2 {
   /**
    * Creates an instance of the Hono class.
    *
@@ -2987,8 +6041,8 @@ var Hono2 = class extends Hono {
    */
   constructor(options = {}) {
     super(options);
-    this.router = options.router ?? new SmartRouter({
-      routers: [new RegExpRouter(), new TrieRouter()]
+    this.router = options.router ?? new SmartRouter2({
+      routers: [new RegExpRouter2(), new TrieRouter2()]
     });
   }
 };
@@ -3802,7 +6856,7 @@ var feishuAppId = env.FEISHU_APP_ID ?? "";
 var feishuAppSecret = env.FEISHU_APP_SECRET ?? "";
 var feishuToken = "";
 var feishuTokenExpireAt = 0;
-var app = new Hono2();
+var app = new Hono3();
 app.use("/api/*", cors());
 var health = (c) => c.json({ ok: true, hasKey: Boolean(apiKey), model, maxItems: MAX_ITEMS });
 app.get("/health", health);
@@ -3924,8 +6978,20 @@ app.get("/api/feishu/records", async (c) => {
 var app_default = app;
 
 // server/vercel.ts
-var apiRouter = app_default.route("/api");
-var vercel_default = getRequestListener(apiRouter.fetch);
+function createRequest(c) {
+  const url = new URL(c.req.url);
+  const newUrl = new URL(`http://localhost/api${url.pathname}${url.search}`);
+  return new Request(newUrl.toString(), {
+    method: c.req.method,
+    headers: c.req.headers,
+    body: c.req.body
+  });
+}
+var vercelApp = new (require_cjs()).Hono();
+vercelApp.all("/*", async (c) => {
+  return app_default.fetch(createRequest(c));
+});
+var vercel_default = getRequestListener(vercelApp.fetch);
 export {
   vercel_default as default
 };
