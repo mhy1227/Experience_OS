@@ -6978,24 +6978,38 @@ app.get("/api/feishu/records", async (c) => {
 var app_default = app;
 
 // server/vercel.ts
+function buildQuery(query) {
+  const parts = [];
+  for (const [key, value] of Object.entries(query)) {
+    if (value === void 0) continue;
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
+      }
+    } else {
+      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+    }
+  }
+  return parts.join("&");
+}
 var vercelApp = new (require_cjs()).Hono();
 vercelApp.all("/health", async (c) => {
   return app_default.fetch(new Request("http://localhost/api/health", { method: "GET", headers: c.req.headers }));
 });
 vercelApp.all("/feishu/tables", async (c) => {
-  const url = c.req.url;
-  const query = url.includes("?") ? url.split("?")[1] : "";
-  return app_default.fetch(new Request(`http://localhost/api/feishu/tables?${query}`, { method: "GET", headers: c.req.headers }));
+  const query = buildQuery(c.req.query());
+  const url = query ? `http://localhost/api/feishu/tables?${query}` : "http://localhost/api/feishu/tables";
+  return app_default.fetch(new Request(url, { method: "GET", headers: c.req.headers }));
 });
 vercelApp.all("/feishu/fields", async (c) => {
-  const url = c.req.url;
-  const query = url.includes("?") ? url.split("?")[1] : "";
-  return app_default.fetch(new Request(`http://localhost/api/feishu/fields?${query}`, { method: "GET", headers: c.req.headers }));
+  const query = buildQuery(c.req.query());
+  const url = query ? `http://localhost/api/feishu/fields?${query}` : "http://localhost/api/feishu/fields";
+  return app_default.fetch(new Request(url, { method: "GET", headers: c.req.headers }));
 });
 vercelApp.all("/feishu/records", async (c) => {
-  const url = c.req.url;
-  const query = url.includes("?") ? url.split("?")[1] : "";
-  return app_default.fetch(new Request(`http://localhost/api/feishu/records?${query}`, { method: "GET", headers: c.req.headers }));
+  const query = buildQuery(c.req.query());
+  const url = query ? `http://localhost/api/feishu/records?${query}` : "http://localhost/api/feishu/records";
+  return app_default.fetch(new Request(url, { method: "GET", headers: c.req.headers }));
 });
 vercelApp.all("/analyze", async (c) => {
   const body = await c.req.text();

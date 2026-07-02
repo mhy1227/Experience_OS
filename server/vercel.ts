@@ -7,6 +7,21 @@
 import { getRequestListener } from '@hono/node-server'
 import app from './app'
 
+function buildQuery(query: Record<string, string | string[] | undefined>): string {
+  const parts: string[] = []
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined) continue
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`)
+      }
+    } else {
+      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    }
+  }
+  return parts.join('&')
+}
+
 const vercelApp = new (require('hono').Hono)()
 
 vercelApp.all('/health', async (c) => {
@@ -14,21 +29,21 @@ vercelApp.all('/health', async (c) => {
 })
 
 vercelApp.all('/feishu/tables', async (c) => {
-  const url = c.req.url
-  const query = url.includes('?') ? url.split('?')[1] : ''
-  return app.fetch(new Request(`http://localhost/api/feishu/tables?${query}`, { method: 'GET', headers: c.req.headers }))
+  const query = buildQuery(c.req.query())
+  const url = query ? `http://localhost/api/feishu/tables?${query}` : 'http://localhost/api/feishu/tables'
+  return app.fetch(new Request(url, { method: 'GET', headers: c.req.headers }))
 })
 
 vercelApp.all('/feishu/fields', async (c) => {
-  const url = c.req.url
-  const query = url.includes('?') ? url.split('?')[1] : ''
-  return app.fetch(new Request(`http://localhost/api/feishu/fields?${query}`, { method: 'GET', headers: c.req.headers }))
+  const query = buildQuery(c.req.query())
+  const url = query ? `http://localhost/api/feishu/fields?${query}` : 'http://localhost/api/feishu/fields'
+  return app.fetch(new Request(url, { method: 'GET', headers: c.req.headers }))
 })
 
 vercelApp.all('/feishu/records', async (c) => {
-  const url = c.req.url
-  const query = url.includes('?') ? url.split('?')[1] : ''
-  return app.fetch(new Request(`http://localhost/api/feishu/records?${query}`, { method: 'GET', headers: c.req.headers }))
+  const query = buildQuery(c.req.query())
+  const url = query ? `http://localhost/api/feishu/records?${query}` : 'http://localhost/api/feishu/records'
+  return app.fetch(new Request(url, { method: 'GET', headers: c.req.headers }))
 })
 
 vercelApp.all('/analyze', async (c) => {
